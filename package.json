@@ -1,0 +1,37 @@
+{
+  "name": "time-series-creator",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "@eagle-io/timeseries": "^1.0.5",
+    "@mdi/font": "7.0.96",
+    "@stdlib/array": "^0.0.12",
+    "@stdlib/random": "^0.0.12",
+    "@stdlib/stats": "^0.0.13",
+    "@stdlib/utils": "^0.0.12",
+    "core-js": "^3.29.0",
+    "d3": "^7.8.5",
+    "luxon": "^3.4.3",
+    "pinia": "^2.0.0",
+    "roboto-fontface": "*",
+    "vue": "^3.2.0",
+    "vue-router": "^4.0.0",
+    "vuetify": "^3.3.20"
+  },
+  "devDependencies": {
+    "@stdlib/types": "^0.1.0",
+    "@vitejs/plugin-vue": "^4.0.0",
+    "eslint": "^8.37.0",
+    "eslint-plugin-vue": "^9.3.0",
+    "sass": "^1.60.0",
+    "unplugin-fonts": "^1.0.3",
+    "vite": "^4.2.0",
+    "vite-plugin-vuetify": "^1.0.0"
+  }
+}
