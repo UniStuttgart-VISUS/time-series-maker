@@ -29,6 +29,10 @@
             type: Number,
             default: 300
         },
+        idAttr: {
+            type: String,
+            default: "id"
+        },
         xAttr: {
             type: String,
             default: "x"
@@ -49,10 +53,6 @@
             type: Array,
             required: false
         },
-        colorScale: {
-            type: String,
-            default: "schemeTableau10"
-        }
     });
 
     const el = ref(null);
@@ -60,8 +60,9 @@
     const x = d => d[props.xAttr]
     const y = d => d[props.yAttr]
     const color = d => d[props.colorAttr]
+    const id = d => d[props.idAttr]
 
-    let xScale, yScale, zoom;
+    let xScale, yScale, paths, zoom;
 
     const app = useApp();
 
@@ -99,12 +100,9 @@
             .range([props.height - 25, 10])
 
         const line = d3.line()
-            .curve(d3.curveNatural)
+            .curve(d3.curveMonotoneX)
             .x(d => xScale(x(d)))
             .y(d => yScale(y(d)))
-
-        const colorScale = d3.scaleOrdinal(d3[props.colorScale])
-            .domain(props.data.map(d => color(d)))
 
         const zeroLine = svg.append("line")
             .attr("x1", xScale(xDomain[0]))
@@ -114,13 +112,13 @@
             .attr("stroke", "black")
             .attr("stroke-width", 1)
 
-        const paths = svg.append("g")
+        paths = svg.append("g")
             .selectAll("path")
             .data(props.data)
             .join("path")
             .attr("d", d => line(d.values))
-            .attr("stroke", d => colorScale(color(d)))
-            .attr("stroke-opacity", d => d.opacity)
+            .attr("stroke", d => app.colorScale(color(d)))
+            .attr("stroke-opacity", d => app.isSelected(id(d)) ? 1 : d.opacity)
             .attr("stroke-width", 2)
             .attr("fill", "none")
 
@@ -174,8 +172,13 @@
             .call(zoom.transform, d3.zoomIdentity)
     }
 
+    function highlight() {
+        paths.attr("stroke-opacity", d => app.isSelected(id(d)) ? 1 : d.opacity)
+    }
+
     onMounted(draw);
 
     watch(() => props.data, draw, { deep: true })
     watch(() => [props.width, props.height, props.xDomain, props.yDomain], draw, { deep: true })
+    watch(() => app.selected, highlight, { deep: true })
 </script>

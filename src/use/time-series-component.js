@@ -1,4 +1,5 @@
 import Generator from "./generators";
+import randi from "@stdlib/random/base/randi";
 
 export default class TimeSeriesComponent {
 
@@ -10,16 +11,14 @@ export default class TimeSeriesComponent {
         this.generator = generator;
     }
 
-    setGenerator(generator) {
-        if (generator.key !== this.generator.key) {
+    setSeed(seed) {
+        this.generator.seed = seed;
+        this.generate();
+    }
 
-            this.id = this._ts.getID(generator);
-            this.generator = generator;
-
-            if (this.data.length > 0) {
-                this.generate(this.data.length);
-            }
-        }
+    randomSeed() {
+        this.generator.seed = randi();
+        this.generate();
     }
 
     generate(samples) {

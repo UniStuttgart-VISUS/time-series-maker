@@ -616,6 +616,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stdlib/simulate@npm:^0.0.10":
+  version: 0.0.10
+  resolution: "@stdlib/simulate@npm:0.0.10"
+  dependencies:
+    "@stdlib/assert": ^0.0.x
+    "@stdlib/constants": ^0.0.x
+    "@stdlib/math": ^0.0.x
+    "@stdlib/random": ^0.0.x
+    "@stdlib/symbol": ^0.0.x
+    "@stdlib/types": ^0.0.x
+    "@stdlib/utils": ^0.0.x
+  checksum: 4ee7507556749e01576d94f152e038c9f87de5361ad6cc4a2815122497e299c5a27c64cd4f94ca07e504dcce09cca7c755ae163ab1bbce50f9e9a62dd855e6c9
+  conditions: (os=aix | os=darwin | os=freebsd | os=linux | os=macos | os=openbsd | os=sunos | os=win32 | os=windows)
+  languageName: node
+  linkType: hard
+
 "@stdlib/stats@npm:^0.0.13, @stdlib/stats@npm:^0.0.x":
   version: 0.0.13
   resolution: "@stdlib/stats@npm:0.0.13"
@@ -3302,6 +3318,7 @@ __metadata:
     "@mdi/font": 7.0.96
     "@stdlib/array": ^0.0.12
     "@stdlib/random": ^0.0.12
+    "@stdlib/simulate": ^0.0.10
     "@stdlib/stats": ^0.0.13
     "@stdlib/types": ^0.1.0
     "@stdlib/utils": ^0.0.12

@@ -3,14 +3,15 @@ import datespace from '@stdlib/array/datespace';
 import inmap from '@stdlib/utils/inmap';
 import forEach from '@stdlib/utils/for-each';
 import TimeSeriesComponent from './time-series-component';
-import GENERATOR_DEFAULTS, { GEN_TYPES } from "./generator_default";
+import GENERATOR_DEFAULTS, { GENERATOR_DEFAULT_NAMES } from "./generator-defaults";
 import Generator from './generators';
+import randi from '@stdlib/random/base/randi';
 
-function add(a, b) { return a + b };
+function add(a, b) { return a+b; }
 
 export default class TimeSeries {
 
-    constructor(samples=100, min=-10, max=10, start="2022-01-01T12:00", end="2022-12-31T12:00") {
+    constructor(samples=100, min=-2, max=2, start="2022-01-01T12:00", end="2022-12-31T12:00") {
         this.samples = samples;
         this.start = start;
         this.end = end;
@@ -31,9 +32,14 @@ export default class TimeSeries {
         return generator.title + ` ${count}`;
     }
 
+    randomSeed() {
+        this.components.forEach(c => c.setSeed(randi()));
+        this.generate();
+    }
+
     addComponent(generatorType) {
         if (generatorType && (generatorType in GENERATOR_DEFAULTS)) {
-            const generator = new Generator(generatorType);
+            const generator = new Generator(generatorType, randi());
             this.components.push(new TimeSeriesComponent(this, generator))
         } else {
             this.components.push(new TimeSeriesComponent(this))
@@ -45,7 +51,7 @@ export default class TimeSeries {
         if (idx >= 0) {
             this.components.splice(idx, 1)
             const IDS = {}
-            GEN_TYPES.forEach(d => IDS[d.key] = 0);
+            GENERATOR_DEFAULT_NAMES.forEach(d => IDS[d.key] = 0);
             this.components.forEach(c => {
                 c.id = c.generator.title + ` ${IDS[c.generator.key]++}`;
             });
@@ -78,22 +84,24 @@ export default class TimeSeries {
             this.generate();
         }
 
-        const result = [];
-        forEach(this.dataY, (d, i) => result.push([this.dataX[i], d]));
-        data.push({
-            color: "result",
-            opacity: 1,
-            values: result
-        });
-
         this.components.forEach(c => {
             const result = [];
             forEach(c.data, (d, i) => result.push([this.dataX[i], d ]));
             data.push({
+                id: c.id,
                 color: c.generator.type,
                 opacity: 0.33,
                 values: result
             });
+        });
+
+        const result = [];
+        forEach(this.dataY, (d, i) => result.push([this.dataX[i], d]));
+        data.push({
+            id: "result",
+            color: "result",
+            opacity: 1,
+            values: result
         });
 
         return data;
