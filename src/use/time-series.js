@@ -32,6 +32,10 @@ export default class TimeSeries {
         return generator.title + ` ${count}`;
     }
 
+    hasID(id) {
+        return this.components.find(c => c.id === id) !== undefined;
+    }
+
     randomSeed() {
         this.components.forEach(c => c.setSeed(randi()));
         this.generate();
@@ -53,7 +57,11 @@ export default class TimeSeries {
             const IDS = {}
             GENERATOR_DEFAULT_NAMES.forEach(d => IDS[d.key] = 0);
             this.components.forEach(c => {
-                c.id = c.generator.title + ` ${IDS[c.generator.key]++}`;
+                if (!c.hasCustomID) {
+                    c.id = c.generator.title + ` ${IDS[c.generator.key]++}`;
+                } else {
+                    IDS[c.generator.key]++;
+                }
             });
         }
     }
