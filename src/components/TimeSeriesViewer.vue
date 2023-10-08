@@ -56,7 +56,7 @@
         </v-sheet>
 
         <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
-            <ComponentOperatorViewer :compositor="timeseries.compositor" @update="update(true)"/>
+            <ComponentOperatorViewer :compositor="timeseries.compositor" @update="update(true)" @switch="switchComponents"/>
         </v-sheet>
     </div>
 
@@ -90,6 +90,10 @@ import ComponentOperatorViewer from './ComponentOperatorViewer.vue';
     }
     function removeComponent(id) {
         timeseries.removeComponent(id);
+        update(true);
+    }
+    function switchComponents(from, to) {
+        timeseries.switchComponents(from, to);
         update(true);
     }
 

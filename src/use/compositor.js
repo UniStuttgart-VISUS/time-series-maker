@@ -101,6 +101,10 @@ class Compositor {
         return this.flat.find(d => d.id === id);
     }
 
+    getNodeIndex(id) {
+        return this.flat.findIndex(d => d.id === id);
+    }
+
     addData(id, name) {
 
         // when tree is empty
@@ -118,6 +122,7 @@ class Compositor {
                 this.addData(id, name)
             }
         }
+        this.tree = null;
     }
 
     addOperator(op) {
@@ -135,12 +140,18 @@ class Compositor {
         } else {
             this.flat.push({ name: op, id: id, type: NODE_TYPE.OPERATOR });
         }
+        this.tree = null;
     }
 
     remove(id) {
         const index = this.flat.findIndex(node => node.id === id);
         if (index >= 0) {
-            this.flat.splice(index, 1);
+            const isOp = this.flat[index].type === NODE_TYPE.OPERATOR;
+            this.flat.splice(
+                isOp || index === 0 ? index : index-1,
+                2
+            );
+            this.tree = null;
         }
     }
 
@@ -148,6 +159,21 @@ class Compositor {
         const node = this.flat.find(node => node.id === id);
         if (node) {
             node.name = newOp;
+            this.tree = null;
+        }
+    }
+
+    switchData(fromID, toID) {
+        const fromIndex = this.getNodeIndex(fromID);
+        const toIndex = this.getNodeIndex(toID);
+        if (fromIndex >= 0 && fromIndex <= this.flat.length &&
+            toIndex >= 0 && toIndex <= this.flat.length &&
+            fromIndex !== toIndex
+        ) {
+            const from = this.flat[fromIndex];
+            this.flat[fromIndex] = this.flat[toIndex];
+            this.flat[toIndex] = from;
+            this.tree = null;
         }
     }
 
@@ -157,35 +183,6 @@ class Compositor {
                 node.name = name;
             }
         });
-    }
-
-    _treeFindGroup(id) {
-
-        const find = g => {
-
-            if ((!(g.left instanceof CompGroup) && g.left === id) || g.op === id ||
-                (!(g.right instanceof CompGroup) && g.right === id)
-            ) {
-                return g;
-            }
-
-            if (g.left instanceof CompGroup) {
-                const result = find(g.left);
-                if (result !== null) {
-                    return result;
-                }
-            }
-            if (g.right instanceof CompGroup) {
-                const result = find(g.right);
-                if (result !== null) {
-                    return result;
-                }
-            }
-
-            return null;
-        }
-
-        return this.find(this.tree)
     }
 
     _makeTree() {

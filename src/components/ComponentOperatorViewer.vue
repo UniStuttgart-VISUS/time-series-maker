@@ -1,7 +1,13 @@
 <template>
     <div class="d-flex flex-column justify-start align-center">
-        <div v-for="(item, index) in compositor.flat" :key="index">
-            <v-chip v-if="item.type === NODE_TYPE.DATA">{{ item.name }}</v-chip>
+        <div v-for="item in compositor.flat" :key="item.id">
+            <v-chip v-if="item.type === NODE_TYPE.DATA"
+                draggable
+                @dragover.prevent
+                @drop="onDrop(item.id)"
+                @dragstart="dragSrc = item.id">
+                {{ item.name }}
+            </v-chip>
 
             <v-btn-toggle v-else :model-value="item.name" divided density="compact" class="mt-1 mb-1" mandatory>
                 <v-btn :icon="operatorToIcon(OPERATOR.SUBTRACT)" :value="OPERATOR.SUBTRACT"
@@ -17,6 +23,7 @@
 
 <script setup>
     import Compositor, { NODE_TYPE, OPERATOR } from '@/use/compositor';
+    import { ref } from 'vue';
 
     const props = defineProps({
         compositor: {
@@ -24,7 +31,9 @@
             required: true
         },
     });
-    const emit = defineEmits(["update"])
+    const emit = defineEmits(["update", "switch"])
+
+    const dragSrc = ref(0);
 
     function operatorToIcon(name) {
         switch (name) {
@@ -38,6 +47,12 @@
     function setOperator(id, op) {
         props.compositor.setOperator(id, op);
         emit("update");
+    }
+
+    function onDrop(id) {
+        if (dragSrc.value !== id) {
+            emit("switch", dragSrc.value, id);
+        }
     }
 
 </script>

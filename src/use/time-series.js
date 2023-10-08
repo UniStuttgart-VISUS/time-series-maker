@@ -44,6 +44,10 @@ export default class TimeSeries {
         return this.components.find(c => c.id === id)
     }
 
+    getComponentIndex(id) {
+        return this.components.findIndex(c => c.id === id)
+    }
+
     randomSeed() {
         this.components.forEach(c => c.setSeed(randi()));
         this.generate();
@@ -56,7 +60,6 @@ export default class TimeSeries {
         } else {
             this.components.push(new TimeSeriesComponent(this))
         }
-        // TODO: what about renaming?
         this.compositor.addData(
             this.components[this.components.length-1].id,
             this.components[this.components.length-1].name
@@ -67,11 +70,22 @@ export default class TimeSeries {
         const idx = this.componentIDs.indexOf(id);
         if (idx >= 0) {
             this.components.splice(idx, 1)
-            const IDS = {}
-            GENERATOR_DEFAULT_NAMES.forEach(d => IDS[d.key] = 0);
-            this.components.forEach(c => {
-                c.id = c.generator.title + ` ${IDS[c.generator.key]++}`;
-            });
+            this.compositor.remove(id);
+        }
+    }
+
+    switchComponents(fromID, toID) {
+        const fromIndex = this.getComponentIndex(fromID);
+        const toIndex = this.getComponentIndex(toID);
+        if (fromIndex >= 0 && fromIndex <= this.components.length &&
+            toIndex >= 0 && toIndex <= this.components.length &&
+            fromIndex !== toIndex
+        ) {
+            const from = this.components[fromIndex];
+            this.components[fromIndex] = this.components[toIndex];
+            this.components[toIndex] = from;
+
+            this.compositor.switchData(fromID, toID);
         }
     }
 
