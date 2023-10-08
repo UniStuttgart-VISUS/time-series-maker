@@ -3,13 +3,13 @@
         <div class="d-flex">
             <v-icon icon="mdi-circle" class="mr-2" :color="app.colorScale(component.generator.type)"/>
             <div>
-                <input ref="idInput" v-model="id"
+                <input ref="nameInput" v-model="name"
                     class="mr-2"
                     style="vertical-align: middle;"
                     type="text"
-                    :readonly="!editID"
+                    :readonly="!editName"
                     @keyup="editKeyUp">
-                <v-icon :icon="editID ? 'mdi-check' : 'mdi-pencil'" @click.stop="toggleEdit()"/>
+                <v-icon :icon="editName ? 'mdi-check' : 'mdi-pencil'" @click.stop="toggleEdit()"/>
             </div>
         </div>
         <v-btn class="mr-2"
@@ -35,23 +35,24 @@
     const emit = defineEmits(["remove", "rename"])
 
     const app = useApp();
-    const idInput = ref(null);
+    const nameInput = ref(null);
 
-    const id = ref(props.component.id);
-    const editID = ref(false);
+    const name = ref(props.component.name);
+    const editName = ref(false);
 
     function toggleEdit() {
-        if (editID.value) {
-            props.component.setID(id.value)
-            emit("rename", props.component.id);
+        if (editName.value) {
+            props.component.setName(name.value)
+            nameInput.value.blur();
+            emit("rename", props.component.name);
         } else {
-            idInput.value.focus();
-            idInput.value.select();
+            nameInput.value.focus();
+            nameInput.value.select();
         }
-        editID.value = !editID.value;
+        editName.value = !editName.value;
     }
     function editKeyUp(event) {
-        if (editID.value && event.key === "Enter") {
+        if (editName.value && event.key === "Enter") {
             toggleEdit();
         }
     }

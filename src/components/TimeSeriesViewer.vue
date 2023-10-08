@@ -1,46 +1,10 @@
 <template>
+
     <div class="d-flex justify-center align-start">
 
         <v-sheet width="400" class="ma-2" rounded="sm">
-            <v-text-field v-model.number="numSamples"
-                label="number of samples"
-                type="number"
-                hide-details
-                density="compact"
-                min="2" step="1"
-                @update:modelValue="setSamples"/>
 
-            <v-text-field v-model="start"
-                label="start date"
-                type="datetime-local"
-                hide-details
-                density="compact"
-                @update:modelValue="setStart"/>
-
-            <v-text-field v-model="end"
-                label="start date"
-                type="datetime-local"
-                hide-details
-                density="compact"
-                @update:modelValue="setEnd"/>
-
-            <v-text-field v-model.number="min"
-                label="minimum value"
-                type="number"
-                step="0.01"
-                density="compact"
-                hide-details
-                :rules="[v => v < max ? true : 'must be smaller than maximum']"
-                @update:modelValue="setMin"/>
-
-            <v-text-field v-model.number="max"
-                label="maximum value"
-                type="number"
-                step="0.01"
-                density="compact"
-                hide-details
-                :rules="[v => v > min ? true : 'must be larger than minimum']"
-                @update:modelValue="setMax"/>
+            <TimeSeriesSettings :timeseries="timeseries" @update="update(true)"/>
 
             <div class="d-flex justify-space-between align-center mt-2">
                 <v-btn icon="mdi-dice-6"
@@ -88,7 +52,11 @@
         </v-sheet>
 
         <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
-            <LineChart :data="lineData" x-attr="0" y-attr="1" :y-domain="[min, max]"/>
+            <LineChart :data="lineData" x-attr="0" y-attr="1" :y-domain="[timeseries.min, timeseries.max]"/>
+        </v-sheet>
+
+        <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
+            <ComponentOperatorViewer :compositor="timeseries.compositor" @update="update(true)"/>
         </v-sheet>
     </div>
 
@@ -104,36 +72,18 @@
 
     import { GENERATOR_DEFAULT_NAMES } from '@/use/generator-defaults';
     import { useApp } from '@/store/app';
+import TimeSeriesSettings from './TimeSeriesSettings.vue';
+import ComponentOperatorViewer from './ComponentOperatorViewer.vue';
 
     const app = useApp()
     const timeseries = reactive(new TimeSeries());
     const selectedComponents = ref([])
 
-    const numSamples = ref(timeseries.samples);
-    const start = ref(timeseries.start);
-    const end = ref(timeseries.end);
-    const min = ref(timeseries.min);
-    const max = ref(timeseries.max);
     const generatorType = ref(GENERATOR_DEFAULT_NAMES[0].key)
 
     let lineData = ref([]);
 
-    function setMin() { timeseries.min = min.value; }
-    function setMax() { timeseries.max = max.value; }
-    function setStart() {
-        timeseries.start = start.value;
-        update(true);
-    }
-    function setEnd() {
-        timeseries.end = end.value;
-        update(true);
-    }
-    function setSamples() {
-        if (numSamples.value > 0) {
-            timeseries.samples = numSamples.value;
-            update(true);
-        }
-    }
+
     function addComponent() {
         timeseries.addComponent(generatorType.value);
         update(true)

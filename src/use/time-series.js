@@ -6,8 +6,11 @@ import TimeSeriesComponent from './time-series-component';
 import GENERATOR_DEFAULTS, { GENERATOR_DEFAULT_NAMES } from "./generator-defaults";
 import Generator from './generators';
 import randi from '@stdlib/random/base/randi';
+import Compositor, { OPERATOR } from './compositor';
 
 function add(a, b) { return a+b; }
+function subtract(a, b) { return a-b; }
+function multiply(a, b) { return a*b; }
 
 export default class TimeSeries {
 
@@ -20,6 +23,7 @@ export default class TimeSeries {
         this.dataX = [];
         this.dataY = [];
         this.components = [];
+        this.compositor = new Compositor();
         this.addComponent();
     }
 
@@ -33,7 +37,11 @@ export default class TimeSeries {
     }
 
     hasID(id) {
-        return this.components.find(c => c.id === id) !== undefined;
+        return this.getComponent(id) !== undefined;
+    }
+
+    getComponent(id) {
+        return this.components.find(c => c.id === id)
     }
 
     randomSeed() {
@@ -48,6 +56,11 @@ export default class TimeSeries {
         } else {
             this.components.push(new TimeSeriesComponent(this))
         }
+        // TODO: what about renaming?
+        this.compositor.addData(
+            this.components[this.components.length-1].id,
+            this.components[this.components.length-1].name
+        );
     }
 
     removeComponent(id) {
@@ -57,11 +70,7 @@ export default class TimeSeries {
             const IDS = {}
             GENERATOR_DEFAULT_NAMES.forEach(d => IDS[d.key] = 0);
             this.components.forEach(c => {
-                if (!c.hasCustomID) {
-                    c.id = c.generator.title + ` ${IDS[c.generator.key]++}`;
-                } else {
-                    IDS[c.generator.key]++;
-                }
+                c.id = c.generator.title + ` ${IDS[c.generator.key]++}`;
             });
         }
     }
@@ -69,15 +78,37 @@ export default class TimeSeries {
     generate() {
         let values = null;
 
-        this.components.forEach(c => {
-            if (c.data.length !== this.samples) {
-                c.generate(this.samples)
+        this.compositor.iterate((op, right, left) => {
+
+            if (left) {
+                const c = this.getComponent(left.id);
+                if (c.data.length !== this.samples) {
+                    c.generate(this.samples)
+                }
+
+                if (values === null) {
+                    values = copy(c.data)
+                }
             }
 
-            if (values === null) {
-                values = copy(c.data)
-            } else {
-                inmap(values, (val, index) =>  val + c.data[index], add);
+            if (op && right) {
+                const c = this.getComponent(right.id);
+                if (c.data.length !== this.samples) {
+                    c.generate(this.samples)
+                }
+
+                switch(op.name) {
+                    default:
+                    case OPERATOR.ADD:
+                        inmap(values, (val, index) => add(val, c.data[index]));
+                        break;
+                    case OPERATOR.MULTIPLY:
+                        inmap(values, (val, index) => multiply(val, c.data[index]));
+                        break;
+                    case OPERATOR.SUBTRACT:
+                        inmap(values, (val, index) => subtract(val, c.data[index]));
+                        break;
+                }
             }
         });
 

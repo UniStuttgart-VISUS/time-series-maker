@@ -7,18 +7,14 @@ export default class TimeSeriesComponent {
         generator = generator ? generator : new Generator()
         this._ts = timeseries;
         this.id = this._ts.getID(generator)
-        this.hasCustomID = false;
+        this.name = this.id;
         this.data = [];
         this.generator = generator;
     }
 
-    setID(id) {
-        if (!this._ts.hasID(id)) {
-            this.id = id;
-            this.hasCustomID = true;
-        } else {
-            console.error(`ID "${id}" already in use`);
-        }
+    setName(name) {
+        this.name = name;
+        this._ts.compositor.rename(this.id, this.name);
     }
 
     setSeed(seed) {

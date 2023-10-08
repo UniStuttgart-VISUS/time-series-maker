@@ -118,7 +118,7 @@
             .join("path")
             .attr("d", d => line(d.values))
             .attr("stroke", d => app.colorScale(color(d)))
-            .attr("stroke-opacity", d => app.isSelected(id(d)) ? 1 : d.opacity)
+            .attr("stroke-opacity", d => d.opacity)
             .attr("stroke-width", 2)
             .attr("fill", "none")
 
@@ -163,6 +163,8 @@
         svg.transition()
             .duration(500)
             .call(zoom.transform, app.lineChartZoom)
+
+        highlight()
     }
 
     function resetZoom() {
