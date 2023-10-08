@@ -1,6 +1,6 @@
 <template>
     <div class="d-flex flex-column justify-start align-center">
-        <div v-for="(item, index) in compositor.array" :key="index">
+        <div v-for="(item, index) in compositor.flat" :key="index">
             <v-chip v-if="item.type === NODE_TYPE.DATA">{{ item.name }}</v-chip>
 
             <v-btn-toggle v-else :model-value="item.name" divided density="compact" class="mt-1 mb-1" mandatory>

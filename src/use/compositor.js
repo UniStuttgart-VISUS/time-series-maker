@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import copy from "@stdlib/utils/copy";
 
 const OPERATOR = Object.freeze({
     ADD: "ADD",
@@ -7,8 +7,13 @@ const OPERATOR = Object.freeze({
 });
 const OPERATOR_PRECEDENCE = Object.freeze({
     ADD: 1,
-    SUBTRACT: 0,
+    SUBTRACT: 1,
     MULTIPLY: 2,
+});
+const PRECEDENCE_RESULT = Object.freeze({
+    SAME: 0,
+    MORE: 1,
+    LESS: -1,
 });
 
 const NODE_TYPE = Object.freeze({
@@ -19,12 +24,53 @@ const NODE_TYPE = Object.freeze({
 
 let ID_NUM = 0;
 
+class CompGroup {
+
+    constructor(parent=null) {
+        this.data = [];
+        this.parent = parent;
+        this.lastNode = null;
+    }
+
+    get size() { return this.data.length };
+
+    get left() { return this.data[0] }
+    set left(value) {
+        if (value === null) {
+            this.data = []
+        } else {
+            this.data[0] = value
+        }
+    }
+
+    get op() { return this.data[1] }
+    set op(value) {
+        if (value === null) {
+            this.data = [this.data[0]]
+        } else {
+            this.data[1] = value
+        }
+    }
+
+    get right() { return this.data[2] }
+    set right(value) {
+        if (value === null) {
+            this.data.pop();
+        } else {
+            this.data[2] = value
+        }
+    }
+
+    includes(value) {
+        return this.data.includes(value);
+    }
+}
+
 class Compositor {
 
     constructor() {
-        this.tree = { children: [] };
-        this.depth = 0;
-        this.array = [];
+        this.flat = [];
+        this.tree = null;
     }
 
     static nextID() {
@@ -32,7 +78,10 @@ class Compositor {
     }
 
     static precedence(opA, opB) {
-        return OPERATOR_PRECEDENCE[opA] - OPERATOR_PRECEDENCE[opB] >= 0;
+        const diff = OPERATOR_PRECEDENCE[opA] - OPERATOR_PRECEDENCE[opB];
+        if (diff < 0) return PRECEDENCE_RESULT.LESS;
+        else if (diff > 0) return PRECEDENCE_RESULT.MORE
+        return PRECEDENCE_RESULT.SAME;
     }
 
     static isOperator(item) {
@@ -40,98 +89,33 @@ class Compositor {
     }
 
     get size() {
-        return this.array.length;
+        return this.flat.length;
     }
 
     clear() {
-        this.tree = { children: [] };
-        this.depth = 0;
-        this.array = [];
+        this.tree = null;
+        this.flat = [];
     }
 
-    getOpenNode() {
-
-        const traverse = node => {
-            if (node.children.length === 0 || (node.children.length === 1 &&
-                node.type === NODE_TYPE.OPERATOR)
-            ) {
-                return node;
-            }
-
-            if (node.children[1]) {
-                return traverse(node.children[1])
-            }
-            if (node.children[0]) {
-                return traverse(node.children[0])
-            }
-
-            return null;
-        }
-
-        return traverse(this.tree)
+    getNode(id) {
+        return this.flat.find(d => d.id === id);
     }
 
     addData(id, name) {
 
         // when tree is empty
         if (this.size === 0) {
-
-            this.tree.name = OPERATOR.ADD;
-            this.tree.type = NODE_TYPE.OPERATOR;
-            this.tree.id = Compositor.nextID();
-
-            this.tree.children.push({
-                parent: this.tree,
-                type: NODE_TYPE.DATA,
-                name: name,
-                id: id,
-                children: []
-            });
-
-            this.depth = 1;
-
-            this.array.push({ name: name, id: id, type: NODE_TYPE.DATA });
-            this.array.push({
-                name: OPERATOR.ADD,
-                id: this.tree.id,
-                type: NODE_TYPE.OPERATOR
-            });
-
+            this.flat.push({ name: name, id: id, type: NODE_TYPE.DATA });
         } else {
 
-            const node = this.getOpenNode()
-            if (node) {
-                // last node is an operator
-                if (node.type === NODE_TYPE.OPERATOR) {
-
-                    console.assert(node.children.length === 1, "operator node must have exactly one child");
-                    // add
-                    node.children.push({
-                        parent: node,
-                        type: NODE_TYPE.DATA,
-                        name: name,
-                        id: id,
-                        children: []
-                    });
-
-                    this.array.push({ name: name, id: id, type: NODE_TYPE.DATA });
-
-                } else {
-                    // we have an item but are missing an operator - ADD default
-                    this.addOperator(OPERATOR.ADD);
-
-                    const lastNode = this.getOpenNode()
-
-                    lastNode.children.push({
-                        parent: lastNode,
-                        type: NODE_TYPE.DATA,
-                        name: name,
-                        id: id,
-                        children: []
-                    });
-
-                    this.array.push({ name: name, id: id, type: NODE_TYPE.DATA });
-                }
+            const node = this.flat[this.size-1]
+            // last node is an operator
+            if (node.type === NODE_TYPE.OPERATOR) {
+                this.flat.push({ name: name, id: id, type: NODE_TYPE.DATA });
+            } else {
+                // we have an item but are missing an operator - add ADD as default
+                this.addOperator(OPERATOR.ADD);
+                this.addData(id, name)
             }
         }
     }
@@ -146,186 +130,249 @@ class Compositor {
         const id = Compositor.nextID();
         // when tree is empty
         if (this.size === 0) {
-
-            this.tree.name = op;
-            this.tree.type = NODE_TYPE.OPERATOR;
-            this.tree.id = id;
-            this.tree.children = [];
-
-            this.depth = 1;
-            this.array.push({
-                name: op,
-                id: this.tree.id,
-                type: NODE_TYPE.OPERATOR
-            });
-
+            console.error("invalid input - cannot start with an operator");
+            return;
         } else {
+            this.flat.push({ name: op, id: id, type: NODE_TYPE.OPERATOR });
+        }
+    }
 
-            const node = this.getOpenNode()
-            if (node) {
-
-                console.assert(node.type !== NODE_TYPE.OPERATOR, "node - must NOT be an operator")
-                console.assert(node.parent.type === NODE_TYPE.OPERATOR, "node must be an operator")
-
-                if (Compositor.precedence(op, node.parent.name)) {
-                    // the new operator has precedence - we can just add a node
-                    const tmp = {
-                        parent: node.parent,
-                        type: NODE_TYPE.OPERATOR,
-                        name: op,
-                        id: id,
-                        children: [node],
-                    };
-                    node.parent = tmp;
-
-                } else {
-                    // the previous operator has precedence - we need to switch stuff
-                    const parent = node.parent;
-                    if (!parent.parent) {
-                        const newNode = {
-                            type: NODE_TYPE.OPERATOR,
-                            name: op,
-                            id: id,
-                            children: [parent],
-                        }
-                        parent.parent = newNode;
-                        this.tree = newNode;
-                    } else {
-                        console.error("already has parent - should this happen?")
-                    }
-                }
-
-                this.array.push({ name: op, id: id, type: NODE_TYPE.OPERATOR });
-                this.depth++;
-            }
+    remove(id) {
+        const index = this.flat.findIndex(node => node.id === id);
+        if (index >= 0) {
+            this.flat.splice(index, 1);
         }
     }
 
     setOperator(id, newOp) {
-
-        const traverse = node => {
-            if (node.id === id) {
-
-                if (node.parent && node.parent.type === NODE_TYPE.OPERATOR) {
-                    if (this.precedence(newOp, node.parent.name)) {
-
-                    } else {
-
-                    }
-                } else if (node.children[1] && node.children[1].type === NODE_TYPE.OPERATOR) {
-                    if (this.precedence(newOp, node.node.children[1].name)) {
-
-                    } else {
-
-                    }
-                }
-                // node.name = newOp;
-                return;
-            }
-
-            if (node.children[0]) {
-                traverse(node.children[0])
-            }
-            if (node.children[1]) {
-                traverse(node.children[1])
-            }
-        }
-
-        traverse(this.tree)
-
-        const node = this.array.find(node => node.id === id);
+        const node = this.flat.find(node => node.id === id);
         if (node) {
             node.name = newOp;
         }
     }
 
-    // TODO
-    remove() {
-
-        // if leaf - just remove
-
-        // if (sub-tree) - rebuild tree?
-    }
-
     rename(id, name) {
-
-        const traverse = node => {
+        this.flat.forEach(node => {
             if (node.id === id) {
                 node.name = name;
             }
+        });
+    }
 
-            if (node.children[0]) {
-                traverse(node.children[0])
+    _treeFindGroup(id) {
+
+        const find = g => {
+
+            if ((!(g.left instanceof CompGroup) && g.left === id) || g.op === id ||
+                (!(g.right instanceof CompGroup) && g.right === id)
+            ) {
+                return g;
             }
-            if (node.children[1]) {
-                traverse(node.children[1])
+
+            if (g.left instanceof CompGroup) {
+                const result = find(g.left);
+                if (result !== null) {
+                    return result;
+                }
             }
+            if (g.right instanceof CompGroup) {
+                const result = find(g.right);
+                if (result !== null) {
+                    return result;
+                }
+            }
+
+            return null;
         }
 
-        traverse(this.tree)
-
-        this.array.forEach(node => {
-            if (node.id === id) {
-                node.name = name;
-            }
-        })
+        return this.find(this.tree)
     }
 
-    iterate(callback, attr=null) {
+    _makeTree() {
+        this.tree = null;
+        this.flat.forEach(node => {
+            if (node.type === NODE_TYPE.DATA) {
+                this._treeAddData(node.id);
+            } else {
+                this._treeAddOperator(node.id, node.name);
+            }
+        })
 
-        if (this.depth === 0) return;
-        if (this.depth === 1) {
-            callback(this.tree, this.tree.children[1], this.tree.children[0])
+        const printTree = (left, op, right) => {
+            if ((left && !(left instanceof CompGroup)) &&
+                (right && !(right instanceof CompGroup))
+            ) {
+                const nl = this.getNode(left);
+                const no = this.getNode(op);
+                const nr = this.getNode(right);
+                console.log(
+                    nl ? nl.name : "NOPE",
+                    no ? no.name : "NOPE",
+                    nr ? nr.name : "NOPE"
+                )
+            } else if (left instanceof CompGroup && !(right instanceof CompGroup)) {
+                const no = this.getNode(op);
+                const nr = this.getNode(right);
+                console.log(
+                    "----",
+                    no ? no.name : "NOPE",
+                    nr ? nr.name : "NOPE"
+                )
+            } else if (right instanceof CompGroup && !(left instanceof CompGroup)) {
+                const nl = this.getNode(node.left);
+                const no = this.getNode(node.op);
+                console.log(
+                    nl ? nl.name : "NOPE",
+                    no ? no.name : "NOPE",
+                    "----",
+                )
+            }
+        }
+        // this._treeTraverse(printTree);
+    }
+
+    _treeAddData(id) {
+
+        // when tree is empty
+        if (this.tree === null) {
+            this.tree = new CompGroup();
+            this.tree.left = id;
+        } else if (!this.tree.right) {
+            this.tree.right = id;
+        } else if (this.tree.lastNode) {
+            console.assert(!this.tree.lastNode.right, "right side must be free");
+            this.tree.lastNode.right = id;
+        } else {
+            console.error("what?!")
+        }
+    }
+    _treeAddOperator(id, op) {
+
+        if (!Compositor.isOperator(op)) {
+            console.error("invalid input - not an operator");
             return;
         }
 
-        const current = {
-            op: null,
-            right: null,
-            left: null,
-        };
+        // when tree is empty
+        if (this.tree === null) {
+            console.error("invalid input - cannot start with an operator");
+            return;
+        } else if (!this.tree.op) {
+            this.tree.op = id;
+        } else {
 
-        const apply = node => {
+            const node = this.tree.lastNode ? this.tree.lastNode : this.tree;
+            const opNode = this.getNode(node.op)
 
-            if (!current.right) {
-                current.right = node;
-            } else if (!current.left) {
-                current.left = node;
-            } else if (!current.op) {
-                current.op = node;
-            }  else {
-                callback(
-                    attr ? current.op[attr] : current.op,
-                    attr ? current.right[attr] : current.right,
-                    attr ? current.left[attr] : current.left,
-                );
-                current.right = current.right.parent ? current.right : null;
-                current.left = null;
-                current.op = null;
+            switch (Compositor.precedence(op, opNode.name)) {
+                case PRECEDENCE_RESULT.MORE:
+                case PRECEDENCE_RESULT.SAME: {
+                    // replace right side in previous array/operation
+                    const newNode = new CompGroup(node);
+                    newNode.left = node.right
+                    newNode.op = id;
+                    node.right = newNode
+                    this.tree.lastNode = newNode;
+                    break;
+                }
+                case PRECEDENCE_RESULT.LESS: {
+                    // replace left side in previous array/operation
+                    const newNode = new CompGroup(node);
+                    newNode.left = node.left
+                    newNode.op = node.op
+                    newNode.right = node.right
+                    node.left = newNode;
+                    node.op = id;
+                    node.right = null;
+                    if (node === this.tree) {
+                        node.lastNode = null;
+                        this.tree = newNode;
+                        newNode.lastNode = node;
+                    } else {
+                        this.tree.lastNode = node;
+                    }
+                    break;
+                }
             }
-        };
+        }
+    }
+
+    _treeTraverse(callback) {
+
+        if (!this.tree) return;
+
+        const traverse = node => {
+            if (!node) return;
+            callback(node.left, node.op, node.right);
+            traverse(node.parent)
+        }
+
+        traverse(this.tree.lastNode ? this.tree.lastNode : this.tree);
+    }
+
+    iterate(callback) {
+
+        if (this.size === 0) return;
+
+        // only one component
+        if (this.size === 1) {
+            callback(this.flat[0])
+            return;
+        }
+
+        // only one operation
+        if (this.size === 3) {
+            callback(this.flat[0], this.flat[1], this.flat[2])
+            return;
+        }
+
+        if (this.tree === null) {
+            this._makeTree();
+        }
 
         const traverse = node => {
 
-            if (node.children[1]) {
-                traverse(node.children[1])
-            }
-            if (node.children[0]) {
-                traverse(node.children[0])
+            // reached the end
+            if (!node) return;
+
+            // non-nested node
+            if ((node.left && !(node.left instanceof CompGroup)) &&
+                (node.right && !(node.right instanceof CompGroup))
+            ) {
+                callback(
+                    this.getNode(node.left),
+                    this.getNode(node.op),
+                    this.getNode(node.right),
+                );
+                // go to parent
+                return traverse(node.parent)
             }
 
-            apply(node);
+            // nested on left side (already visited)
+            if (node.left instanceof CompGroup && !(node.right instanceof CompGroup)) {
+                callback(
+                    null,
+                    this.getNode(node.op),
+                    this.getNode(node.right),
+                );
+
+            // nested on right side (already visited)
+            } else if (node.right instanceof CompGroup && !(node.left instanceof CompGroup)) {
+                callback(
+                    this.getNode(node.left),
+                    this.getNode(node.op),
+                );
+
+            // should not happen at all?!
+            } else {
+                console.error("should not happen?!")
+            }
+
+            // go to parent
+            traverse(node.parent)
         };
 
-        traverse(this.tree);
-
-        if (current.left || current.right || current.op) {
-            callback(
-                attr ? current.op[attr] : current.op,
-                attr ? current.right[attr] : current.right,
-                attr ? current.left[attr] : current.left,
-            );
-        }
+        traverse(this.tree.lastNode);
     }
 }
 

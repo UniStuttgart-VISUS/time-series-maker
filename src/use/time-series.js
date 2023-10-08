@@ -78,9 +78,13 @@ export default class TimeSeries {
     generate() {
         let values = null;
 
-        this.compositor.iterate((op, right, left) => {
+        this.compositor.iterate((left, op, right) => {
 
-            if (left) {
+            const hasLeft = left !== undefined && left !== null;
+            const hasOp = op !== undefined && op !== null;
+            const hasRight = right !== undefined && right !== null;
+
+            if (hasLeft) {
                 const c = this.getComponent(left.id);
                 if (c.data.length !== this.samples) {
                     c.generate(this.samples)
@@ -91,7 +95,7 @@ export default class TimeSeries {
                 }
             }
 
-            if (op && right) {
+            if (hasOp && hasRight) {
                 const c = this.getComponent(right.id);
                 if (c.data.length !== this.samples) {
                     c.generate(this.samples)
@@ -107,6 +111,27 @@ export default class TimeSeries {
                         break;
                     case OPERATOR.SUBTRACT:
                         inmap(values, (val, index) => subtract(val, c.data[index]));
+                        break;
+                }
+            }
+
+            if (hasLeft && hasOp && !hasRight) {
+
+                const c = this.getComponent(left.id);
+                if (c.data.length !== this.samples) {
+                    c.generate(this.samples)
+                }
+
+                switch(op.name) {
+                    default:
+                    case OPERATOR.ADD:
+                        inmap(values, (val, index) => add(val, c.data[index]));
+                        break;
+                    case OPERATOR.MULTIPLY:
+                        inmap(values, (val, index) => multiply(val, c.data[index]));
+                        break;
+                    case OPERATOR.SUBTRACT:
+                        inmap(values, (val, index) => subtract(c.data[index], val));
                         break;
                 }
             }
