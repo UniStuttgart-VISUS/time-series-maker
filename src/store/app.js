@@ -7,7 +7,7 @@ export const useApp = defineStore('app', {
     state: () => ({
         selected: new Set(),
         lineChartZoom: d3.zoomIdentity,
-        colorScale: d3.scaleOrdinal(d3.schemeTableau10).domain(["result"].concat(Object.values(GENERATOR_TYPES))),
+        colorScale: d3.scaleOrdinal(["#000"].concat(d3.schemeSet1.slice(0, 9))).domain(["result"].concat(Object.values(GENERATOR_TYPES))),
     }),
 
     actions: {

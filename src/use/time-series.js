@@ -1,11 +1,14 @@
+import * as d3 from 'd3';
+
+import TimeSeriesComponent from './time-series-component';
+import Generator from './generators';
+import GENERATOR_DEFAULTS from "./generator-defaults";
+import Compositor, { OPERATOR, OP_CASE } from './compositor';
+
 import datespace from '@stdlib/array/datespace';
 import inmap from '@stdlib/utils/inmap';
 import forEach from '@stdlib/utils/for-each';
-import TimeSeriesComponent from './time-series-component';
-import GENERATOR_DEFAULTS from "./generator-defaults";
-import Generator from './generators';
 import randi from '@stdlib/random/base/randi';
-import Compositor, { OPERATOR, OP_CASE } from './compositor';
 import filled from '@stdlib/array/filled'
 import mapFun from '@stdlib/utils/map-function'
 
@@ -15,21 +18,32 @@ function multiply(a, b) { return a*b; }
 
 export default class TimeSeries {
 
-    constructor(samples=100, min=-2, max=2, start="2022-01-01T12:00", end="2022-12-31T12:00") {
-        this.samples = samples;
+    constructor(samples=100, dynamicRange=true, min=-2, max=2, start="2022-01-01", end="2022-12-31") {
         this.start = start;
         this.end = end;
+
+        this.samples = samples;
+
+        this.dynamicRange = dynamicRange;
         this.min = min;
         this.max = max;
+
         this.dataX = [];
         this.dataY = [];
+
         this.components = [];
         this.compositor = new Compositor();
+        this.lastUpdate = null;
+
         this.addComponent();
     }
 
     get componentIDs() {
         return this.components.map(d => d.id)
+    }
+
+    get size() {
+        return this.components.length;
     }
 
     getID(generator) {
@@ -39,6 +53,46 @@ export default class TimeSeries {
 
     hasID(id) {
         return this.getComponent(id) !== undefined;
+    }
+
+    clear() {
+        this.dataX = [];
+        this.dataY = [];
+    }
+
+    setOption(key, value) {
+        switch (key) {
+            case "min":
+                this.min = value < this.max ? value : this.min;
+                break;
+            case "max":
+                this.max = value > this.min ? value : this.max;
+                break;
+            case "start":
+                this.start = value < this.end ? value : this.start;
+                this.generate();
+                break;
+            case "end":
+                this.end = value > this.start ? value : this.end;
+                this.generate();
+                break;
+            case "samples":
+                this.samples = Math.max(3, Math.round(value));
+                this.generate();
+                break;
+            case "dynamicRange": {
+                this.dynamicRange = value === true;
+                if (!this.dynamicRange && this.size > 0) {
+                    if (!this.dataY) {
+                        this.generate();
+                    }
+                    const [min, max] = d3.extent(this.dataY);
+                    this.min = min;
+                    this.max = max;
+                }
+                break;
+            }
+        }
     }
 
     getComponent(id) {
@@ -63,8 +117,10 @@ export default class TimeSeries {
         }
         this.compositor.addData(
             this.components[this.components.length-1].id,
-            this.components[this.components.length-1].name
+            this.components[this.components.length-1].name,
+            this.components[this.components.length-1].generator.type
         );
+        this.generate();
     }
 
     removeComponent(id) {
@@ -73,6 +129,7 @@ export default class TimeSeries {
             this.components.splice(idx, 1)
             this.compositor.remove(id);
         }
+        this.generate();
     }
 
     switchComponents(fromID, toID) {
@@ -88,6 +145,7 @@ export default class TimeSeries {
 
             this.compositor.switchData(fromID, toID);
         }
+        this.generate();
     }
 
     generate() {
@@ -199,12 +257,14 @@ export default class TimeSeries {
 
         this.dataX = datespace(this.start, this.end, this.samples);
         this.dataY = values;
+        this.lastUpdate = Date.now();
+
         return this.dataY;
     }
 
     toChartData() {
         const data = [];
-        if (this.dataY.length === 0) {
+        if (this.dataY.length !== this.samples) {
             this.generate();
         }
 
@@ -214,7 +274,7 @@ export default class TimeSeries {
             data.push({
                 id: c.id,
                 color: c.generator.type,
-                opacity: 0.33,
+                opacity: 0.25,
                 values: result
             });
         });

@@ -49,17 +49,19 @@
     const emit = defineEmits(["update"])
 
     function update() {
-        props.component.generate();
-        emit("update", props.component.id);
+        if (props.component.isValid()) {
+            props.component.generate();
+            emit("update");
+        }
     }
 
     function setSeed() {
-        props.component.generator.seed = seed.value;
-        update();
+        props.component.setSeed(seed.value);
+        emit("update");
     }
     function randomSeed() {
         props.component.randomSeed();
-        emit("update", props.component.id);
+        emit("update");
     }
 
     watch(() => props.component.generator.seed, function(newseed) {

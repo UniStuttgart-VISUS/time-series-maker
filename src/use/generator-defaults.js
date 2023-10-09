@@ -17,7 +17,7 @@ const GENERATOR_DEFAULTS = {
         title: "Linear Trend",
         seedRequired: false,
         options: {
-            position: new GeneratorOption("position", 0.5, { min: 0, max: 1, step: 0.01, validators: ["EXCLUSIVE_0_1"] }),
+            position: new GeneratorOption("position", 0.5, { min: 0, max: 1, step: 0.01 }),
             slope: new GeneratorOption("slope", 0.1, { validators: ["NOT_ZERO"] }),
         }
     },
@@ -28,7 +28,7 @@ const GENERATOR_DEFAULTS = {
         title: "Outlier",
         seedRequired: false,
         options: {
-            position: new GeneratorOption("position", 0.5, { min: 0, max: 1, step: 0.01, validators: ["EXCLUSIVE_0_1"] }),
+            position: new GeneratorOption("position", 0.5, { min: 0, max: 1, step: 0.01 }),
             width: new GeneratorOption("width", 1, { min: 1, step: 1 }),
             magnitude: new GeneratorOption("magnitude", 0.5, { min: 0, step: 0.01, validators: ["POSITIVE"] }),
         }
@@ -73,8 +73,8 @@ const GENERATOR_DEFAULTS = {
         type: GENERATOR_TYPES.RNG,
         seedRequired: true,
         options: {
-            min: new GeneratorOption("min", 0),
-            max: new GeneratorOption("max", 1),
+            minSupport: new GeneratorOption("minSupport", 0),
+            maxSupport: new GeneratorOption("maxSupport", 1),
         }
     },
 
@@ -117,18 +117,6 @@ const GENERATOR_DEFAULTS = {
     },
 
     // pdfs
-    PDF_UNIFORM: {
-        key: "PDF_UNIFORM",
-        name: "uniform",
-        title: "PDF Uniform",
-        type: GENERATOR_TYPES.PDF,
-        seedRequired: false,
-        options: {
-            minSupport: new GeneratorOption("minSupport", 0, { step: 0.1 }),
-            maxSupport: new GeneratorOption("maxSupport", 1, { step: 0.1 }),
-            magnitude: new GeneratorOption("magnitude", 0.1, { min: 0, validators: ["POSITIVE"] }),
-        }
-    },
     PDF_NORMAL: {
         key: "PDF_NORMAL",
         name: "normal",
@@ -136,45 +124,48 @@ const GENERATOR_DEFAULTS = {
         title: "PDF Normal",
         seedRequired: false,
         options: {
-            mu: new GeneratorOption("mu", 0),
-            sigma: new GeneratorOption("sigma", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
-            magnitude: new GeneratorOption("magnitude", 0.1, { min: 0, validators: ["POSITIVE"] }),
+            mean: new GeneratorOption("mean", 0),
+            std: new GeneratorOption("std", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
         }
     },
-    PDF_LOGNORMAL: {
-        key: "PDF_LOGNORMAL",
-        name: "lognormal",
-        title: "PDF LogNormal",
+    PDF_ARCSINE: {
+        key: "PDF_ARCSINE",
+        name: "arcsine",
         type: GENERATOR_TYPES.PDF,
+        title: "PDF Arcsine",
+        seedRequired: false,
+        options: {
+            minSupport: new GeneratorOption("minSupport", 0),
+            maxSupport: new GeneratorOption("maxSupport", 1),
+        }
+    },
+    PDF_CHI_SQUARE: {
+        key: "PDF_CHI_SQUARE",
+        name: "chi-squared",
+        type: GENERATOR_TYPES.PDF,
+        title: "PDF Chi-squared",
+        seedRequired: false,
+        options: {
+            k: new GeneratorOption("k", 2, { min: 2, step: 1, validators: ["INTEGER"] }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
+        }
+    },
+
+    // cdfs
+    CDF_NORMAL: {
+        key: "CDF_NORMAL",
+        name: "normal",
+        type: GENERATOR_TYPES.CDF,
+        title: "CDF Normal",
         seedRequired: false,
         options: {
             mean: new GeneratorOption("mean", 0),
             std: new GeneratorOption("std", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
-            magnitude: new GeneratorOption("magnitude", 0.1, { min: 0, validators: ["POSITIVE"] }),
-        }
-    },
-
-    // pmfs
-    PMF_POISSON: {
-        key: "PMF_POISSON",
-        name: "poisson",
-        title: "PMF Poisson",
-        type: GENERATOR_TYPES.PMF,
-        seedRequired: false,
-        options: {
-            lambda: new GeneratorOption("lambda", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
-            magnitude: new GeneratorOption("magnitude", 0.1, { min: 0, validators: ["POSITIVE"] }),
-        }
-    },
-    PMF_GEOMETRIC: {
-        key: "PMF_GEOMETRIC",
-        name: "geometric",
-        title: "PMF Geometric",
-        type: GENERATOR_TYPES.PMF,
-        seedRequired: false,
-        options: {
-            p: new GeneratorOption("p", 0.5, { min: 0, max: 1, validators: ["EXCLUSIVE_0_1"] }),
-            magnitude: new GeneratorOption("magnitude", 0.1, { min: 0, validators: ["POSITIVE"] }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
         }
     },
 };
@@ -183,6 +174,7 @@ const GENERATOR_DEFAULT_NAMES = Object.keys(GENERATOR_DEFAULTS).map(d => ({
     key: d,
     name: GENERATOR_DEFAULTS[d].name,
     title: GENERATOR_DEFAULTS[d].title,
+    type: GENERATOR_DEFAULTS[d].type,
 }));
 
 export { GENERATOR_DEFAULTS as default, GENERATOR_DEFAULT_NAMES };

@@ -2,45 +2,42 @@
 
     <div class="d-flex justify-center align-start">
 
-        <v-sheet width="400" class="ma-2" rounded="sm">
+        <v-sheet width="350" class="ma-2" rounded="sm">
 
-            <TimeSeriesSettings :timeseries="timeseries" @update="update(true)"/>
+            <TimeSeriesSettings :timeseries="timeseries" @update="updateSettings"/>
 
-            <div class="d-flex justify-space-between align-center mt-2">
+            <div class="d-flex align-center mt-2">
                 <v-btn icon="mdi-dice-6"
                     class="mr-2"
                     rounded="sm"
                     color="success"
                     density="compact"
                     size="x-large"
-                    variant="text"
+                    variant="outlined"
                     @click="randomSeed"/>
-                <div class="d-flex">
-                    <v-select v-model="generatorType"
-                        :items="GENERATOR_DEFAULT_NAMES"
-                        style="width: 250px;"
-                        class="mr-2"
-                        label="component type"
-                        item-title="title"
-                        item-value="key"
-                        hide-details
-                        hide-no-data
-                        density="compact"/>
-                    <v-btn icon="mdi-plus"
-                        class="mr-1"
-                        rounded="sm"
-                        density="compact"
-                        size="x-large"
-                        variant="text"
-                        @click="addComponent"/>
-                </div>
+                <v-select v-model="generatorType"
+                    :items="GENERATOR_DEFAULT_NAMES"
+                    style="width: 250px;"
+                    label="component type"
+                    item-title="title"
+                    item-value="key"
+                    hide-details
+                    hide-no-data
+                    density="compact"/>
+                <v-btn icon="mdi-plus"
+                    class="ml-2"
+                    rounded="sm"
+                    density="compact"
+                    size="x-large"
+                    variant="outlined"
+                    @click="addComponent"/>
             </div>
 
             <v-expansion-panels v-model="selectedComponents" class="mt-4" variant="accordion" multiple @update:model-value="setSelected">
                 <v-expansion-panel v-for="c in timeseries.components" :key="c.id">
 
                     <v-expansion-panel-title>
-                        <TimeSeriesComponentTitle :component="c" @remove="removeComponent" @rename="update(true)"/>
+                        <TimeSeriesComponentTitle :component="c" @remove="removeComponent" @rename="update"/>
                     </v-expansion-panel-title>
 
                     <v-expansion-panel-text>
@@ -52,7 +49,7 @@
         </v-sheet>
 
         <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
-            <LineChart :data="lineData" x-attr="0" y-attr="1" :y-domain="[timeseries.min, timeseries.max]"/>
+            <LineChart :data="lineData" x-attr="0" y-attr="1" :y-domain="timeseries.dynamicRange ? null : [timeseries.min, timeseries.max]"/>
         </v-sheet>
 
         <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
@@ -63,17 +60,17 @@
 </template>
 
 <script setup>
-    import { ref, reactive, onMounted } from 'vue';
+    import { ref, reactive, onMounted, watch } from 'vue';
 
     import TimeSeries from '@/use/time-series';
     import LineChart from '@/components/LineChart.vue';
     import TimeSeriesComponentViewer from './TimeSeriesComponentViewer.vue';
     import TimeSeriesComponentTitle from './TimeSeriesComponentTitle.vue';
+    import TimeSeriesSettings from './TimeSeriesSettings.vue';
+    import ComponentOperatorViewer from './ComponentOperatorViewer.vue';
 
     import { GENERATOR_DEFAULT_NAMES } from '@/use/generator-defaults';
     import { useApp } from '@/store/app';
-import TimeSeriesSettings from './TimeSeriesSettings.vue';
-import ComponentOperatorViewer from './ComponentOperatorViewer.vue';
 
     const app = useApp()
     const timeseries = reactive(new TimeSeries());
@@ -86,30 +83,27 @@ import ComponentOperatorViewer from './ComponentOperatorViewer.vue';
 
     function addComponent() {
         timeseries.addComponent(generatorType.value);
-        update(true)
     }
     function removeComponent(id) {
         timeseries.removeComponent(id);
-        update(true);
     }
     function switchComponents(from, to) {
         timeseries.switchComponents(from, to);
-        update(true);
     }
 
     function randomSeed() {
         timeseries.randomSeed();
-        if (timeseries.components.length > 0) {
-            lineData.value = timeseries.toChartData()
-        }
+    }
+    function updateSettings(payload) {
+        timeseries.setOption(payload.key, payload.value);
     }
 
     function update(generate=false) {
-        if (timeseries.components.length === 0) {
+        if (timeseries.size === 0) {
             lineData.value = []
         } else {
-            if (generate) {
-                timeseries.generate()
+            if (generate === true) {
+                timeseries.generate();
             }
             lineData.value = timeseries.toChartData()
         }
@@ -119,5 +113,7 @@ import ComponentOperatorViewer from './ComponentOperatorViewer.vue';
         app.setSelected(selectedComponents.value.map(i => timeseries.components[i].id));
     }
 
-    onMounted(() => update(true))
+    onMounted(() => update())
+
+    watch(() => timeseries.lastUpdate, update);
 </script>

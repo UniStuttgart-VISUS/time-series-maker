@@ -1,7 +1,8 @@
 <template>
-    <div class="d-flex flex-column justify-start align-center">
+    <div class="d-flex flex-column justify-start align-center" style="min-width: 150px;">
         <div v-for="item in compositor.flat" :key="item.id">
             <v-chip v-if="item.type === NODE_TYPE.DATA"
+                :color="app.colorScale(item.genType)"
                 draggable
                 @dragover.prevent
                 @drop="onDrop(item.id)"
@@ -22,6 +23,7 @@
 </template>
 
 <script setup>
+    import { useApp } from '@/store/app';
     import Compositor, { NODE_TYPE, OPERATOR } from '@/use/compositor';
     import { ref } from 'vue';
 
@@ -33,6 +35,7 @@
     });
     const emit = defineEmits(["update", "switch"])
 
+    const app = useApp();
     const dragSrc = ref(0);
 
     function operatorToIcon(name) {

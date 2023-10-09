@@ -4,6 +4,7 @@
             <v-btn icon="mdi-minus"
                 rounded="sm"
                 density="compact"
+                variant="outlined"
                 @click="resetZoom"/>
         </div>
         <svg ref="el" :width="width" :height="height"></svg>

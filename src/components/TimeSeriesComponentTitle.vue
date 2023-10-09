@@ -1,17 +1,15 @@
 <template>
     <div class="d-flex justify-space-between align-center" style="width: 100%;">
-        <div class="d-flex">
-            <v-icon icon="mdi-circle" class="mr-2" :color="app.colorScale(component.generator.type)"/>
-            <div>
-                <input ref="nameInput" v-model="name"
-                    class="mr-2"
-                    style="vertical-align: middle;"
-                    type="text"
-                    :readonly="!editName"
-                    @keyup="editKeyUp">
-                <v-icon :icon="editName ? 'mdi-check' : 'mdi-pencil'" @click.stop="toggleEdit()"/>
-            </div>
-        </div>
+        <v-icon icon="mdi-circle" class="mr-2" :color="app.colorScale(component.generator.type)"/>
+        <v-sheet class="pa-1" color="grey-lighten-4" rounded="sm">
+            <input ref="nameInput" v-model="name"
+                class="mr-2"
+                style="vertical-align: middle; max-width: 90%;"
+                type="text"
+                :readonly="!editName"
+                @keyup="editKeyUp">
+            <v-icon :icon="editName ? 'mdi-check' : 'mdi-pencil'" @click.stop="toggleEdit()"/>
+        </v-sheet>
         <v-btn class="mr-2"
             icon="mdi-delete"
             color="error"

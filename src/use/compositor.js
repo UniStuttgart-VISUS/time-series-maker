@@ -151,21 +151,21 @@ class Compositor {
         return this.flat.findIndex(d => d.id === id);
     }
 
-    addData(id, name) {
+    addData(id, name, genType) {
 
         // when tree is empty
         if (this.size === 0) {
-            this.flat.push({ name: name, id: id, type: NODE_TYPE.DATA });
+            this.flat.push({ name: name, id: id, type: NODE_TYPE.DATA, genType: genType });
         } else {
 
             const node = this.flat[this.size-1]
             // last node is an operator
             if (node.type === NODE_TYPE.OPERATOR) {
-                this.flat.push({ name: name, id: id, type: NODE_TYPE.DATA });
+                this.flat.push({ name: name, id: id, type: NODE_TYPE.DATA, genType: genType  });
             } else {
                 // we have an item but are missing an operator - add ADD as default
                 this.addOperator(OPERATOR.ADD);
-                this.addData(id, name)
+                this.addData(id, name, genType)
             }
         }
         this.tree = null;

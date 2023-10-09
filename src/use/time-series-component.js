@@ -27,6 +27,15 @@ export default class TimeSeriesComponent {
         this.generate();
     }
 
+    isValid() {
+        for (const opt in this.generator.options) {
+            if (!this.generator.options[opt].isValid()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     generate(samples) {
         samples = samples ? samples : this._ts.samples;
         this.data = this.generator.generate(samples)

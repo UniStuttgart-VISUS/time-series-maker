@@ -24,36 +24,38 @@ export default class Generator {
         }
     }
 
-    static makeFactory(name, options) {
+    static makePDFFactory(name, options) {
         const getOpt = opName => options[opName].value;
         switch (name) {
             case "normal":
-                return stats.dists.normal.pdf.factory(getOpt("mu"), getOpt("sigma"));
-            case "lognomal":
-                return stats.dists.lognormal.pdf.factory(getOpt("mu"), getOpt("sigma"));
-            case "poisson":
-                return stats.dists.poisson.pmf.factory(getOpt("lambda"));
-            case "geometric":
-                return stats.dists.geometric.pmf.factory(getOpt("p"));
-            default:
-            case "uniform":
-                return stats.dists.uniform.pdf.factory(getOpt("min"), getOpt("max"));
+                return stats.dists.normal.pdf.factory(getOpt("mean"), getOpt("std"));
+            case "arcsine":
+                return stats.dists.arcsine.pdf.factory(getOpt("minSupport"), getOpt("maxSupport"))
+            case "chi-squared":
+                return stats.dists.chisquare.pdf.factory(getOpt("k"))
+        }
+    }
+    static makeCDFFactory(name, options) {
+        const getOpt = opName => options[opName].value;
+        switch (name) {
+            case "normal":
+                return stats.dists.normal.cdf.factory(getOpt("mean"), getOpt("std"));
         }
     }
     static makeRandomFactory(name, options, seed) {
         const getOpt = opName => options[opName].value;
         switch (name) {
             case "normal":
-                return random.normal.factory(getOpt("mu"), getOpt("sigma"), { seed: seed });
+                return random.normal.factory(getOpt("mean"), getOpt("std"), { seed: seed });
             case "lognomal":
-                return random.lognormal.factory(getOpt("mu"), getOpt("sigma"), { seed: seed });
+                return random.lognormal.factory(getOpt("mean"), getOpt("std"), { seed: seed });
             case "poisson":
                 return random.poisson.factory(getOpt("lambda"), { seed: seed });
             case "geometric":
                 return random.geometric.factory(getOpt("p"), { seed: seed });
             default:
             case "uniform":
-                return random.uniform.factory(getOpt("min"), getOpt("max"), { seed: seed });
+                return random.uniform.factory(getOpt("minSupport"), getOpt("maxSupport"), { seed: seed });
         }
     }
 
@@ -93,30 +95,56 @@ export default class Generator {
                         return filled(this.getOpt("value"), number)
                 }
 
-            case GENERATOR_TYPES.PMF:
-            case GENERATOR_TYPES.PDF: {
-                const factory = Generator.makeFactory(this.name, this.options);
-                const magnitude = "magnitude" in this.options ? this.getOpt("magnitude") : 1;
-                return linspace(0, 1, number).map(d => factory(d) * magnitude);
+            case GENERATOR_TYPES.CDF: {
+                const factory = Generator.makeCDFFactory(this.name, this.options);
+                const xMin = this.getOpt("xMin");
+                const xMax = this.getOpt("xMax")
+                console.assert(xMin < xMax, "min must be smaller than max")
+                return linspace(xMin, xMax, number).map(factory);
             }
-            case GENERATOR_TYPES.WAVE:
-                case "sine": {
-                    const iter = simulate.iterSineWave({
-                        seed: this.seed,
-                        period: this.getOpt("period"),
-                        amplitude: this.getOpt("amplitude"),
-                        offset: this.getOpt("offset"),
-                    })
-                    return filled(0, number).map(() => iter.next().value);
+
+            case GENERATOR_TYPES.PDF: {
+                const factory = Generator.makePDFFactory(this.name, this.options);
+                switch (this.name) {
+                    case "arcsine": {
+                        const xMin = this.getOpt("minSupport");
+                        const xMax = this.getOpt("maxSupport")
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(
+                            xMin + this.options["minSupport"].step,
+                            xMax - this.options["maxSupport"].step,
+                            number
+                        ).map(factory);
+                    }
+                    default: {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax")
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(factory);
+                    }
                 }
-                case "cosine": {
-                    const iter = simulate.iterCosineWave({
-                        seed: this.seed,
-                        period: this.getOpt("period"),
-                        amplitude: this.getOpt("amplitude"),
-                        offset: this.getOpt("offset"),
-                    })
-                    return filled(0, number).map(() => iter.next().value);
+            }
+
+            case GENERATOR_TYPES.WAVE:
+                switch (this.name) {
+                    case "sine": {
+                        const iter = simulate.iterSineWave({
+                            seed: this.seed,
+                            period: this.getOpt("period"),
+                            amplitude: this.getOpt("amplitude"),
+                            offset: this.getOpt("offset"),
+                        })
+                        return filled(0, number).map(() => iter.next().value);
+                    }
+                    case "cosine": {
+                        const iter = simulate.iterCosineWave({
+                            seed: this.seed,
+                            period: this.getOpt("period"),
+                            amplitude: this.getOpt("amplitude"),
+                            offset: this.getOpt("offset"),
+                        })
+                        return filled(0, number).map(() => iter.next().value);
+                    }
                 }
             case GENERATOR_TYPES.RNG: {
                 switch (this.name) {
