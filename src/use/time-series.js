@@ -1,12 +1,13 @@
-import copy from '@stdlib/utils/copy';
 import datespace from '@stdlib/array/datespace';
 import inmap from '@stdlib/utils/inmap';
 import forEach from '@stdlib/utils/for-each';
 import TimeSeriesComponent from './time-series-component';
-import GENERATOR_DEFAULTS, { GENERATOR_DEFAULT_NAMES } from "./generator-defaults";
+import GENERATOR_DEFAULTS from "./generator-defaults";
 import Generator from './generators';
 import randi from '@stdlib/random/base/randi';
-import Compositor, { OPERATOR } from './compositor';
+import Compositor, { OPERATOR, OP_CASE } from './compositor';
+import filled from '@stdlib/array/filled'
+import mapFun from '@stdlib/utils/map-function'
 
 function add(a, b) { return a+b; }
 function subtract(a, b) { return a-b; }
@@ -90,65 +91,110 @@ export default class TimeSeries {
     }
 
     generate() {
-        let values = null;
 
-        this.compositor.iterate((left, op, right) => {
+        let leftVals, rightVals, cacheVals;
+        const values = filled(0, this.samples);
+
+        const getComp = id => {
+            const c = this.getComponent(id);
+            if (c.data.length !== this.samples) {
+                c.generate(this.samples)
+            }
+            return c;
+        }
+
+        const apply = (op, inplace=true) => {
+            switch(op.name) {
+                default:
+                case OPERATOR.ADD:
+                    if (inplace) {
+                        inmap(values, (_, i) => add(leftVals[i], rightVals[i]));
+                    } else {
+                        return mapFun(i => add(leftVals[i], rightVals[i]), this.samples);
+                    }
+                    break;
+                case OPERATOR.MULTIPLY:
+                    if (inplace) {
+                        inmap(values, (_, i) => multiply(leftVals[i], rightVals[i]));
+                    } else {
+                        return mapFun(i => multiply(leftVals[i], rightVals[i]), this.samples);
+                    }
+                    break;
+                case OPERATOR.SUBTRACT:
+                    if (inplace) {
+                        inmap(values, (_, i) => subtract(leftVals[i], rightVals[i]));
+                    } else {
+                        return mapFun(i => subtract(leftVals[i], rightVals[i]), this.samples);
+                    }
+                    break;
+            }
+        }
+
+        this.compositor.iterate((opCase, left, op, right, extraOp) => {
 
             const hasLeft = left !== undefined && left !== null;
             const hasOp = op !== undefined && op !== null;
             const hasRight = right !== undefined && right !== null;
+            const hasExtraOp = extraOp !== undefined && extraOp !== null;
 
-            if (hasLeft) {
-                const c = this.getComponent(left.id);
-                if (c.data.length !== this.samples) {
-                    c.generate(this.samples)
+
+            switch(opCase) {
+                case OP_CASE.APPLY_BOTH: {
+                    console.assert(hasLeft && hasOp && hasRight, "wrong case - missing data");
+                    const cl = getComp(left.id);
+                    const cr = getComp(right.id);
+                    leftVals = cl.data;
+                    rightVals = cr.data;
+                    break;
                 }
-
-                if (values === null) {
-                    values = copy(c.data)
+                case OP_CASE.APPLY_LEFT: {
+                    console.assert(hasLeft, "wrong case - missing left");
+                    const c = getComp(left.id);
+                    leftVals = c.data;
+                    rightVals = values;
+                    break;
                 }
-            }
-
-            if (hasOp && hasRight) {
-                const c = this.getComponent(right.id);
-                if (c.data.length !== this.samples) {
-                    c.generate(this.samples)
+                case OP_CASE.APPLY_RIGHT: {
+                    console.assert(hasRight, "wrong case - missing right");
+                    const c = getComp(right.id);
+                    leftVals = values;
+                    rightVals = c.data;
+                    break;
                 }
-
-                switch(op.name) {
-                    default:
-                    case OPERATOR.ADD:
-                        inmap(values, (val, index) => add(val, c.data[index]));
-                        break;
-                    case OPERATOR.MULTIPLY:
-                        inmap(values, (val, index) => multiply(val, c.data[index]));
-                        break;
-                    case OPERATOR.SUBTRACT:
-                        inmap(values, (val, index) => subtract(val, c.data[index]));
-                        break;
-                }
-            }
-
-            if (hasLeft && hasOp && !hasRight) {
-
-                const c = this.getComponent(left.id);
-                if (c.data.length !== this.samples) {
-                    c.generate(this.samples)
-                }
-
-                switch(op.name) {
-                    default:
-                    case OPERATOR.ADD:
-                        inmap(values, (val, index) => add(val, c.data[index]));
-                        break;
-                    case OPERATOR.MULTIPLY:
-                        inmap(values, (val, index) => multiply(val, c.data[index]));
-                        break;
-                    case OPERATOR.SUBTRACT:
-                        inmap(values, (val, index) => subtract(c.data[index], val));
-                        break;
+                case OP_CASE.APPLY_NESTED_LEFT: {
+                    console.assert(hasLeft && hasOp && hasRight, "wrong case - missing data");
+                    const cl = getComp(left.id);
+                    const cr = getComp(right.id);
+                    leftVals = cl.data;
+                    rightVals = cr.data;
+                    break;
                 }
             }
+
+            if (hasOp) {
+                cacheVals = apply(op, !hasExtraOp);
+            }
+
+            if (hasExtraOp && cacheVals) {
+
+                switch(opCase) {
+                    case OP_CASE.APPLY_NESTED_LEFT: {
+                        const c = getComp(left.id);
+                        leftVals = c.data;
+                        rightVals = cacheVals;
+                        break;
+                    }
+                    case OP_CASE.APPLY_NESTED_RIGHT: {
+                        const c = getComp(right.id);
+                        leftVals = cacheVals;
+                        rightVals = c.data;
+                        break;
+                    }
+                    default: break;
+                }
+                apply(extraOp);
+            }
+
         });
 
         this.dataX = datespace(this.start, this.end, this.samples);
