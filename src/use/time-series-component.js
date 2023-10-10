@@ -6,10 +6,26 @@ export default class TimeSeriesComponent {
     constructor(timeseries, generator) {
         generator = generator ? generator : new Generator()
         this._ts = timeseries;
-        this.id = this._ts.getID(generator)
-        this.name = this.id;
+        this.id = this._ts.getID()
+        this.name = this._ts.getName(generator)
         this.data = [];
         this.generator = generator;
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            name: this.name,
+            generator: this.generator.toJSON()
+        }
+    }
+
+    static fromJSON(timeseries, json) {
+        const g = Generator.fromJSON(json.generator);
+        const c = new TimeSeriesComponent(timeseries, g)
+        c.id = json.id;
+        c.name = json.name;
+        return c;
     }
 
     setName(name) {

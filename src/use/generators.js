@@ -9,19 +9,49 @@ import GENERATOR_TYPES from './generator-types';
 
 export default class Generator {
 
-    constructor(type="CONSTANT", seed=42) {
+    constructor(type="CONSTANT", seed=42, state=null, options={}) {
         const defaults = GENERATOR_DEFAULTS[type in GENERATOR_DEFAULTS ? type : "CONSTANT"]
+
         this.key = defaults.key;
         this.name = defaults.name;
         this.title = defaults.title;
         this.prefab = defaults.prefab;
         this.type = defaults.type;
-        this.seed = seed;
         this.seedRequired = defaults.seedRequired;
+
+        this.seed = seed;
+        this.initialState = state;
+        this.state = null;
+
         this.options = {};
         for (const key in defaults.options) {
             this.options[key] = defaults.options[key].copy()
         }
+        for (const key in options) {
+            this.options[key].value = options[key];
+        }
+    }
+
+    toJSON() {
+        const optionValues = {};
+        for (const key in this.options) {
+            optionValues[key] = this.options[key].value;
+        }
+        return {
+            key: this.key,
+            seed: this.seed,
+            state: this.state ? Array.from(this.state) : null,
+            options: optionValues
+        }
+    }
+
+    static fromJSON(json) {
+        return new Generator(
+            json.key,
+            json.seed,
+            json.state ? new Uint32Array(json.state) : null,
+            json.options
+        )
     }
 
     static makePDFFactory(name, options) {
@@ -42,20 +72,20 @@ export default class Generator {
                 return stats.dists.normal.cdf.factory(getOpt("mean"), getOpt("std"));
         }
     }
-    static makeRandomFactory(name, options, seed) {
+    static makeRandomFactory(name, options, opts) {
         const getOpt = opName => options[opName].value;
         switch (name) {
             case "normal":
-                return random.normal.factory(getOpt("mean"), getOpt("std"), { seed: seed });
+                return random.normal.factory(getOpt("mean"), getOpt("std"), opts);
             case "lognomal":
-                return random.lognormal.factory(getOpt("mean"), getOpt("std"), { seed: seed });
+                return random.lognormal.factory(getOpt("mean"), getOpt("std"), opts);
             case "poisson":
-                return random.poisson.factory(getOpt("lambda"), { seed: seed });
+                return random.poisson.factory(getOpt("lambda"), opts);
             case "geometric":
-                return random.geometric.factory(getOpt("p"), { seed: seed });
+                return random.geometric.factory(getOpt("p"), opts);
             default:
             case "uniform":
-                return random.uniform.factory(getOpt("minSupport"), getOpt("maxSupport"), { seed: seed });
+                return random.uniform.factory(getOpt("minSupport"), getOpt("maxSupport"), opts);
         }
     }
 
@@ -150,22 +180,43 @@ export default class Generator {
                 switch (this.name) {
                     case "awgn": {
                         const arr = filled(0, number);
-                        const iter = simulate.iterawgn(array2iterator(arr), this.getOpt("sigma"), { seed: this.seed })
+                        const opts = { seed: this.seed }
+                        if (this.initialState && !this.state) {
+                            opts.state = this.initialState;
+                        }
+                        const iter = simulate.iterawgn(array2iterator(arr), this.getOpt("sigma"), opts)
+                        this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
                     case "awln": {
                         const arr = filled(0, number);
-                        const iter = simulate.iterawln(array2iterator(arr), this.getOpt("sigma"), { seed: this.seed })
+                        const opts = { seed: this.seed }
+                        if (this.initialState && !this.state) {
+                            opts.state = this.initialState;
+                        }
+                        const iter = simulate.iterawln(array2iterator(arr), this.getOpt("sigma"), opts)
+                        this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
                     case "awun": {
                         const arr = filled(0, number);
-                        const iter = simulate.iterawun(array2iterator(arr), this.getOpt("sigma"), { seed: this.seed })
+                        const opts = { seed: this.seed }
+                        if (this.initialState && !this.state) {
+                            opts.state = this.initialState;
+                        }
+                        const iter = simulate.iterawun(array2iterator(arr), this.getOpt("sigma"), opts)
+                        this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
-                    default:
-                        const factory = Generator.makeRandomFactory(this.name, this.options, this.seed);
-                        return linspace(0, number, number).map(() => factory());
+                    default: {
+                        const opts = { seed: this.seed }
+                        if (this.initialState && !this.state) {
+                            opts.state = this.initialState;
+                        }
+                        const factory = Generator.makeRandomFactory(this.name, this.options, opts);
+                        this.state = factory.state;
+                        return linspace(0, number, number).map(factory);
+                    }
                 }
             }
         }

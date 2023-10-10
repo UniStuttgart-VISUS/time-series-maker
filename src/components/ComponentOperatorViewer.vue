@@ -1,7 +1,7 @@
 <template>
     <div class="d-flex flex-column justify-start align-center" style="min-width: 150px;">
         <div v-for="item in compositor.flat" :key="item.id">
-            <v-chip v-if="item.type === NODE_TYPE.DATA"
+            <v-chip v-if="item.type === NODE_TYPE.DATA" :key="item.id+'_DATA'"
                 :color="app.colorScale(item.genType)"
                 draggable
                 @dragover.prevent
@@ -10,7 +10,7 @@
                 {{ item.name }}
             </v-chip>
 
-            <v-btn-toggle v-else :model-value="item.name" divided density="compact" class="mt-1 mb-1" mandatory>
+            <v-btn-toggle v-else :model-value="item.name" :key="item.id+'_OP'" divided density="compact" class="mt-1 mb-1" mandatory>
                 <v-btn :icon="operatorToIcon(OPERATOR.SUBTRACT)" :value="OPERATOR.SUBTRACT"
                     @click="setOperator(item.id, OPERATOR.SUBTRACT)"/>
                 <v-btn :icon="operatorToIcon(OPERATOR.ADD)" :value="OPERATOR.ADD"

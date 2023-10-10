@@ -12,10 +12,10 @@
             <v-btn class="ml-2"
                 icon="mdi-dice-6"
                 rounded="sm"
-                variant="text"
+                variant="outlined"
                 density="compact"
                 size="x-large"
-                color="success"
+                color="primary"
                 @click="randomSeed"/>
         </div>
 

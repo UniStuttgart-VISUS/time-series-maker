@@ -12,30 +12,111 @@ import randi from '@stdlib/random/base/randi';
 import filled from '@stdlib/array/filled'
 import mapFun from '@stdlib/utils/map-function'
 
+import { DateTime } from 'luxon';
+
 function add(a, b) { return a+b; }
 function subtract(a, b) { return a-b; }
 function multiply(a, b) { return a*b; }
 
+const TS_DEFAULTS = Object.freeze({
+    samples: 100,
+    dynamicRange: true,
+    min: -2,
+    max: 2,
+    start: "2022-01-01",
+    end: "2022-12-31",
+})
+
 export default class TimeSeries {
 
-    constructor(samples=100, dynamicRange=true, min=-2, max=2, start="2022-01-01", end="2022-12-31") {
-        this.start = start;
-        this.end = end;
-
-        this.samples = samples;
-
-        this.dynamicRange = dynamicRange;
-        this.min = min;
-        this.max = max;
+    constructor(options=TS_DEFAULTS, components=[], compositor=null) {
+        this.start = options.start;
+        this.end = options.end;
+        this.samples = options.samples;
+        this.dynamicRange = options.dynamicRange;
+        this.min = options.min;
+        this.max = options.max;
 
         this.dataX = [];
         this.dataY = [];
 
-        this.components = [];
-        this.compositor = new Compositor();
         this.lastUpdate = null;
+        this.COMP_ID = components.length;
 
-        this.addComponent();
+        this.compositor = compositor ? Compositor.fromJSON(compositor) : new Compositor();
+        this.components = [];
+        components.forEach(c => {
+            this.components.push(TimeSeriesComponent.fromJSON(this, c))
+            this.COMP_ID = Math.max(this.COMP_ID, Number.parseInt(c.id.slice(c.id.indexOf("_")+1)));
+        });
+
+        if (components.length === 0) {
+            this.addComponent();
+        }
+    }
+
+    toJSON(includeComponents=true, includeCompositor=true) {
+        const json = {
+            start: this.start,
+            end: this.end,
+            samples: this.samples,
+            dynamicRange: this.dynamicRange,
+            min: this.min,
+            max: this.max,
+            size: this.size,
+            type: "timeseries"
+        }
+        if (includeComponents) {
+            json.components = this.components.map(c => c.toJSON())
+        }
+        if (includeCompositor) {
+            json.compositor = this.compositor.toJSON();
+        }
+        return json
+    }
+
+    toCSV() {
+        if (this.dataY.length !== this.samples) {
+            this.generate();
+        }
+        const obj = {};
+        this.dataX.forEach((x, i) => {
+            obj[DateTime.fromJSDate(x).toFormat("yyyy-LL-dd")] = this.dataY[i]
+        });
+        return [obj];
+    }
+
+    toCSVHeader() {
+        if (this.dataY.length !== this.samples) {
+            this.generate();
+        }
+        return this.dataX.map(d => DateTime.fromJSDate(d).toFormat("yyyy-LL-dd"))
+    }
+
+    fromJSON(json) {
+        this.start = json.start;
+        this.end = json.end;
+        this.samples = json.samples;
+        this.dynamicRange = json.dynamicRange;
+        this.min = json.min;
+        this.max = json.max;
+
+        this.dataX = [];
+        this.dataY = [];
+
+        this.COMP_ID = json.components.length;
+
+        this.compositor = Compositor.fromJSON(json.compositor);
+        this.components = [];
+        json.components.forEach(c => {
+            this.components.push(TimeSeriesComponent.fromJSON(this, c))
+            this.COMP_ID = Math.max(this.COMP_ID, Number.parseInt(c.id.slice(c.id.indexOf("_")+1)));
+        });
+        this.generate();
+    }
+
+    static fromJSON(json) {
+        return new TimeSeries(json, json.components, json.compositor)
     }
 
     get componentIDs() {
@@ -46,7 +127,10 @@ export default class TimeSeries {
         return this.components.length;
     }
 
-    getID(generator) {
+    getID() {
+        return "comp_" + (this.COMP_ID++)
+    }
+    getName(generator) {
         const count = this.components.reduce((acc, d) => acc + (d.generator.key === generator.key ? 1 : 0), 0);
         return generator.title + ` ${count}`;
     }

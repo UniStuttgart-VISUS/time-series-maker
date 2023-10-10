@@ -28,8 +28,6 @@ const OP_CASE = Object.freeze({
     APPLY_NESTED_RIGHT: "APPLY_NESTED_RIGHT",
 });
 
-let ID_NUM = 0;
-
 class CompGroup {
 
     constructor(parent=null) {
@@ -114,13 +112,25 @@ class CompGroup {
 
 class Compositor {
 
-    constructor() {
-        this.flat = [];
+    constructor(items=[]) {
+        this.flat = items;
         this.tree = null;
+        this.ID_NUM = items.length;
+        items.forEach(d => {
+            this.ID_NUM = Math.max(this.ID_NUM, Number.parseInt(d.id.slice(d.id.indexOf("_")+1)));
+        })
+    }
+
+    toJSON() {
+        return this.flat.slice()
+    }
+
+    static fromJSON(json) {
+        return new Compositor(json);
     }
 
     static nextID() {
-        return "op_" + (ID_NUM++)
+        return "op_" + (this.ID_NUM++)
     }
 
     static precedence(opA, opB) {
