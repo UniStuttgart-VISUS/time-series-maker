@@ -5,6 +5,15 @@
             density="compact"
             hide-details/>
 
+        <v-select v-model="exportWhich"
+            :items="[{ title: 'Collection', value: 'tsc' }, { title: 'Timeseries', value: 'ts' }]"
+            item-title="title"
+            item-value="value"
+            density="compact"
+            hide-details
+            label="which data to export"
+            :disabled="!app.hasSelectedTimeSeries()"/>
+
         <v-btn color="primary"
             class="mt-2"
             size="small"
@@ -22,6 +31,7 @@
 
     import TimeSeriesCollection from '@/use/timeseries-collection';
     import FileSaver from 'file-saver';
+    import { useApp } from '@/store/app';
 
     const props = defineProps({
         collection: {
@@ -30,7 +40,10 @@
         }
     })
 
-    const filename = ref("tsc");
+    const app = useApp();
+
+    const filename = ref("tsc_data");
+    const exportWhich = ref("tsc");
 
     function makeFilename() {
         if (filename.value.endsWith(".csv")) {
@@ -40,8 +53,13 @@
     }
 
     function exportData() {
+
+        const data = exportWhich.value === "ts" && app.hasSelectedTimeSeries() ?
+            [props.collection.getTimeSeries(app.selectedTs).toCSV()] :
+            props.collection.toCSV()
+
         const file = new File(
-            [d3.csvFormat(props.collection.toCSV(), props.collection.toCSVHeader())],
+            [d3.csvFormatRows([props.collection.toCSVHeader()]) + "\n" + d3.csvFormatRows(data)],
             makeFilename(),
             { type: "text/csv" }
         )

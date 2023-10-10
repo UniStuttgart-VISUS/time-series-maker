@@ -86,11 +86,7 @@ export default class TimeSeries {
         if (this.dataY.length !== this._tsc.samples) {
             this.generate();
         }
-        const obj = {};
-        this._tsc.dataX.forEach((x, i) => {
-            obj[DateTime.fromJSDate(x).toFormat("yyyy-LL-dd")] = this.dataY[i]
-        });
-        return [obj];
+        return Array.from(this.dataY);
     }
 
     toCSVHeader() {

@@ -3,7 +3,7 @@
 
         <v-icon :icon="app.selectedTs === timeseries.id ? 'mdi-circle-slice-8' : 'mdi-circle-outline'"
             @click="app.selectTimeSeries(timeseries.id)"
-            :color="app.tscColorScale(timeseries.id)"/>
+            :color="tsColor"/>
 
             <v-sheet class="ml-2 pa-1" color="grey-lighten-4" rounded="sm">
             <input ref="nameInput" v-model="name"
@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
+    import { ref, computed } from 'vue';
     import { useApp } from '@/store/app';
     import TimeSeries from '@/use/time-series';
 
@@ -59,6 +59,7 @@
 
     const name = ref(props.timeseries.name);
     const editName = ref(false);
+    const tsColor = computed(() => app.tscColorScale(props.timeseries.id))
 
     function toggleEdit() {
         if (editName.value) {

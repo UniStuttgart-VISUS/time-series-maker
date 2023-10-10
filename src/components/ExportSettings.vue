@@ -1,9 +1,19 @@
 <template>
-    <div>
+    <div class="d-flex flex-column">
         <v-text-field v-model="filename"
             label="filename"
             density="compact"
             hide-details/>
+
+        <v-select v-model="exportWhich"
+            :items="[{ title: 'Collection', value: 'tsc' }, { title: 'Timeseries', value: 'ts' }]"
+            item-title="title"
+            item-value="value"
+            density="compact"
+            hide-details
+            label="which data to export"
+            :disabled="!app.hasSelectedTimeSeries()"/>
+
         <v-btn color="primary"
             class="mt-2"
             size="small"
@@ -19,6 +29,7 @@
 
     import FileSaver from 'file-saver';
     import TimeSeriesCollection from '@/use/timeseries-collection';
+    import { useApp } from '@/store/app';
 
     const props = defineProps({
         collection: {
@@ -26,8 +37,10 @@
             required: true
         }
     })
+    const app = useApp();
 
-    const filename = ref("tsc");
+    const filename = ref("tsc_settings");
+    const exportWhich = ref("tsc");
 
     function makeFilename() {
         if (filename.value.endsWith(".json")) {
@@ -37,8 +50,13 @@
     }
 
     function exportData() {
+
+        const data = exportWhich.value === "ts" && app.hasSelectedTimeSeries() ?
+            props.collection.getTimeSeries(app.selectedTs).toJSON() :
+            props.collection.toJSON()
+
         const file = new File(
-            [JSON.stringify(props.collection.toJSON(), null, 2)],
+            [JSON.stringify(data, null, 2)],
             makeFilename(),
             { type: "application/json" }
         )

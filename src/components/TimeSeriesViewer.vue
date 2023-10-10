@@ -5,27 +5,20 @@
             <v-btn icon="mdi-dice-6"
                 class="mr-2"
                 rounded="sm"
-                color="primary"
                 density="compact"
                 size="x-large"
                 variant="outlined"
                 @click="randomSeed"/>
-            <v-select v-model="generatorType"
+
+            <v-autocomplete v-model="generatorType"
                 :items="GENERATOR_DEFAULT_NAMES"
-                style="width: 250px;"
                 label="component type"
                 item-title="title"
                 item-value="key"
                 hide-details
                 hide-no-data
-                density="compact"/>
-            <v-btn icon="mdi-plus"
-                class="ml-2"
-                rounded="sm"
                 density="compact"
-                size="x-large"
-                variant="outlined"
-                @click="addComponent"/>
+                @update:model-value="addComponent"/>
         </div>
 
         <v-expansion-panels v-model="selectedComponents" class="mt-4 mb-4" rounded="sm" variant="accordion" multiple @update:model-value="setSelected">

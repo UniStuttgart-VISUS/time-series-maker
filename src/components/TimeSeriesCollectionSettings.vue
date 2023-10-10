@@ -1,30 +1,24 @@
 <template>
     <div>
-        <v-text-field v-model="start"
-            label="start date"
-            type="date"
-            hide-details
-            density="compact"
-            :rules="[v => v < end ? true : 'must be earlier than end']"
-            @update:modelValue="setStart"/>
 
-        <v-text-field v-model="end"
-            label="end date"
-            type="date"
-            hide-details
-            density="compact"
-            :rules="[v => v > start ? true : 'must be later than start']"
-            @update:modelValue="setEnd"/>
+        <div class="d-flex mb-1">
+            <v-text-field v-model="start"
+                label="start date"
+                type="date"
+                hide-details
+                class="mr-1"
+                density="compact"
+                :rules="[v => v < end ? true : 'must be earlier than end']"
+                @update:modelValue="setStart"/>
 
-        <v-text-field v-model.number="numSamples"
-            label="number of samples"
-            type="number"
-            density="compact"
-            hide-details
-            min="3"
-            step="1"
-            :rules="[v => v > 2 && Number.isInteger(v) ? true : 'must be an integer >3']"
-            @update:modelValue="setSamples"/>
+            <v-text-field v-model="end"
+                label="end date"
+                type="date"
+                hide-details
+                density="compact"
+                :rules="[v => v > start ? true : 'must be later than start']"
+                @update:modelValue="setEnd"/>
+        </div>
 
         <v-switch v-model="dynamicRange"
             class="d-flex justify-center"
@@ -33,9 +27,20 @@
             density="compact"
             @update:model-value="setDynamicRange"/>
 
-        <div v-if="!dynamicRange" class="d-flex">
+        <div class="d-flex mb-1">
+            <v-text-field v-model.number="numSamples"
+                label="# samples"
+                type="number"
+                density="compact"
+                class="mr-1"
+                hide-details
+                min="3"
+                step="1"
+                :rules="[v => v > 2 && Number.isInteger(v) ? true : 'must be an integer >3']"
+                @update:modelValue="setSamples"/>
 
-            <v-text-field v-model.number="min"
+            <v-text-field v-if="!dynamicRange"
+                v-model.number="min"
                 label="minimum value"
                 type="number"
                 step="0.01"
@@ -45,7 +50,8 @@
                 :rules="[v => v < max ? true : 'must be smaller than maximum']"
                 @update:modelValue="setMin"/>
 
-            <v-text-field v-model.number="max"
+            <v-text-field v-if="!dynamicRange"
+                v-model.number="max"
                 label="maximum value"
                 type="number"
                 step="0.01"

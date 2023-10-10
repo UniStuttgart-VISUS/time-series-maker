@@ -1,3 +1,4 @@
+import * as d3 from 'd3';
 import TimeSeries from "@/use/time-series";
 import datespace from '@stdlib/array/datespace';
 
@@ -143,6 +144,10 @@ export default class TimeSeriesCollection {
         return "ts_" + (this.TS_ID++)
     }
 
+    getName(number) {
+        return "timeseries " + number;
+    }
+
     getTimeSeries(id) {
         return this.series.find(ts => ts.id === id);
     }
@@ -151,7 +156,11 @@ export default class TimeSeriesCollection {
     }
 
     addTimeSeries(timeseries=null) {
-        this.series.push(timeseries ? timeseries : new TimeSeries(this, this.getID()));
+        this.series.push(timeseries ? timeseries : new TimeSeries(
+            this,
+            this.getID(),
+            this.getName(this.TS_ID-1))
+        );
         this.generate();
     }
 

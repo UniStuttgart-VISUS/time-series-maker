@@ -4,28 +4,28 @@
 
         <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
-            <v-tabs v-model="tab" color="primary" grow @update:model-value="readTab">
-                <v-tab value="tsc"><v-icon size="x-large">mdi-card-multiple</v-icon></v-tab>
-                <v-tab value="ts"><v-icon size="x-large">mdi-cog</v-icon></v-tab>
-                <v-tab value="export"><v-icon size="x-large">mdi-download</v-icon></v-tab>
-                <v-tab value="import"><v-icon size="x-large">mdi-upload</v-icon></v-tab>
+            <v-tabs v-model="mainTab" color="primary" grow>
+                <v-tab :value="MAIN_TABS.TSC"><v-icon size="x-large">mdi-home</v-icon></v-tab>
+                <v-tab :value="MAIN_TABS.TS"><v-icon size="x-large">mdi-format-list-group</v-icon></v-tab>
+                <v-tab :value="MAIN_TABS.EXPORT"><v-icon size="x-large">mdi-download</v-icon></v-tab>
+                <v-tab :value="MAIN_TABS.IMPORT"><v-icon size="x-large">mdi-upload</v-icon></v-tab>
             </v-tabs>
 
-            <v-window v-model="tab">
+            <v-window v-model="mainTab">
 
-                <v-window-item key="tsc" value="tsc" class="mt-2 ml-2 mr-2">
+                <v-window-item :key="MAIN_TABS.TSC" :value="MAIN_TABS.TSC" class="mt-2 ml-2 mr-2">
                     <TimeSeriesCollectionViewer :collection="tsc"/>
                 </v-window-item>
 
-                <v-window-item key="ts" value="ts" class="mt-2 ml-2 mr-2">
+                <v-window-item :key="MAIN_TABS.TS" :value="MAIN_TABS.TS" class="mt-2 ml-2 mr-2">
                     <TimeSeriesViewer v-if="ts" :timeseries="ts"/>
                 </v-window-item>
 
-                <v-window-item key="export" value="export" class="mt-2 ml-2 mr-2">
+                <v-window-item :key="MAIN_TABS.EXPORT" :value="MAIN_TABS.EXPORT" class="mt-2 ml-2 mr-2">
                     <ExportViewer :collection="tsc"/>
                 </v-window-item>
 
-                <v-window-item key="import" value="import" class="mt-2 ml-2 mr-2">
+                <v-window-item :key="MAIN_TABS.IMPORT" :value="MAIN_TABS.IMPORT" class="mt-2 ml-2 mr-2">
                     <ImportViewer @loaded="importData"/>
                 </v-window-item>
 
@@ -36,12 +36,12 @@
             <LineChart
                 :data="lineData"
                 x-attr="0" y-attr="1"
-                :color-scale="tab === 'ts' && ts ? app.tsColorScale : app.tscColorScale"
+                :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
                 :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
         </v-sheet>
 
         <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
-            <ComponentOperatorViewer v-if="tab === 'ts' && ts"
+            <ComponentOperatorViewer v-if="mainTab === MAIN_TABS.TS && ts"
                 :compositor="ts.compositor"
                 @update="update(true)"
                 @switch="switchComponents"/>
@@ -52,7 +52,8 @@
 
 <script setup>
     import { ref, reactive, watch, computed, onMounted } from 'vue';
-    import { useApp } from '@/store/app';
+    import { useApp, MAIN_TABS } from '@/store/app';
+    import { storeToRefs } from 'pinia';
 
     import TimeSeriesCollection from '@/use/timeseries-collection';
     import GENERATOR_TYPES from '@/use/generator-types';
@@ -63,10 +64,11 @@
     import ExportViewer from '@/components/ExportViewer.vue';
     import ImportViewer from '@/components/ImportViewer.vue';
     import TimeSeriesCollectionViewer from '@/components/TimeSeriesCollectionViewer.vue';
+import TimeSeries from '@/use/time-series';
 
     const app = useApp();
+    const { mainTab } = storeToRefs(app)
 
-    const tab = ref("tsc")
     let lineData = ref([]);
 
     const tsc = reactive(new TimeSeriesCollection());
@@ -85,7 +87,7 @@
     }
 
     function update(generate=false) {
-        if (tab.value === "ts" && ts.value) {
+        if (mainTab.value === MAIN_TABS.TS && ts.value) {
             lineData.value = []
             if (generate === true) {
                 ts.value.generate();
@@ -101,22 +103,22 @@
         }
     }
 
-    function importData(data) {
-        if (data.type === "timeseries-collection") {
+    function importData(json) {
+        if (json.type === "timeseries") {
             app.deselectTimeSeries();
-            tsc.fromJSON(data);
+            tsc.addTimeSeries(TimeSeries.fromJSON(tsc, json))
+            update(true)
+        } else if (json.type === "timeseries-collection") {
+            app.deselectTimeSeries();
+            tsc.fromJSON(json);
             update(true)
         }
     }
 
     function readTab() {
-        if (tab.value === "ts" || tab.value === "tsc") {
+        if (mainTab.value === MAIN_TABS.TS || mainTab.value === MAIN_TABS.TSC) {
             update(true)
         }
-    }
-    function setTab() {
-        tab.value = app.hasSelectedTimeSeries() ? "ts" : "tsc";
-        update(true)
     }
 
     onMounted(function() {
@@ -126,5 +128,5 @@
     })
 
     watch(() => tsc.lastUpdate, update);
-    watch(() => app.selectedTs, setTab)
+    watch(mainTab, readTab)
 </script>

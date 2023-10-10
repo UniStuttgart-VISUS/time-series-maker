@@ -2,11 +2,18 @@
     <div>
         <TimeSeriesCollectionSettings :collection="collection" @update="updateSettings"/>
 
-        <v-sheet v-for="ts in collection.series" :key="ts.id" class="mb-2 pa-2" rounded="sm" border>
-            <TimeSeriesTitle :timeseries="ts"
+        <v-btn rounded="sm" variant="outlined" @click="add" style="width: 100%;" class="mb-1">
+            <v-icon icon="mdi-plus"/> new time series
+        </v-btn>
+
+        <div v-for="(ts, index) in collection.series" :key="ts.id" class="mb-2">
+            <v-sheet class="pa-2" rounded>
+                <TimeSeriesTitle :timeseries="ts"
                 @remove="remove"
                 @copy="copy"/>
-        </v-sheet>
+            </v-sheet>
+            <v-divider v-if="index < collection.size-1" class="mt-2 border-opacity-100" color="primary"></v-divider>
+        </div>
     </div>
 
 </template>
@@ -25,6 +32,9 @@
 
     function updateSettings(payload) {
         props.collection.setOption(payload.key, payload.value);
+    }
+    function add() {
+        props.collection.addTimeSeries();
     }
     function remove(id) {
         props.collection.removeTimeSeries(id);

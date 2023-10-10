@@ -2,8 +2,18 @@
 import { defineStore } from 'pinia'
 import * as d3 from 'd3';
 
+export const MAIN_TABS = Object.freeze({
+    TSC: "tsc",
+    TS: "ts",
+    EXPORT: "exp",
+    IMPORT: "imp"
+});
+
 export const useApp = defineStore('app', {
     state: () => ({
+
+        mainTab: MAIN_TABS.TSC,
+
         selectedTs: null,
         selectedComps: new Set(),
         lineChartZoom: d3.zoomIdentity,
@@ -16,6 +26,17 @@ export const useApp = defineStore('app', {
     }),
 
     actions: {
+
+        goToTab(name) {
+            switch(name) {
+                case MAIN_TABS.TSC:
+                case MAIN_TABS.TS:
+                case MAIN_TABS.EXPORT:
+                case MAIN_TABS.IMPORT:
+                    this.mainTab = name;
+                    break;
+            }
+        },
 
         setTSCDomain(domain) {
             this.tscDomain = domain;
@@ -34,10 +55,15 @@ export const useApp = defineStore('app', {
         selectTimeSeries(id) {
             this.selectedComps.clear();
             this.selectedTs = id;
+            this.goToTab(MAIN_TABS.TS)
+            console.log()
         },
 
         deselectTimeSeries() {
             this.selectedTs = null;
+            if (this.mainTab === MAIN_TABS.TS) {
+                this.goToTab(MAIN_TABS.TSC)
+            }
         },
 
         hasSelectedTimeSeries() {
