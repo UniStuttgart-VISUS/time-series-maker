@@ -3,13 +3,14 @@ import randi from "@stdlib/random/base/randi";
 
 export default class TimeSeriesComponent {
 
-    constructor(timeseries, generator) {
+    constructor(timeseries, generator=null, id=null, name=null) {
         generator = generator ? generator : new Generator()
         this._ts = timeseries;
-        this.id = this._ts.getID()
-        this.name = this._ts.getName(generator)
+        this.id = id ? id : this._ts.getID()
+        this.name = name ? name : this._ts.getName(generator)
         this.data = [];
         this.generator = generator;
+        this.generate();
     }
 
     toJSON() {
@@ -21,11 +22,21 @@ export default class TimeSeriesComponent {
     }
 
     static fromJSON(timeseries, json) {
-        const g = Generator.fromJSON(json.generator);
-        const c = new TimeSeriesComponent(timeseries, g)
-        c.id = json.id;
-        c.name = json.name;
-        return c;
+        return new TimeSeriesComponent(
+            timeseries,
+            Generator.fromJSON(json.generator),
+            json.id,
+            json.name
+        );
+    }
+
+    copy(timeseries) {
+        return new TimeSeriesComponent(
+            timeseries,
+            this.generator.copy(),
+            this.id,
+            this.name
+        )
     }
 
     setName(name) {
@@ -53,7 +64,8 @@ export default class TimeSeriesComponent {
     }
 
     generate(samples) {
-        samples = samples ? samples : this._ts.samples;
+        if (!this._ts) return;
+        samples = samples ? samples : this._ts._tsc.samples;
         this.data = this.generator.generate(samples)
         return this.data;
     }

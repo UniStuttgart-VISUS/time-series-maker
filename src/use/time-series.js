@@ -1,13 +1,9 @@
-import * as d3 from 'd3';
-
 import TimeSeriesComponent from './time-series-component';
 import Generator from './generators';
 import GENERATOR_DEFAULTS from "./generator-defaults";
 import Compositor, { OPERATOR, OP_CASE } from './compositor';
 
-import datespace from '@stdlib/array/datespace';
 import inmap from '@stdlib/utils/inmap';
-import forEach from '@stdlib/utils/for-each';
 import randi from '@stdlib/random/base/randi';
 import filled from '@stdlib/array/filled'
 import mapFun from '@stdlib/utils/map-function'
@@ -18,90 +14,50 @@ function add(a, b) { return a+b; }
 function subtract(a, b) { return a-b; }
 function multiply(a, b) { return a*b; }
 
-const TS_DEFAULTS = Object.freeze({
-    samples: 100,
-    dynamicRange: true,
-    min: -2,
-    max: 2,
-    start: "2022-01-01",
-    end: "2022-12-31",
-})
 
 export default class TimeSeries {
 
-    constructor(options=TS_DEFAULTS, components=[], compositor=null) {
-        this.start = options.start;
-        this.end = options.end;
-        this.samples = options.samples;
-        this.dynamicRange = options.dynamicRange;
-        this.min = options.min;
-        this.max = options.max;
+    constructor(tsc, id, name=null, components=[], compositor=null) {
 
-        this.dataX = [];
+        this._tsc = tsc;
+        this.id = id;
+        this.name = name ? name : id;
+
         this.dataY = [];
 
         this.lastUpdate = null;
         this.COMP_ID = components.length;
 
-        this.compositor = compositor ? Compositor.fromJSON(compositor) : new Compositor();
+        this.compositor = compositor ? compositor : new Compositor();
         this.components = [];
         components.forEach(c => {
-            this.components.push(TimeSeriesComponent.fromJSON(this, c))
-            this.COMP_ID = Math.max(this.COMP_ID, Number.parseInt(c.id.slice(c.id.indexOf("_")+1)));
+            c._ts = this;
+            this.components.push(c)
+            this.COMP_ID = Math.max(this.COMP_ID, Number.parseInt(c.id.slice(c.id.indexOf("_")+1))+1);
         });
 
-        if (components.length === 0) {
+        if (this.size === 0) {
             this.addComponent();
-        }
-    }
-
-    toJSON(includeComponents=true, includeCompositor=true) {
-        const json = {
-            start: this.start,
-            end: this.end,
-            samples: this.samples,
-            dynamicRange: this.dynamicRange,
-            min: this.min,
-            max: this.max,
-            size: this.size,
-            type: "timeseries"
-        }
-        if (includeComponents) {
-            json.components = this.components.map(c => c.toJSON())
-        }
-        if (includeCompositor) {
-            json.compositor = this.compositor.toJSON();
-        }
-        return json
-    }
-
-    toCSV() {
-        if (this.dataY.length !== this.samples) {
+        } else {
             this.generate();
         }
-        const obj = {};
-        this.dataX.forEach((x, i) => {
-            obj[DateTime.fromJSDate(x).toFormat("yyyy-LL-dd")] = this.dataY[i]
-        });
-        return [obj];
     }
 
-    toCSVHeader() {
-        if (this.dataY.length !== this.samples) {
-            this.generate();
-        }
-        return this.dataX.map(d => DateTime.fromJSDate(d).toFormat("yyyy-LL-dd"))
+    static fromJSON(tsc, json) {
+        return new TimeSeries(
+            tsc,
+            json.id,
+            json.name,
+            json.components.map(c => TimeSeriesComponent.fromJSON(null, c)),
+            Compositor.fromJSON(json.compositor)
+        )
     }
 
     fromJSON(json) {
-        this.start = json.start;
-        this.end = json.end;
-        this.samples = json.samples;
-        this.dynamicRange = json.dynamicRange;
-        this.min = json.min;
-        this.max = json.max;
 
-        this.dataX = [];
+        this.id = json.id;
+        this.name = json.name;
+
         this.dataY = [];
 
         this.COMP_ID = json.components.length;
@@ -115,8 +71,41 @@ export default class TimeSeries {
         this.generate();
     }
 
-    static fromJSON(json) {
-        return new TimeSeries(json, json.components, json.compositor)
+    toJSON() {
+        const json = {
+            id: this.id,
+            name: this.name,
+            type: "timeseries",
+            components: this.components.map(c => c.toJSON()),
+            compositor: this.compositor.toJSON()
+        }
+        return json
+    }
+
+    toCSV() {
+        if (this.dataY.length !== this._tsc.samples) {
+            this.generate();
+        }
+        const obj = {};
+        this._tsc.dataX.forEach((x, i) => {
+            obj[DateTime.fromJSDate(x).toFormat("yyyy-LL-dd")] = this.dataY[i]
+        });
+        return [obj];
+    }
+
+    toCSVHeader() {
+        return this._tsc.toCSVHeader()
+    }
+
+    copy() {
+        const id = "copy_" + this.id;
+        return new TimeSeries(
+            this._tsc,
+            id,
+            id,
+            this.components.map(c => c.copy()),
+            this.compositor.copy()
+        )
     }
 
     get componentIDs() {
@@ -134,49 +123,16 @@ export default class TimeSeries {
         const count = this.components.reduce((acc, d) => acc + (d.generator.key === generator.key ? 1 : 0), 0);
         return generator.title + ` ${count}`;
     }
+    setName(name) {
+        this.name = name;
+    }
 
     hasID(id) {
         return this.getComponent(id) !== undefined;
     }
 
     clear() {
-        this.dataX = [];
         this.dataY = [];
-    }
-
-    setOption(key, value) {
-        switch (key) {
-            case "min":
-                this.min = value < this.max ? value : this.min;
-                break;
-            case "max":
-                this.max = value > this.min ? value : this.max;
-                break;
-            case "start":
-                this.start = value < this.end ? value : this.start;
-                this.generate();
-                break;
-            case "end":
-                this.end = value > this.start ? value : this.end;
-                this.generate();
-                break;
-            case "samples":
-                this.samples = Math.max(3, Math.round(value));
-                this.generate();
-                break;
-            case "dynamicRange": {
-                this.dynamicRange = value === true;
-                if (!this.dynamicRange && this.size > 0) {
-                    if (!this.dataY) {
-                        this.generate();
-                    }
-                    const [min, max] = d3.extent(this.dataY);
-                    this.min = min;
-                    this.max = max;
-                }
-                break;
-            }
-        }
     }
 
     getComponent(id) {
@@ -234,39 +190,41 @@ export default class TimeSeries {
 
     generate() {
 
+        if (!this._tsc) return;
+
         let leftVals, rightVals, cacheVals;
-        const values = filled(0, this.samples);
+        const values = filled(0, this._tsc.samples);
 
         const getComp = id => {
             const c = this.getComponent(id);
-            if (c.data.length !== this.samples) {
-                c.generate(this.samples)
+            if (c.data.length !== this._tsc.samples) {
+                c.generate(this._tsc.samples)
             }
             return c;
         }
 
         const apply = (op, inplace=true) => {
-            switch(op.name) {
+            switch(op) {
                 default:
                 case OPERATOR.ADD:
                     if (inplace) {
                         inmap(values, (_, i) => add(leftVals[i], rightVals[i]));
                     } else {
-                        return mapFun(i => add(leftVals[i], rightVals[i]), this.samples);
+                        return mapFun(i => add(leftVals[i], rightVals[i]), this._tsc.samples);
                     }
                     break;
                 case OPERATOR.MULTIPLY:
                     if (inplace) {
                         inmap(values, (_, i) => multiply(leftVals[i], rightVals[i]));
                     } else {
-                        return mapFun(i => multiply(leftVals[i], rightVals[i]), this.samples);
+                        return mapFun(i => multiply(leftVals[i], rightVals[i]), this._tsc.samples);
                     }
                     break;
                 case OPERATOR.SUBTRACT:
                     if (inplace) {
                         inmap(values, (_, i) => subtract(leftVals[i], rightVals[i]));
                     } else {
-                        return mapFun(i => subtract(leftVals[i], rightVals[i]), this.samples);
+                        return mapFun(i => subtract(leftVals[i], rightVals[i]), this._tsc.samples);
                     }
                     break;
             }
@@ -279,34 +237,33 @@ export default class TimeSeries {
             const hasRight = right !== undefined && right !== null;
             const hasExtraOp = extraOp !== undefined && extraOp !== null;
 
-
             switch(opCase) {
                 case OP_CASE.APPLY_BOTH: {
                     console.assert(hasLeft && hasOp && hasRight, "wrong case - missing data");
-                    const cl = getComp(left.id);
-                    const cr = getComp(right.id);
+                    const cl = getComp(left);
+                    const cr = getComp(right);
                     leftVals = cl.data;
                     rightVals = cr.data;
                     break;
                 }
                 case OP_CASE.APPLY_LEFT: {
                     console.assert(hasLeft, "wrong case - missing left");
-                    const c = getComp(left.id);
+                    const c = getComp(left);
                     leftVals = c.data;
                     rightVals = values;
                     break;
                 }
                 case OP_CASE.APPLY_RIGHT: {
                     console.assert(hasRight, "wrong case - missing right");
-                    const c = getComp(right.id);
+                    const c = getComp(right);
                     leftVals = values;
                     rightVals = c.data;
                     break;
                 }
                 case OP_CASE.APPLY_NESTED_LEFT: {
                     console.assert(hasLeft && hasOp && hasRight, "wrong case - missing data");
-                    const cl = getComp(left.id);
-                    const cr = getComp(right.id);
+                    const cl = getComp(left);
+                    const cr = getComp(right);
                     leftVals = cl.data;
                     rightVals = cr.data;
                     break;
@@ -321,40 +278,38 @@ export default class TimeSeries {
 
                 switch(opCase) {
                     case OP_CASE.APPLY_NESTED_LEFT: {
-                        const c = getComp(left.id);
-                        leftVals = c.data;
+                        leftVals = values;
                         rightVals = cacheVals;
                         break;
                     }
                     case OP_CASE.APPLY_NESTED_RIGHT: {
-                        const c = getComp(right.id);
                         leftVals = cacheVals;
-                        rightVals = c.data;
+                        rightVals = values;
                         break;
                     }
-                    default: break;
                 }
                 apply(extraOp);
+                cacheVals = null;
             }
 
         });
 
-        this.dataX = datespace(this.start, this.end, this.samples);
         this.dataY = values;
         this.lastUpdate = Date.now();
+        this._tsc.update();
 
         return this.dataY;
     }
 
     toChartData() {
         const data = [];
-        if (this.dataY.length !== this.samples) {
+        if (this.dataY.length !== this._tsc.samples) {
             this.generate();
         }
 
         this.components.forEach(c => {
             const result = [];
-            forEach(c.data, (d, i) => result.push([this.dataX[i], d ]));
+            c.data.forEach((d, i) => result.push([this._tsc.dataX[i], d ]));
             data.push({
                 id: c.id,
                 color: c.generator.type,
@@ -364,7 +319,7 @@ export default class TimeSeries {
         });
 
         const result = [];
-        forEach(this.dataY, (d, i) => result.push([this.dataX[i], d]));
+        this.dataY.forEach((d, i) => result.push([this._tsc.dataX[i], d]));
         data.push({
             id: "result",
             color: "result",

@@ -35,6 +35,7 @@ class CompGroup {
         this.parent = parent;
         this.depth = parent === null ? 1 : parent.depth + 1;
         this.lastNode = null;
+        this.deepestNode = null;
         this.visited = false;
     }
 
@@ -71,6 +72,18 @@ class CompGroup {
         return this.data.includes(value);
     }
 
+    isNested() {
+        return this.isNestedLeft() || this.isNestedRight()
+    }
+    isNestedLeft(exclusive=false) {
+        return (this.left && this.left instanceof CompGroup) &&
+            (!exclusive || !this.isNestedRight())
+    }
+    isNestedRight(exclusive=false) {
+        return (this.right && this.right instanceof CompGroup) &&
+            (!exclusive || !this.isNestedLeft())
+    }
+
     traverse(callback) {
         callback(node.left, node.op, node.right);
         if (this.parent) {
@@ -78,31 +91,26 @@ class CompGroup {
         }
     }
 
-    setVisited() {
-        this.visited = true;
-        if (this.left instanceof CompGroup) {
-            this.left.setVisited();
+    setVisited(value=true) {
+        this.visited = value;
+        if (this.isNestedLeft()) {
+            this.left.setVisited(value);
         }
-        if (this.right instanceof CompGroup) {
-            this.right.setVisited();
+        if (this.isNestedRight()) {
+            this.right.setVisited(value);
         }
     }
 
     toArray() {
-
-        if ((this.left && !(this.left instanceof CompGroup)) &&
-            (this.right && !(this.right instanceof CompGroup))
-        ) {
+        if (!this.isNested()) {
             return this.data.slice()
-        } else if (this.left instanceof CompGroup && !(this.right instanceof CompGroup)) {
+        } else if (this.isNestedLeft(true)) {
             return [this.left.toArray(), this.op, this.right]
-        } else if (this.right instanceof CompGroup && !(this.left instanceof CompGroup)) {
+        } else if (this.isNestedRight(true)) {
             return [this.left, this.op, this.right.toArray()]
-        } else if (this.left instanceof CompGroup && this.right instanceof CompGroup) {
+        } else {
             return [this.left.toArray(), this.op, this.right.toArray()]
         }
-
-        return [];
     }
 
     toString() {
@@ -117,7 +125,7 @@ class Compositor {
         this.tree = null;
         this.ID_NUM = items.length;
         items.forEach(d => {
-            this.ID_NUM = Math.max(this.ID_NUM, Number.parseInt(d.id.slice(d.id.indexOf("_")+1)));
+            this.ID_NUM = Math.max(this.ID_NUM, Number.parseInt(d.id.slice(d.id.indexOf("_")+1))+1);
         })
     }
 
@@ -129,7 +137,11 @@ class Compositor {
         return new Compositor(json);
     }
 
-    static nextID() {
+    copy() {
+        return new Compositor(this.flat.slice())
+    }
+
+    nextID() {
         return "op_" + (this.ID_NUM++)
     }
 
@@ -188,7 +200,7 @@ class Compositor {
             return;
         }
 
-        const id = Compositor.nextID();
+        const id = this.nextID();
         // when tree is empty
         if (this.size === 0) {
             console.error("invalid input - cannot start with an operator");
@@ -249,6 +261,7 @@ class Compositor {
             } else {
                 this._treeAddOperator(node.id, node.name);
             }
+            // console.log(this.tree.toString())
         })
     }
 
@@ -258,10 +271,9 @@ class Compositor {
         if (this.tree === null) {
             this.tree = new CompGroup();
             this.tree.left = id;
-        } else if (!this.tree.right) {
-            this.tree.right = id;
-        } else if (this.tree.lastNode) {
-            console.assert(!this.tree.lastNode.right, "right side must be free");
+            this.tree.lastNode = this.tree;
+            this.tree.deepestNode = this.tree;
+        } else if (!this.tree.lastNode.right){
             this.tree.lastNode.right = id;
         } else {
             console.error("what?!")
@@ -294,9 +306,10 @@ class Compositor {
                     newNode.op = id;
                     node.right = newNode
                     // replace last node if it is deeper than previous or none exists
-                    if (!this.tree.lastNode || newNode.depth >= this.tree.lastNode.depth) {
-                        this.tree.lastNode = newNode;
+                    if (newNode.depth >= this.tree.deepestNode.depth) {
+                        this.tree.deepestNode = newNode;
                     }
+                    this.tree.lastNode = newNode;
                     break;
                 }
                 case PRECEDENCE_RESULT.LESS: {
@@ -309,15 +322,10 @@ class Compositor {
                     node.op = id;
                     node.right = null;
                     // replace last node if it is deeper than previous or none exists
-                    if (!this.tree.lastNode || newNode.depth >= this.tree.lastNode.depth) {
-                        if (node === this.tree) {
-                            node.lastNode = null;
-                            this.tree = newNode;
-                            newNode.lastNode = node;
-                        } else {
-                            this.tree.lastNode = node;
-                        }
+                    if (newNode.depth >= this.tree.deepestNode.depth) {
+                        this.tree.deepestNode = newNode;
                     }
+                    this.tree.lastNode = node;
                     break;
                 }
             }
@@ -330,18 +338,24 @@ class Compositor {
 
         // only one component
         if (this.size === 1) {
-            callback(OP_CASE.APPLY_LEFT, this.flat[0])
+            callback(OP_CASE.APPLY_LEFT, this.flat[0].id, OPERATOR.ADD)
             return;
         }
 
         // only one operation
         if (this.size === 3) {
-            callback(OP_CASE.APPLY_BOTH, this.flat[0], this.flat[1], this.flat[2])
-            return;
+            return callback(
+                OP_CASE.APPLY_BOTH,
+                this.flat[0].id,
+                this.flat[1].name,
+                this.flat[2].id
+            );
         }
 
         if (this.tree === null) {
             this._makeTree();
+        } else {
+            this.tree.setVisited(false)
         }
 
         const traverse = node => {
@@ -350,14 +364,12 @@ class Compositor {
             if (!node) return;
 
             // non-nested node
-            if ((node.left && !(node.left instanceof CompGroup)) &&
-                (node.right && !(node.right instanceof CompGroup))
-            ) {
+            if (!node.isNested()) {
                 callback(
                     OP_CASE.APPLY_BOTH,
-                    this.getNode(node.left),
-                    this.getNode(node.op),
-                    this.getNode(node.right),
+                    node.left,
+                    this.getNode(node.op).name,
+                    node.right,
                 );
                 node.visited = true;
                 // go to parent
@@ -365,26 +377,27 @@ class Compositor {
             }
 
             // nested on left side (already visited)
-            if (node.left instanceof CompGroup && !(node.right instanceof CompGroup)) {
+            if (node.isNestedLeft(true)) {
                 callback(
                     OP_CASE.APPLY_RIGHT,
                     null,
-                    this.getNode(node.op),
-                    this.getNode(node.right),
+                    this.getNode(node.op).name,
+                    node.right,
                 );
                 node.visited = true;
 
             // nested on right side (already visited)
-            } else if (node.right instanceof CompGroup && !(node.left instanceof CompGroup)) {
+            } else if (node.isNestedRight(true)) {
                 callback(
                     OP_CASE.APPLY_LEFT,
-                    this.getNode(node.left),
-                    this.getNode(node.op),
+                    node.left,
+                    this.getNode(node.op).name,
                 );
                 node.visited = true;
 
             // both are nested, but one should have already been visited
-            } else if (node.left instanceof CompGroup && node.right instanceof CompGroup) {
+            } else if (node.isNested()) {
+
                 const vLeft = node.left.visited;
                 const vRight = node.right.visited;
                 console.assert(vLeft ^ vRight, "only one side should have been visited beforehand");
@@ -393,10 +406,10 @@ class Compositor {
                     // left side already calculated
                     callback(
                         OP_CASE.APPLY_NESTED_RIGHT,
-                        this.getNode(node.right.left),
-                        this.getNode(node.right.op),
-                        this.getNode(node.right.right),
-                        this.getNode(node.op)
+                        node.right.left,
+                        this.getNode(node.right.op).name,
+                        node.right.right,
+                        this.getNode(node.op).name
                     );
                     node.visited = true;
                 }
@@ -404,10 +417,10 @@ class Compositor {
                     // right side already calculated
                     callback(
                         OP_CASE.APPLY_NESTED_LEFT,
-                        this.getNode(node.left.left),
-                        this.getNode(node.left.op),
-                        this.getNode(node.left.right),
-                        this.getNode(node.op)
+                        node.left.left,
+                        this.getNode(node.left.op).name,
+                        node.left.right,
+                        this.getNode(node.op).name
                     );
                     node.visited = true;
                 }
@@ -417,9 +430,7 @@ class Compositor {
             traverse(node.parent)
         };
 
-        // console.log(this.tree.toString())
-
-        traverse(this.tree.lastNode);
+        traverse(this.tree.deepestNode);
     }
 }
 

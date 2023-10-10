@@ -22,6 +22,10 @@
             type: Array,
             required: true
         },
+        colorScale: {
+            type: Function,
+            required: true
+        },
         width: {
             type: Number,
             default: 600
@@ -118,7 +122,7 @@
             .data(props.data)
             .join("path")
             .attr("d", d => line(d.values))
-            .attr("stroke", d => app.colorScale(color(d)))
+            .attr("stroke", d => props.colorScale(color(d)))
             .attr("stroke-opacity", d => d.opacity)
             .attr("stroke-width", 2)
             .attr("fill", "none")
@@ -176,12 +180,12 @@
     }
 
     function highlight() {
-        paths.attr("stroke-opacity", d => app.isSelected(id(d)) ? 1 : d.opacity)
+        paths.attr("stroke-opacity", d => app.isSelectedComponent(id(d)) ? 1 : d.opacity)
     }
 
     onMounted(draw);
 
     watch(() => props.data, draw, { deep: true })
     watch(() => [props.width, props.height, props.xDomain, props.yDomain], draw, { deep: true })
-    watch(() => app.selected, highlight, { deep: true })
+    watch(() => app.selectedComps, highlight, { deep: true })
 </script>

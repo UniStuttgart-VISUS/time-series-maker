@@ -1,36 +1,68 @@
 // Utilities
 import { defineStore } from 'pinia'
 import * as d3 from 'd3';
-import GENERATOR_TYPES from '@/use/generator-types';
 
 export const useApp = defineStore('app', {
     state: () => ({
-        selected: new Set(),
+        selectedTs: null,
+        selectedComps: new Set(),
         lineChartZoom: d3.zoomIdentity,
-        colorScale: d3.scaleOrdinal(["#000"].concat(d3.schemeSet1.slice(0, 9))).domain(["result"].concat(Object.values(GENERATOR_TYPES))),
+
+        tscDomain: [],
+        tscColorScale: d3.scaleOrdinal(d3.schemeCategory10),
+
+        tsDomain: [],
+        tsColorScale: d3.scaleOrdinal(["#000"].concat(d3.schemeCategory10)),
     }),
 
     actions: {
+
+        setTSCDomain(domain) {
+            this.tscDomain = domain;
+            this.tscColorScale.domain(domain);
+        },
+
+        setTSDomain(domain) {
+            this.tsDomain = domain;
+            this.tsColorScale.domain(domain);
+        },
 
         setLineChartZoom(transform) {
             this.lineChartZoom = transform;
         },
 
-        setSelected(names) {
-            this.selected.clear();
-            names.forEach(n => this.selected.add(n));
+        selectTimeSeries(id) {
+            this.selectedComps.clear();
+            this.selectedTs = id;
         },
 
-        addSelected(name) {
-            this.selected.add(name);
+        deselectTimeSeries() {
+            this.selectedTs = null;
         },
 
-        removeSelected(name) {
-            this.selected.delete(name);
+        hasSelectedTimeSeries() {
+            return this.selectedTs !== null;
         },
 
-        isSelected(name) {
-            return this.selected.has(name);
+        isSelectedTimeSeries(id) {
+            return this.selectedTs === id;
+        },
+
+        setSelectedComponents(names) {
+            this.selectedComps.clear();
+            names.forEach(n => this.selectedComps.add(n));
+        },
+
+        addSelectedComponent(name) {
+            this.selectedComps.add(name);
+        },
+
+        removeSelectedComponent(name) {
+            this.selectedComps.delete(name);
+        },
+
+        isSelectedComponent(name) {
+            return this.selectedComps.has(name);
         },
 
     }

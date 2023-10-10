@@ -1,8 +1,6 @@
 <template>
 
     <div>
-        <TimeSeriesSettings :timeseries="timeseries" @update="updateSettings"/>
-
         <div class="d-flex align-center mt-2">
             <v-btn icon="mdi-dice-6"
                 class="mr-2"
@@ -31,7 +29,8 @@
         </div>
 
         <v-expansion-panels v-model="selectedComponents" class="mt-4 mb-4" rounded="sm" variant="accordion" multiple @update:model-value="setSelected">
-            <v-expansion-panel v-for="c in timeseries.components" :key="c.id">
+
+            <v-expansion-panel v-for="c in timeseries.components" :key="c.id" :value="c.id">
 
                 <v-expansion-panel-title>
                     <TimeSeriesComponentTitle :component="c" @remove="removeComponent" @rename="update"/>
@@ -43,7 +42,6 @@
 
             </v-expansion-panel>
         </v-expansion-panels>
-
     </div>
 
 </template>
@@ -54,13 +52,12 @@
     import TimeSeries from '@/use/time-series';
     import TimeSeriesComponentViewer from './TimeSeriesComponentViewer.vue';
     import TimeSeriesComponentTitle from './TimeSeriesComponentTitle.vue';
-    import TimeSeriesSettings from './TimeSeriesSettings.vue';
 
     import { GENERATOR_DEFAULT_NAMES } from '@/use/generator-defaults';
     import { useApp } from '@/store/app';
 
     const app = useApp()
-    const selectedComponents = ref([])
+    const selectedComponents = ref([]);
 
     const props = defineProps({
         timeseries: {
@@ -84,9 +81,6 @@
     function randomSeed() {
         props.timeseries.randomSeed();
     }
-    function updateSettings(payload) {
-        props.timeseries.setOption(payload.key, payload.value);
-    }
 
     function update(generate=false) {
         if (props.timeseries.size === 0) {
@@ -99,9 +93,13 @@
         }
     }
 
+    function readSelected() {
+        selectedComponents.value = Array.from(app.selectedComps.values());
+    }
     function setSelected() {
-        app.setSelected(selectedComponents.value.map(i => props.timeseries.components[i].id));
+        app.setSelectedComponents(selectedComponents.value);
     }
 
     watch(() => props.timeseries.lastUpdate, update);
+    watch(() => app.selectedComps, readSelected, { deep: true })
 </script>

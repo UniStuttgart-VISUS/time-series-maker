@@ -17,17 +17,17 @@
 <script setup>
     import { ref } from 'vue';
 
-    import TimeSeries from '@/use/time-series';
     import FileSaver from 'file-saver';
+    import TimeSeriesCollection from '@/use/timeseries-collection';
 
     const props = defineProps({
-        timeseries: {
-            type: TimeSeries,
+        collection: {
+            type: TimeSeriesCollection,
             required: true
         }
     })
 
-    const filename = ref("timeseries");
+    const filename = ref("tsc");
 
     function makeFilename() {
         if (filename.value.endsWith(".json")) {
@@ -38,7 +38,7 @@
 
     function exportData() {
         const file = new File(
-            [JSON.stringify(props.timeseries.toJSON(), null, 2)],
+            [JSON.stringify(props.collection.toJSON(), null, 2)],
             makeFilename(),
             { type: "application/json" }
         )

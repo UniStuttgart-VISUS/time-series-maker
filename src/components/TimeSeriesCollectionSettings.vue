@@ -59,46 +59,46 @@
 
 <script setup>
 
-    import TimeSeries from '@/use/time-series';
+    import TimeSeriesCollection from '@/use/timeseries-collection';
     import { ref } from 'vue';
 
     const props = defineProps({
-        timeseries: {
-            type: TimeSeries,
+        collection: {
+            type: TimeSeriesCollection,
             required: true
         }
     })
     const emit = defineEmits(["update"])
 
-    const numSamples = ref(props.timeseries.samples);
-    const start = ref(props.timeseries.start);
-    const end = ref(props.timeseries.end);
-    const min = ref(props.timeseries.min);
-    const max = ref(props.timeseries.max);
-    const dynamicRange = ref(props.timeseries.dynamicRange);
+    const numSamples = ref(props.collection.samples);
+    const start = ref(props.collection.start);
+    const end = ref(props.collection.end);
+    const min = ref(props.collection.min);
+    const max = ref(props.collection.max);
+    const dynamicRange = ref(props.collection.dynamicRange);
 
     function setMin() {
-        props.timeseries.min = min.value;
+        props.collection.min = min.value;
     }
     function setMax() {
-        props.timeseries.max = max.value;
+        props.collection.max = max.value;
     }
     function setStart() {
-        props.timeseries.start = start.value;
+        props.collection.start = start.value;
         emit("update", { key: "start", value: start.value });
     }
     function setEnd() {
-        props.timeseries.end = end.value;
+        props.collection.end = end.value;
         emit("update", { key: "end", value: end.value });
     }
     function setSamples() {
         if (numSamples.value > 2 && Number.isInteger(numSamples.value)) {
-            props.timeseries.samples = numSamples.value;
+            props.collection.samples = numSamples.value;
             emit("update", { key: "samples", value: numSamples.value });
         }
     }
     function setDynamicRange() {
-        props.timeseries.dynamicRange = dynamicRange.value;
+        props.collection.dynamicRange = dynamicRange.value;
         emit("update", { key: "dynamicRange", value: dynamicRange.value });
     }
 </script>

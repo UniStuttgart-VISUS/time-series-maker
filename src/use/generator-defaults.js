@@ -85,8 +85,8 @@ const GENERATOR_DEFAULTS = {
         type: GENERATOR_TYPES.RNG,
         seedRequired: true,
         options: {
-            mu: new GeneratorOption("mu", 0),
-            sigma: new GeneratorOption("sigma", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
+            mean: new GeneratorOption("mean", 0),
+            std: new GeneratorOption("std", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
         }
     },
 

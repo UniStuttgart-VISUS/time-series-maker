@@ -8,13 +8,13 @@
         <v-window v-model="tab" class="mt-2 ml-1 mr-1">
 
             <v-window-item key="settings" value="settings">
-                <div class="text-caption mb-2"><i>export the settings of a timeseries or timeseries collection to a JSON file that can be imported again</i></div>
-                <ExportSettings :timeseries="timeseries" class="mb-2"/>
+                <div class="text-caption mb-2"><i>export the settings of the timeseries collection to a JSON file that can be imported again</i></div>
+                <ExportSettings :collection="collection" class="mb-2"/>
             </v-window-item>
 
             <v-window-item key="data" value="data">
-                <div class="text-caption mb-2"><i>export the timeseries or timeseries collection as a CSV file</i></div>
-                <ExportData :timeseries="timeseries" class="mb-2"/>
+                <div class="text-caption mb-2"><i>export the timeseries collection as a CSV file</i></div>
+                <ExportData :collection="collection" class="mb-2"/>
             </v-window-item>
 
         </v-window>
@@ -24,13 +24,13 @@
 <script setup>
     import { ref } from 'vue';
 
-    import TimeSeries from '@/use/time-series';
+    import TimeSeriesCollection from '@/use/timeseries-collection';
     import ExportData from '@/components/ExportData.vue';
     import ExportSettings from '@/components/ExportSettings.vue';
 
     const props = defineProps({
-        timeseries: {
-            type: TimeSeries,
+        collection: {
+            type: TimeSeriesCollection,
             required: true
         }
     })

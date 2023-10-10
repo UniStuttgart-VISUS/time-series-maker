@@ -1,6 +1,6 @@
 <template>
     <div class="d-flex justify-space-between align-center" style="width: 100%;">
-        <v-icon icon="mdi-circle" class="mr-2" :color="app.colorScale(component.generator.type)"/>
+        <v-icon icon="mdi-circle" class="mr-2" :color="app.tsColorScale(component.generator.type)"/>
         <v-sheet class="pa-1" color="grey-lighten-4" rounded="sm">
             <input ref="nameInput" v-model="name"
                 class="mr-2"

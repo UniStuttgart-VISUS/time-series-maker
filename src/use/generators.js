@@ -15,7 +15,6 @@ export default class Generator {
         this.key = defaults.key;
         this.name = defaults.name;
         this.title = defaults.title;
-        this.prefab = defaults.prefab;
         this.type = defaults.type;
         this.seedRequired = defaults.seedRequired;
 
@@ -52,6 +51,19 @@ export default class Generator {
             json.state ? new Uint32Array(json.state) : null,
             json.options
         )
+    }
+
+    copy() {
+        const optionValues = {};
+        for (const key in this.options) {
+            optionValues[key] = this.options[key].value;
+        }
+        return new Generator(
+            this.key,
+            this.seed,
+            this.state ? this.state.slice() : null,
+            optionValues
+        );
     }
 
     static makePDFFactory(name, options) {

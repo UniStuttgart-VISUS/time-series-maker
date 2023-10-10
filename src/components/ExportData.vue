@@ -20,17 +20,17 @@
     import * as d3 from 'd3';
     import { ref } from 'vue';
 
-    import TimeSeries from '@/use/time-series';
+    import TimeSeriesCollection from '@/use/timeseries-collection';
     import FileSaver from 'file-saver';
 
     const props = defineProps({
-        timeseries: {
-            type: TimeSeries,
+        collection: {
+            type: TimeSeriesCollection,
             required: true
         }
     })
 
-    const filename = ref("timeseries");
+    const filename = ref("tsc");
 
     function makeFilename() {
         if (filename.value.endsWith(".csv")) {
@@ -40,9 +40,8 @@
     }
 
     function exportData() {
-        console.log(props.timeseries.toCSV())
         const file = new File(
-            [d3.csvFormat(props.timeseries.toCSV(), props.timeseries.toCSVHeader())],
+            [d3.csvFormat(props.collection.toCSV(), props.collection.toCSVHeader())],
             makeFilename(),
             { type: "text/csv" }
         )

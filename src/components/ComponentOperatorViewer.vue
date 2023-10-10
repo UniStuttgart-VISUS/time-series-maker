@@ -1,8 +1,8 @@
 <template>
-    <div class="d-flex flex-column justify-start align-center" style="min-width: 150px;">
+    <div class="d-flex flex-column justify-start align-center">
         <div v-for="item in compositor.flat" :key="item.id">
             <v-chip v-if="item.type === NODE_TYPE.DATA" :key="item.id+'_DATA'"
-                :color="app.colorScale(item.genType)"
+                :color="app.tsColorScale(item.genType)"
                 draggable
                 @dragover.prevent
                 @drop="onDrop(item.id)"
