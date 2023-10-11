@@ -148,7 +148,7 @@ const GENERATOR_DEFAULTS = {
         title: "PDF Chi-squared",
         seedRequired: false,
         options: {
-            k: new GeneratorOption("k", 2, { min: 2, step: 1, validators: ["INTEGER"] }),
+            k: new GeneratorOption("k", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
         }

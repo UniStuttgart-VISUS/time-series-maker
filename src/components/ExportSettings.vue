@@ -29,6 +29,7 @@
 
     import FileSaver from 'file-saver';
     import TimeSeriesCollection from '@/use/timeseries-collection';
+    import { useComms } from '@/store/comms';
     import { useApp } from '@/store/app';
 
     const props = defineProps({
@@ -38,6 +39,7 @@
         }
     })
     const app = useApp();
+    const comms = useComms();
 
     const filename = ref("tsc_settings");
     const exportWhich = ref("tsc");
@@ -61,5 +63,6 @@
             { type: "application/json" }
         )
         FileSaver.saveAs(file)
+        comms.success("exported settings to "+filename.value)
     }
 </script>

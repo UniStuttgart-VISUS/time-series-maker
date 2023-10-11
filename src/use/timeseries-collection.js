@@ -33,9 +33,7 @@ export default class TimeSeriesCollection {
             this.TS_ID = Math.max(this.TS_ID, Number.parseInt(s.id.slice(s.id.indexOf("_")+1))+1);
         })
 
-        if (this.series.length === 0) {
-            this.addTimeSeries();
-        } else {
+        if (this.size > 0) {
             this.generate();
         }
     }

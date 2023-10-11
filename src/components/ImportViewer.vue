@@ -10,9 +10,11 @@
 <script setup>
 
     import { MAIN_TABS, useApp } from '@/store/app';
+    import { useComms } from '@/store/comms';
     import { ref } from 'vue';
 
     const app = useApp();
+    const comms = useComms();
     const files = ref([]);
 
     const emit = defineEmits(["loaded"]);
@@ -24,10 +26,11 @@
             reader.addEventListener("load", () => {
                 const data = JSON.parse(reader.result)
                 setTimeout(() => {
+                    const name = files.value[0].name;
                     files.value = [];
                     app.goToTab(MAIN_TABS.TSC);
-                    console.log(data)
                     emit("loaded", data);
+                    comms.success("imported settings from " + name)
                 }, 50);
             });
             reader.readAsText(files.value[0]);

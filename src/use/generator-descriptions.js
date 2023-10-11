@@ -10,8 +10,6 @@ const GENERATOR_DESCRIPTIONS = Object.freeze({
     WAVE_SINE: "Samples a sine wave with the given <b>period</b> (integer > 1), <b>amplitude</b> (> 0) and <b>offset</b> (integer > 0)",
     WAVE_COSINE: "Samples a cosine wave with the given <b>period</b> (integer > 1), <b>amplitude</b> (> 0) and <b>offset</b> (integer > 0)",
     PDF_NORMAL: "Samples a normal distribution PDF, with the <b>mean</b>, standard deviation <b>std</b> (> 0) and given <b>magnitude</b> (> 0) at <i>samples</i> points",
-    PMF_POISSON: "Samples a poisson distribution PMF, with <b>lambda</b> (integer > 0) and given <b>magnitude</b> (> 0) at <i>samples</i> points",
-    PMF_GEOMETRIC: "Samples a geometric distribution PMF, with probability <b>p</b> ([0,1)) and given <b>magnitude</b> (> 0) at <i>samples</i> points",
 })
 
 export { GENERATOR_DESCRIPTIONS as default }

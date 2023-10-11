@@ -1,7 +1,7 @@
 import filled from '@stdlib/array/filled';
 import linspace from '@stdlib/array/linspace';
 import array2iterator from '@stdlib/array/to-iterator'
-import stats from '@stdlib/stats/base';
+import dists from '@stdlib/stats/base/dists';
 import random from '@stdlib/random/base';
 import simulate from '@stdlib/simulate/iter'
 import GENERATOR_DEFAULTS from './generator-defaults';
@@ -70,18 +70,22 @@ export default class Generator {
         const getOpt = opName => options[opName].value;
         switch (name) {
             case "normal":
-                return stats.dists.normal.pdf.factory(getOpt("mean"), getOpt("std"));
+                return dists.normal.pdf.factory(getOpt("mean"), getOpt("std"));
             case "arcsine":
-                return stats.dists.arcsine.pdf.factory(getOpt("minSupport"), getOpt("maxSupport"))
+                return dists.arcsine.pdf.factory(getOpt("minSupport"), getOpt("maxSupport"))
             case "chi-squared":
-                return stats.dists.chisquare.pdf.factory(getOpt("k"))
+                return dists.chisquare.pdf.factory(getOpt("k"))
         }
     }
     static makeCDFFactory(name, options) {
         const getOpt = opName => options[opName].value;
         switch (name) {
             case "normal":
-                return stats.dists.normal.cdf.factory(getOpt("mean"), getOpt("std"));
+                return dists.normal.cdf.factory(getOpt("mean"), getOpt("std"));
+            case "arcsine":
+                return dists.arcsine.cdf.factory(getOpt("minSupport"), getOpt("maxSupport"))
+            case "chi-squared":
+                return dists.chisquare.cdf.factory(getOpt("k"));
         }
     }
     static makeRandomFactory(name, options, opts) {
@@ -103,7 +107,7 @@ export default class Generator {
 
     isValid() {
         const ops = Object.keys(this.options);
-        return ops.every(o => this.options[o].validator())
+        return !ops.some(o => !this.options[o].isValid())
     }
 
     getOpt(name) {
@@ -111,6 +115,11 @@ export default class Generator {
     }
 
     generate(number) {
+
+        if (!this.isValid()) {
+            throw new Error("invalid parameters")
+        }
+
         switch (this.type) {
             default:
             case GENERATOR_TYPES.PREFAB:

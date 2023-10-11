@@ -8,8 +8,6 @@ import randi from '@stdlib/random/base/randi';
 import filled from '@stdlib/array/filled'
 import mapFun from '@stdlib/utils/map-function'
 
-import { DateTime } from 'luxon';
-
 function add(a, b) { return a+b; }
 function subtract(a, b) { return a-b; }
 function multiply(a, b) { return a*b; }
@@ -36,9 +34,7 @@ export default class TimeSeries {
             this.COMP_ID = Math.max(this.COMP_ID, Number.parseInt(c.id.slice(c.id.indexOf("_")+1))+1);
         });
 
-        if (this.size === 0) {
-            this.addComponent();
-        } else {
+        if (this.size > 0) {
             this.generate();
         }
     }

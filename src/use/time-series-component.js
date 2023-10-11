@@ -55,12 +55,7 @@ export default class TimeSeriesComponent {
     }
 
     isValid() {
-        for (const opt in this.generator.options) {
-            if (!this.generator.options[opt].isValid()) {
-                return false;
-            }
-        }
-        return true;
+        return this.generator.isValid();
     }
 
     generate(samples) {

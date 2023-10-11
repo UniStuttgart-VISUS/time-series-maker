@@ -64,7 +64,7 @@ class GeneratorOption {
             (this.validators.length === 0 || !this.validators.some(d => !VALIDATORS[d](value))) &&
             (Number.isNaN(this.min) || value >= this.min) &&
             (Number.isNaN(this.max) || value <= this.max) &&
-            (Number.isNaN(this.min) || Number.isNaN(this.max) || this.min < this.max)
+            ((Number.isNaN(this.min) || Number.isNaN(this.max)) || this.min < this.max)
     }
 }
 

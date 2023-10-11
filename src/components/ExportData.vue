@@ -31,6 +31,7 @@
 
     import TimeSeriesCollection from '@/use/timeseries-collection';
     import FileSaver from 'file-saver';
+    import { useComms } from '@/store/comms';
     import { useApp } from '@/store/app';
 
     const props = defineProps({
@@ -41,6 +42,7 @@
     })
 
     const app = useApp();
+    const comms = useComms()
 
     const filename = ref("tsc_data");
     const exportWhich = ref("tsc");
@@ -64,6 +66,7 @@
             { type: "text/csv" }
         )
         FileSaver.saveAs(file)
+        comms.success("exported data to "+filename.value)
     }
 
 </script>

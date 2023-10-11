@@ -22,7 +22,9 @@
     import TimeSeriesCollection from '@/use/timeseries-collection';
     import TimeSeriesTitle from '@/components/TimeSeriesTitle.vue';
     import TimeSeriesCollectionSettings from '@/components/TimeSeriesCollectionSettings.vue';
+    import { useComms } from '@/store/comms';
 
+    const comms = useComms();
     const props = defineProps({
         collection: {
             type: TimeSeriesCollection,
@@ -34,16 +36,28 @@
         props.collection.setOption(payload.key, payload.value);
     }
     function add() {
-        props.collection.addTimeSeries();
+        try {
+            props.collection.addTimeSeries();
+        } catch(e) {
+            comms.error(e.message);
+        }
     }
     function remove(id) {
-        props.collection.removeTimeSeries(id);
+        try {
+            props.collection.removeTimeSeries(id);
+        } catch(e) {
+            comms.error(e.message);
+        }
     }
     function copy(id) {
         const ts = props.collection.getTimeSeries(id);
         if (ts) {
-            // tsCopy.randomSeed();
-            props.collection.addTimeSeries(ts.copy());
+            try {
+                // tsCopy.randomSeed();
+                props.collection.addTimeSeries(ts.copy());
+            } catch(e) {
+                comms.error(e.message);
+            }
         }
     }
 </script>

@@ -46,6 +46,8 @@
                 @update="update(true)"
                 @switch="switchComponents"/>
         </v-sheet>
+
+        <ToastHandler/>
     </div>
 
 </template>
@@ -54,6 +56,7 @@
     import { ref, reactive, watch, computed, onMounted } from 'vue';
     import { useApp, MAIN_TABS } from '@/store/app';
     import { storeToRefs } from 'pinia';
+    import { useComms } from '@/store/comms';
 
     import TimeSeriesCollection from '@/use/timeseries-collection';
     import GENERATOR_TYPES from '@/use/generator-types';
@@ -64,14 +67,25 @@
     import ExportViewer from '@/components/ExportViewer.vue';
     import ImportViewer from '@/components/ImportViewer.vue';
     import TimeSeriesCollectionViewer from '@/components/TimeSeriesCollectionViewer.vue';
-import TimeSeries from '@/use/time-series';
+    import TimeSeries from '@/use/time-series';
+import ToastHandler from '@/components/ToastHandler.vue';
 
     const app = useApp();
+    const comms = useComms();
+
     const { mainTab } = storeToRefs(app)
 
     let lineData = ref([]);
 
     const tsc = reactive(new TimeSeriesCollection());
+
+    try {
+        tsc.addTimeSeries();
+        update();
+    } catch(e) {
+        comms.error(e.message);
+    }
+
     const ts = computed(() => {
         if (tsc.size > 0 && app.hasSelectedTimeSeries()) {
             return tsc.getTimeSeries(app.selectedTs);
@@ -82,7 +96,11 @@ import TimeSeries from '@/use/time-series';
 
     function switchComponents(from, to) {
         if (ts.value) {
-            ts.value.switchComponents(from, to);
+            try {
+                ts.value.switchComponents(from, to);
+            } catch(e) {
+                comms.error(e.message);
+            }
         }
     }
 
@@ -90,14 +108,22 @@ import TimeSeries from '@/use/time-series';
         if (mainTab.value === MAIN_TABS.TS && ts.value) {
             lineData.value = []
             if (generate === true) {
-                ts.value.generate();
+                try {
+                    ts.value.generate();
+                } catch(e) {
+                    comms.error(e.message);
+                }
             }
             lineData.value = ts.value.toChartData()
         } else {
             lineData.value = []
             app.setTSCDomain(tsc.series.map(d => d.id));
             if (generate === true) {
-                tsc.generate();
+                try {
+                    tsc.generate();
+                } catch(e) {
+                    comms.error(e.message);
+                }
             }
             lineData.value = tsc.toChartData()
         }
@@ -106,11 +132,19 @@ import TimeSeries from '@/use/time-series';
     function importData(json) {
         if (json.type === "timeseries") {
             app.deselectTimeSeries();
-            tsc.addTimeSeries(TimeSeries.fromJSON(tsc, json))
+            try {
+                tsc.addTimeSeries(TimeSeries.fromJSON(tsc, json))
+            } catch(e) {
+                comms.error(e.message);
+            }
             update(true)
         } else if (json.type === "timeseries-collection") {
             app.deselectTimeSeries();
-            tsc.fromJSON(json);
+            try {
+                tsc.fromJSON(json);
+            } catch(e) {
+                comms.error(e.message);
+            }
             update(true)
         }
     }

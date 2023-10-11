@@ -19,6 +19,14 @@
                 hide-no-data
                 density="compact"
                 @update:model-value="addComponent"/>
+
+            <v-btn icon="mdi-plus"
+                class="ml-2"
+                rounded="sm"
+                density="compact"
+                size="x-large"
+                variant="outlined"
+                @click="addComponent"/>
         </div>
 
         <v-expansion-panels v-model="selectedComponents" class="mt-4 mb-4" rounded="sm" variant="accordion" multiple @update:model-value="setSelected">
@@ -48,8 +56,11 @@
 
     import { GENERATOR_DEFAULT_NAMES } from '@/use/generator-defaults';
     import { useApp } from '@/store/app';
+    import { useComms } from '@/store/comms';
 
     const app = useApp()
+    const comms = useComms();
+
     const selectedComponents = ref([]);
 
     const props = defineProps({
@@ -59,16 +70,24 @@
         }
     })
 
-    const generatorType = ref(GENERATOR_DEFAULT_NAMES[0].key)
+    const generatorType = ref("")
 
     let lineData = ref([]);
 
 
     function addComponent() {
-        props.timeseries.addComponent(generatorType.value);
+        try {
+            props.timeseries.addComponent(generatorType.value);
+        } catch(e) {
+            comms.error(e.message);
+        }
     }
     function removeComponent(id) {
-        props.timeseries.removeComponent(id);
+        try {
+            props.timeseries.removeComponent(id);
+        } catch(e) {
+            comms.error(e.message);
+        }
     }
 
     function randomSeed() {
@@ -80,7 +99,11 @@
             lineData.value = []
         } else {
             if (generate === true) {
-                props.timeseries.generate();
+                try {
+                    props.timeseries.generate();
+                } catch(e) {
+                    comms.error(e.message);
+                }
             }
             lineData.value = props.timeseries.toChartData()
         }
