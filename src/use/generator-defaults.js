@@ -141,14 +141,14 @@ const GENERATOR_DEFAULTS = {
             maxSupport: new GeneratorOption("maxSupport", 1),
         }
     },
-    PDF_CHI_SQUARE: {
-        key: "PDF_CHI_SQUARE",
+    PDF_CHI_SQUARED: {
+        key: "PDF_CHI_SQUARED",
         name: "chi-squared",
         type: GENERATOR_TYPES.PDF,
         title: "PDF Chi-squared",
         seedRequired: false,
         options: {
-            k: new GeneratorOption("k", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            k: new GeneratorOption("k", 2, { min: 2, step: 1, validators: ["INTEGER"] }),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
         }
@@ -164,6 +164,31 @@ const GENERATOR_DEFAULTS = {
         options: {
             mean: new GeneratorOption("mean", 0),
             std: new GeneratorOption("std", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
+        }
+    },
+    CDF_ARCSINE: {
+        key: "CDF_ARCSINE",
+        name: "arcsine",
+        type: GENERATOR_TYPES.CDF,
+        title: "CDF Arcsine",
+        seedRequired: false,
+        options: {
+            minSupport: new GeneratorOption("minSupport", 0),
+            maxSupport: new GeneratorOption("maxSupport", 1),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
+        }
+    },
+    CDF_CHI_SQUARED: {
+        key: "CDF_CHI_SQUARED",
+        name: "chi-squared",
+        type: GENERATOR_TYPES.CDF,
+        title: "CDF Chi-squared",
+        seedRequired: false,
+        options: {
+            k: new GeneratorOption("k", 2, { min: 2, step: 1, validators: ["INTEGER"] }),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
         }

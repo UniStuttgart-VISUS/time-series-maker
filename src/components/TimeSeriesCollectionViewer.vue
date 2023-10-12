@@ -9,8 +9,8 @@
         <div v-for="(ts, index) in collection.series" :key="ts.id" class="mb-2">
             <v-sheet class="pa-2" rounded>
                 <TimeSeriesTitle :timeseries="ts"
-                @remove="remove"
-                @copy="copy"/>
+                    @remove="remove"
+                    @copy="copy"/>
             </v-sheet>
             <v-divider v-if="index < collection.size-1" class="mt-2 border-opacity-100" color="primary"></v-divider>
         </div>

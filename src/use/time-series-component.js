@@ -10,6 +10,7 @@ export default class TimeSeriesComponent {
         this.name = name ? name : this._ts.getName(generator)
         this.data = [];
         this.generator = generator;
+        this.visible = true;
         this.generate();
     }
 
@@ -44,6 +45,11 @@ export default class TimeSeriesComponent {
         this._ts.compositor.rename(this.id, this.name);
     }
 
+    setVisible(value) {
+        this.visible = value;
+        console.log(this.visible)
+    }
+
     setSeed(seed) {
         this.generator.seed = seed;
         this.generate();
@@ -63,6 +69,11 @@ export default class TimeSeriesComponent {
         samples = samples ? samples : this._ts._tsc.samples;
         this.data = this.generator.generate(samples)
         return this.data;
+    }
+
+    update() {
+        if (!this._ts) return;
+        this._ts.update();
     }
 
 }

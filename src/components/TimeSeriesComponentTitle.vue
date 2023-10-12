@@ -10,7 +10,13 @@
                 @keyup="editKeyUp">
             <v-icon :icon="editName ? 'mdi-check' : 'mdi-pencil'" @click.stop="toggleEdit()"/>
         </v-sheet>
-        <v-btn class="mr-2"
+        <v-btn class="ml-1 mr-1"
+            :icon="component.visible ? 'mdi-eye' : 'mdi-eye-off'"
+            rounded="sm"
+            density="compact"
+            variant="text"
+            @click.stop="setVisible(!component.visible)"/>
+        <v-btn class="mr-1"
             icon="mdi-delete"
             color="error"
             rounded="sm"
@@ -35,8 +41,8 @@
     const app = useApp();
     const nameInput = ref(null);
 
-    const name = ref(props.component.name);
     const editName = ref(false);
+    const name = ref(props.component.name);
 
     function toggleEdit() {
         if (editName.value) {
@@ -57,6 +63,10 @@
 
     function removeComponent() {
         emit("remove", props.component.id);
+    }
+    function setVisible(value) {
+        props.component.setVisible(value)
+        props.component.update();
     }
 
 </script>

@@ -287,10 +287,13 @@ export default class TimeSeries {
         });
 
         this.dataY = values;
+        this.update()
+        return this.dataY;
+    }
+
+    update() {
         this.lastUpdate = Date.now();
         this._tsc.update();
-
-        return this.dataY;
     }
 
     toChartData() {
@@ -301,6 +304,7 @@ export default class TimeSeries {
 
         this.components.forEach(c => {
             const result = [];
+            if (!c.visible) return;
             c.data.forEach((d, i) => result.push([this._tsc.dataX[i], d ]));
             data.push({
                 id: c.id,

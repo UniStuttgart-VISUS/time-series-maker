@@ -68,7 +68,7 @@
     import ImportViewer from '@/components/ImportViewer.vue';
     import TimeSeriesCollectionViewer from '@/components/TimeSeriesCollectionViewer.vue';
     import TimeSeries from '@/use/time-series';
-import ToastHandler from '@/components/ToastHandler.vue';
+    import ToastHandler from '@/components/ToastHandler.vue';
 
     const app = useApp();
     const comms = useComms();
@@ -106,7 +106,6 @@ import ToastHandler from '@/components/ToastHandler.vue';
 
     function update(generate=false) {
         if (mainTab.value === MAIN_TABS.TS && ts.value) {
-            lineData.value = []
             if (generate === true) {
                 try {
                     ts.value.generate();
@@ -116,7 +115,6 @@ import ToastHandler from '@/components/ToastHandler.vue';
             }
             lineData.value = ts.value.toChartData()
         } else {
-            lineData.value = []
             app.setTSCDomain(tsc.series.map(d => d.id));
             if (generate === true) {
                 try {
