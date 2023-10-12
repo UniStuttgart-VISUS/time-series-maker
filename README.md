@@ -1,6 +1,9 @@
-# essentials
+# TimeSeriesMaker
 
-## Project setup
+Simple Vue.js app where you can create time series by combining different components.
+The settings can be exported and imported again later, or you can export the data as a CSV.
+
+## Installation
 
 ```
 # yarn

@@ -45,12 +45,17 @@ export default defineConfig({
       '.vue',
     ],
   },
-  // build: {
-  //   rollupOptions: {
-  //     plugins: [nodePolyfills(['buffer', 'stream', 'events'])],
-  //   },
-  // },
+  build: {
+    rollupOutputOptions: {
+      output: {
+        entryFileNames: "[name].js",
+        chunkFileNames: "[name].js",
+        assetFileNames: "[name].[extname]"
+      }
+    }
+  },
   server: {
+    base: "/time-series-maker/",
     port: 3000,
   },
 })
