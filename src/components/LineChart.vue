@@ -180,7 +180,18 @@
     }
 
     function highlight() {
-        paths.attr("stroke-opacity", d => app.isSelectedComponent(id(d)) ? 1 : d.opacity)
+
+        if (app.selectedComps.size === 0) {
+            const domain = props.colorScale.domain();
+            paths
+                .attr("stroke-opacity", d => d.opacity)
+                .sort((a, b) => domain.indexOf(color(a)) - domain.indexOf(color(b)))
+        } else {
+            paths
+                .attr("stroke-opacity", d => app.isSelectedComponent(id(d)) ? 1 : d.opacity)
+                .filter(d => app.isSelectedComponent(id(d)))
+                .raise()
+        }
     }
 
     onMounted(draw);

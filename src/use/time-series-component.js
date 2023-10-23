@@ -47,7 +47,6 @@ export default class TimeSeriesComponent {
 
     setVisible(value) {
         this.visible = value;
-        console.log(this.visible)
     }
 
     setSeed(seed) {

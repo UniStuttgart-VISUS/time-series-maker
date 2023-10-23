@@ -56,7 +56,6 @@ export const useApp = defineStore('app', {
             this.selectedComps.clear();
             this.selectedTs = id;
             this.goToTab(MAIN_TABS.TS)
-            console.log()
         },
 
         deselectTimeSeries() {
