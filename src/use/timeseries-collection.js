@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import TimeSeries from "@/use/time-series";
+import TimeSeries from "@/use/time-series.js";
 import datespace from '@stdlib/array/datespace';
 
 import { DateTime } from 'luxon';
@@ -180,21 +180,14 @@ export default class TimeSeriesCollection {
         this.update();
     }
 
-    toChartData() {
-        const data = [];
+    toChartData(opacity=0.33) {
         if (this.dataX.length !== this.samples) {
             this.generate();
         }
 
+        let data = [];
         this.series.forEach(ts => {
-            const result = [];
-            ts.dataY.forEach((d, i) => result.push([this.dataX[i], d]));
-            data.push({
-                id: ts.id,
-                color: ts.id,
-                opacity: 0.5,
-                values: result
-            });
+            data = data.concat(ts.toChartData(false, opacity))
         });
 
         return data;

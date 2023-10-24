@@ -1,17 +1,30 @@
 <template>
-    <div class="d-flex align-center justify-space-between">
+    <div>
+        <div class="text-caption mb-2">
+            <span class="mr-1">#instances:</span>
+            <v-sheet color="grey-lighten-4 d-inline pa-1" rounded="sm">
+                <input v-model.number="instances"
+                    style="max-width: 50px;"
+                    type="number"
+                    min="0"
+                    step="1"
+                    @change="setInstances"/>
+            </v-sheet>
+        </div>
+
+        <div class="d-flex align-center justify-space-between">
 
         <v-icon :icon="app.selectedTs === timeseries.id ? 'mdi-circle-slice-8' : 'mdi-circle-outline'"
             @click="app.selectTimeSeries(timeseries.id)"
             :color="tsColor"/>
 
-            <v-sheet class="ml-2 pa-1" color="grey-lighten-4" rounded="sm">
+        <v-sheet class="ml-2 pa-1" color="grey-lighten-4" rounded="sm">
             <input ref="nameInput" v-model="name"
                 class="mr-2"
                 style="vertical-align: middle; max-width: 165px;"
                 type="text"
                 :readonly="!editName"
-                @keyup="editKeyUp">
+                @keyup="editKeyUp"/>
             <v-icon :icon="editName ? 'mdi-check' : 'mdi-pencil'" @click.stop="toggleEdit()"/>
         </v-sheet>
 
@@ -38,13 +51,15 @@
                 variant="text"
                 @click.stop="remove"/>
         </div>
+        </div>
+
     </div>
 </template>
 
 <script setup>
-    import { ref, computed } from 'vue';
+    import { ref, computed, watch } from 'vue';
     import { useApp } from '@/store/app';
-    import TimeSeries from '@/use/time-series';
+    import TimeSeries from '@/use/time-series.js';
 
     const props = defineProps({
         timeseries: {
@@ -57,6 +72,7 @@
 
     const nameInput = ref(null);
 
+    const instances = ref(props.timeseries.instances);
     const name = ref(props.timeseries.name);
     const editName = ref(false);
     const tsColor = computed(() => app.tscColorScale(props.timeseries.id))
@@ -77,8 +93,22 @@
             toggleEdit();
         }
     }
+    function setInstances() {
+        if (instances.value !== props.timeseries.instances) {
+            props.timeseries.setInstances(instances.value);
+        }
+    }
 
     function copy() { emit("copy", props.timeseries.id); }
     function randomize() { props.timeseries.randomSeed() }
     function remove() { emit("remove", props.timeseries.id); }
+
+    watch(() => props.timeseries.lastUpdate, function() {
+        if (props.timeseries.instances !== instances.value) {
+            instances.value = props.timeseries.instances;
+        }
+        if (props.timeseries.name !== name.value) {
+            name.value = props.timeseries.name;
+        }
+    })
 </script>

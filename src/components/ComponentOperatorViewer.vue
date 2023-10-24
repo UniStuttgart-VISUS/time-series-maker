@@ -24,7 +24,7 @@
 
 <script setup>
     import { useApp } from '@/store/app';
-    import Compositor, { NODE_TYPE, OPERATOR } from '@/use/compositor';
+    import Compositor, { NODE_TYPE, OPERATOR } from '@/use/compositor.js';
     import { ref } from 'vue';
 
     const props = defineProps({

@@ -49,6 +49,7 @@
             props.component.setName(name.value)
             nameInput.value.blur();
             emit("rename", props.component.name);
+            props.component.update();
         } else {
             nameInput.value.focus();
             nameInput.value.select();

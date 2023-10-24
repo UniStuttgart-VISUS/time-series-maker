@@ -113,7 +113,7 @@
                     comms.error(e.message);
                 }
             }
-            lineData.value = ts.value.toChartData()
+            lineData.value = ts.value.toChartData(true, app.tscOpacity)
         } else {
             app.setTSCDomain(tsc.series.map(d => d.id));
             if (generate === true) {
@@ -123,7 +123,7 @@
                     comms.error(e.message);
                 }
             }
-            lineData.value = tsc.toChartData()
+            lineData.value = tsc.toChartData(app.tsOpacity)
         }
     }
 
@@ -141,7 +141,7 @@
             try {
                 tsc.fromJSON(json);
             } catch(e) {
-                comms.error(e.message);
+                comms.error(e);
             }
             update(true)
         }

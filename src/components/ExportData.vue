@@ -29,7 +29,7 @@
     import * as d3 from 'd3';
     import { ref } from 'vue';
 
-    import TimeSeriesCollection from '@/use/timeseries-collection';
+    import TimeSeriesCollection from '@/use/timeseries-collection.js';
     import FileSaver from 'file-saver';
     import { useComms } from '@/store/comms';
     import { useApp } from '@/store/app';

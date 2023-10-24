@@ -1,5 +1,5 @@
-import GeneratorOption from "./generator-option"
-import GENERATOR_TYPES from "./generator-types";
+import GeneratorOption from "./generator-option.js"
+import GENERATOR_TYPES from "./generator-types.js";
 
 const GENERATOR_DEFAULTS = {
     CONSTANT: {

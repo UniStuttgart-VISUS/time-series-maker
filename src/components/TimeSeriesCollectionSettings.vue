@@ -65,7 +65,7 @@
 
 <script setup>
 
-    import TimeSeriesCollection from '@/use/timeseries-collection';
+    import TimeSeriesCollection from '@/use/timeseries-collection.js';
     import { ref } from 'vue';
 
     const props = defineProps({

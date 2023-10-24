@@ -4,12 +4,12 @@ import array2iterator from '@stdlib/array/to-iterator'
 import dists from '@stdlib/stats/base/dists';
 import random from '@stdlib/random/base';
 import simulate from '@stdlib/simulate/iter'
-import GENERATOR_DEFAULTS from './generator-defaults';
-import GENERATOR_TYPES from './generator-types';
+import GENERATOR_DEFAULTS from './generator-defaults.js';
+import GENERATOR_TYPES from './generator-types.js';
 
 export default class Generator {
 
-    constructor(type="CONSTANT", seed=42, state=null, options={}) {
+    constructor(type="CONSTANT", seeds=[42], options={}) {
         const defaults = GENERATOR_DEFAULTS[type in GENERATOR_DEFAULTS ? type : "CONSTANT"]
 
         this.key = defaults.key;
@@ -18,9 +18,7 @@ export default class Generator {
         this.type = defaults.type;
         this.seedRequired = defaults.seedRequired;
 
-        this.seed = seed;
-        this.initialState = state;
-        this.state = null;
+        this.seeds = seeds;
 
         this.options = {};
         for (const key in defaults.options) {
@@ -38,8 +36,7 @@ export default class Generator {
         }
         return {
             key: this.key,
-            seed: this.seed,
-            state: this.state ? Array.from(this.state) : null,
+            seeds: this.seeds,
             options: optionValues
         }
     }
@@ -47,8 +44,7 @@ export default class Generator {
     static fromJSON(json) {
         return new Generator(
             json.key,
-            json.seed,
-            json.state ? new Uint32Array(json.state) : null,
+            json.seeds,
             json.options
         )
     }
@@ -60,10 +56,13 @@ export default class Generator {
         }
         return new Generator(
             this.key,
-            this.seed,
-            this.state ? this.state.slice() : null,
+            this.seeds.slice(),
             optionValues
         );
+    }
+
+    addSeed(seed) {
+        this.seeds.push(seed);
     }
 
     static makePDFFactory(name, options) {
@@ -110,16 +109,17 @@ export default class Generator {
         return !ops.some(o => !this.options[o].isValid())
     }
 
+    setOpt(name, value) {
+        if (this.options[name].isValid(value)) {
+            this.options[name].value = value;
+        }
+    }
+
     getOpt(name) {
         return this.options[name].value;
     }
 
-    generate(number) {
-
-        if (!this.isValid()) {
-            throw new Error("invalid parameters")
-        }
-
+    _apply(number, index=0) {
         switch (this.type) {
             default:
             case GENERATOR_TYPES.PREFAB:
@@ -180,7 +180,7 @@ export default class Generator {
                 switch (this.name) {
                     case "sine": {
                         const iter = simulate.iterSineWave({
-                            seed: this.seed,
+                            seed: this.seeds[index],
                             period: this.getOpt("period"),
                             amplitude: this.getOpt("amplitude"),
                             offset: this.getOpt("offset"),
@@ -189,7 +189,7 @@ export default class Generator {
                     }
                     case "cosine": {
                         const iter = simulate.iterCosineWave({
-                            seed: this.seed,
+                            seed: this.seeds[index],
                             period: this.getOpt("period"),
                             amplitude: this.getOpt("amplitude"),
                             offset: this.getOpt("offset"),
@@ -201,39 +201,27 @@ export default class Generator {
                 switch (this.name) {
                     case "awgn": {
                         const arr = filled(0, number);
-                        const opts = { seed: this.seed }
-                        if (this.initialState && !this.state) {
-                            opts.state = this.initialState;
-                        }
+                        const opts = { seed: this.seeds[index] }
                         const iter = simulate.iterawgn(array2iterator(arr), this.getOpt("sigma"), opts)
                         this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
                     case "awln": {
                         const arr = filled(0, number);
-                        const opts = { seed: this.seed }
-                        if (this.initialState && !this.state) {
-                            opts.state = this.initialState;
-                        }
+                        const opts = { seed: this.seeds[index] }
                         const iter = simulate.iterawln(array2iterator(arr), this.getOpt("sigma"), opts)
                         this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
                     case "awun": {
                         const arr = filled(0, number);
-                        const opts = { seed: this.seed }
-                        if (this.initialState && !this.state) {
-                            opts.state = this.initialState;
-                        }
+                        const opts = { seed: this.seeds[index] }
                         const iter = simulate.iterawun(array2iterator(arr), this.getOpt("sigma"), opts)
                         this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
                     default: {
-                        const opts = { seed: this.seed }
-                        if (this.initialState && !this.state) {
-                            opts.state = this.initialState;
-                        }
+                        const opts = { seed: this.seeds[index] }
                         const factory = Generator.makeRandomFactory(this.name, this.options, opts);
                         this.state = factory.state;
                         return linspace(0, number, number).map(factory);
@@ -241,5 +229,27 @@ export default class Generator {
                 }
             }
         }
+    }
+
+    generate(number, index=-1) {
+
+        if (!this.isValid()) {
+            throw new Error("invalid parameters")
+        }
+
+        if (index !== undefined && index >= 0) {
+            return [this._apply(number, index)]
+        }
+
+        if (!this.seedRequired || this.seeds.length === 1) {
+            return [this._apply(number, 0)]
+        }
+
+        const data = [];
+        for (let i = 0; i < this.seeds.length; ++i) {
+            data.push(this._apply(number, i));
+        }
+
+        return data
     }
 }

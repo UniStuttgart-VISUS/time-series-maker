@@ -19,22 +19,22 @@
                 @click="randomSeed"/>
         </div>
 
-        <v-text-field v-for="(_, o) in options" :key="component.id + '_' + o"
-            v-model.number="options[o].value"
-            :label="o"
+        <v-text-field v-for="(o, key) in options" :key="component.id + '_' + o"
+            v-model.number="o.value"
+            :label="key"
             type="number"
-            :min="options[o].min"
-            :max="options[o].max"
-            :step="options[o].step"
-            :rules="[v => options[o].isValid(v) || 'invalid value']"
+            :min="o.min"
+            :max="o.max"
+            :step="o.step"
+            :rules="[v => o.isValid(v) || 'invalid value']"
             density="compact"
-            @update:modelValue="update"/>
+            @update:modelValue="setOption(key)"/>
     </v-sheet>
 </template>
 
 <script setup>
 
-    import { ref, computed, watch } from 'vue';
+    import { ref, reactive, watch } from 'vue';
 
     const props = defineProps({
         component: {
@@ -43,31 +43,35 @@
         },
     });
 
-    const seed = ref(props.component.generator.seed)
-    const options = computed(() => props.component.generator.options);
+    const seed = ref(props.component.generator.seeds[0])
+    const options = reactive({});
+    for (const oKey in props.component.generator.options) {
+        options[oKey] = props.component.generator.options[oKey].copy();
+    }
 
-    const emit = defineEmits(["update"])
-
+    function setOption(key) {
+        props.component.generator.setOpt(key, options[key].value);
+        update();
+    }
     function update() {
         if (props.component.isValid()) {
-            props.component.generate();
-            emit("update");
+            props.component.update();
         }
     }
 
     function setSeed() {
         props.component.setSeed(seed.value);
-        emit("update");
+        update();
     }
     function randomSeed() {
         props.component.randomSeed();
-        emit("update");
+        update();
     }
 
-    watch(() => props.component.generator.seed, function(newseed) {
-        if (newseed !== seed.value) {
-            seed.value = newseed;
+    watch(() => props.component.generator.seeds, function(newseeds) {
+        if (newseeds[0] !== seed.value) {
+            seed.value = newseeds[0];
         }
-    })
+    }, { deep: true })
 
 </script>

@@ -24,7 +24,7 @@
 <script setup>
     import { ref } from 'vue';
 
-    import TimeSeriesCollection from '@/use/timeseries-collection';
+    import TimeSeriesCollection from '@/use/timeseries-collection.js';
     import ExportData from '@/components/ExportData.vue';
     import ExportSettings from '@/components/ExportSettings.vue';
 
