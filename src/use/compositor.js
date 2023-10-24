@@ -138,7 +138,7 @@ class Compositor {
     }
 
     copy() {
-        return new Compositor(this.flat.slice())
+        return new Compositor(this.flat.map(d => Object.assign({}, d)))
     }
 
     nextID() {
