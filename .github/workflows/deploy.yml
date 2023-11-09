@@ -3,7 +3,8 @@ name: Deploy
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ['main']
+    branches:
+      - main
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,17 +29,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        run: npm install --frozen-lockfile
       - name: Build
         run: npm run build
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v2
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v1
         with:
