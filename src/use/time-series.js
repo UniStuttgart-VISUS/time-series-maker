@@ -194,7 +194,7 @@ export default class TimeSeries {
         this.generate();
     }
 
-    generate() {
+    generate(xValues) {
 
         if (!this._tsc) return;
 
@@ -206,10 +206,12 @@ export default class TimeSeries {
             values.push(filled(0, this._tsc.samples));
         }
 
+        xValues = xValues ? xValues : (this._tsc.dataX ? this._tsc.dataX : this._tsc.samples);
+
         const getComp = id => {
             const c = this.getComponent(id);
             if (c.data.length === 0 || c.data[0].length !== this._tsc.samples) {
-                c.generate(this._tsc.samples)
+                c.generate(xValues)
             }
             return c;
         }

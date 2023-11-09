@@ -99,7 +99,7 @@ export default class TimeSeriesComponent {
 
     generate(samples, index) {
         if (!this._ts) return;
-        samples = samples ? samples : this._ts._tsc.samples;
+        samples = samples ? samples : (this._ts._tsc.dataX ? this._ts._tsc.dataX : this._ts._tsc.samples);
         this.data = this.generator.generate(samples, index)
         return this.data;
     }

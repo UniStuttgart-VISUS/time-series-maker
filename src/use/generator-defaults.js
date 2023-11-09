@@ -33,6 +33,26 @@ const GENERATOR_DEFAULTS = {
             magnitude: new GeneratorOption("magnitude", 0.5, { min: 0, step: 0.01, validators: ["POSITIVE"] }),
         }
     },
+    WEEKEND: {
+        key: "WEEKEND",
+        name: "weekend",
+        type: GENERATOR_TYPES.PREFAB,
+        title: "Weekend",
+        seedRequired: false,
+        options: {
+            magnitude: new GeneratorOption("magnitude", 0.5, { min: 0, step: 0.01, validators: ["POSITIVE"] }),
+        }
+    },
+    MONTHLY: {
+        key: "MONTHLY",
+        name: "monthly",
+        type: GENERATOR_TYPES.PREFAB,
+        title: "Monthly",
+        seedRequired: false,
+        options: {
+            magnitude: new GeneratorOption("magnitude", 0.5, { min: 0, step: 0.01, validators: ["POSITIVE"] }),
+        }
+    },
 
     // random numbers / noise
     RNG_AWGN: {
@@ -112,6 +132,35 @@ const GENERATOR_DEFAULTS = {
         options: {
             period: new GeneratorOption("period", 10, { min: 1, step: 1, validators: ["INTEGER"] }),
             amplitude: new GeneratorOption("amplitude", 1, { min: 0.1, step: 0.1, validators: ["POSITIVE"] }),
+            offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+        }
+    },
+
+    WAVE_PULSE: {
+        key: "WAVE_PULSE",
+        name: "pulse",
+        title: "Pulse Wave",
+        type: GENERATOR_TYPES.WAVE,
+        seedRequired: false,
+        options: {
+            period: new GeneratorOption("period", 10, { min: 1, step: 1, validators: ["INTEGER"] }),
+            duration: new GeneratorOption("duration", 5, { min: 3, step: 0.1, validators: ["INTEGER"] }),
+            offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            minAmplitude: new GeneratorOption("minAmplitude", 0, { step: 0.1 }),
+            maxAmplitude: new GeneratorOption("maxAmplitude", 1, { step: 0.1 }),
+        }
+    },
+
+    WAVE_BARTLETT_PULSE: {
+        key: "WAVE_BARTLETT_PULSE",
+        name: "bartlett",
+        title: "Bartlett Pulse",
+        type: GENERATOR_TYPES.WAVE,
+        seedRequired: false,
+        options: {
+            period: new GeneratorOption("period", 50, { min: 2, step: 1, validators: ["INTEGER"] }),
+            duration: new GeneratorOption("duration", 50, { min: 2, step: 0.1, validators: ["INTEGER"] }),
+            amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 1, validators: ["POSITIVE"] }),
             offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },

@@ -6,6 +6,7 @@ import random from '@stdlib/random/base';
 import simulate from '@stdlib/simulate/iter'
 import GENERATOR_DEFAULTS from './generator-defaults.js';
 import GENERATOR_TYPES from './generator-types.js';
+import { DateTime } from 'luxon';
 
 export default class Generator {
 
@@ -119,7 +120,8 @@ export default class Generator {
         return this.options[name].value;
     }
 
-    _apply(number, index=0) {
+    _apply(numberOrValues, index=0) {
+        const number = typeof numberOrValues === "number" ? numberOrValues : numberOrValues.length;
         switch (this.type) {
             default:
             case GENERATOR_TYPES.PREFAB:
@@ -140,6 +142,25 @@ export default class Generator {
                             vals[i] = magnitude;
                         }
                         return vals;
+                    }
+                    case "weekend": {
+                        const magnitude = this.getOpt("magnitude");
+                        return numberOrValues.map(d => {
+                            const w = d.getDay();
+                            return w === 5 || w === 6 ? magnitude : 0;
+                        });
+                    }
+                    case "monthly": {
+                        const magnitude = this.getOpt("magnitude");
+                        let month = -1;
+                        return numberOrValues.map(d => {
+                            const m = d.getMonth();
+                            if (m !== month) {
+                                month = m;
+                                return magnitude;
+                            }
+                            return 0;
+                        });
                     }
                     default:
                     case "constant":
@@ -196,6 +217,30 @@ export default class Generator {
                         })
                         return filled(0, number).map(() => iter.next().value);
                     }
+                    case "pulse": {
+                        const iter = simulate.iterPulse({
+                            seed: this.seeds[index],
+                            period: this.getOpt("period"),
+                            duration: this.getOpt("duration"),
+                            offset: this.getOpt("offset"),
+                            min: this.getOpt("minAmplitude"),
+                            max: this.getOpt("maxAmplitude"),
+                            iter: number
+                        })
+                        return filled(0, number).map(() => iter.next().value);
+                    }
+                    case "bartlett": {
+                        const iter = simulate.iterBartlettPulse({
+                            seed: this.seeds[index],
+                            period: this.getOpt("period"),
+                            duration: this.getOpt("duration"),
+                            amplitude: this.getOpt("amplitude"),
+                            offset: this.getOpt("offset"),
+                            iter: number
+                        })
+                        return filled(0, number).map(() => iter.next().value);
+                    }
+
                 }
             case GENERATOR_TYPES.RNG: {
                 switch (this.name) {
@@ -227,23 +272,23 @@ export default class Generator {
         }
     }
 
-    generate(number, index=-1) {
+    generate(numberOrValues, index=-1) {
 
         if (!this.isValid()) {
             throw new Error("invalid parameters")
         }
 
         if (index !== undefined && index >= 0) {
-            return [this._apply(number, index)]
+            return [this._apply(numberOrValues, index)]
         }
 
         if (!this.seedRequired || this.seeds.length === 1) {
-            return [this._apply(number, 0)]
+            return [this._apply(numberOrValues, 0)]
         }
 
         const data = [];
         for (let i = 0; i < this.seeds.length; ++i) {
-            data.push(this._apply(number, i));
+            data.push(this._apply(numberOrValues, i));
         }
 
         return data

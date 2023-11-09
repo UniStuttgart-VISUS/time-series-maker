@@ -45,6 +45,7 @@
     import GENERATOR_TYPES from '@/use/generator-types';
     import { useApp } from '@/store/app';
     import ComponentInfoPanel from '@/components/ComponentInfoPanel.vue';
+    import datespace from '@stdlib/array/datespace';
 
     const props = defineProps({
         horizontal: {
@@ -58,6 +59,8 @@
     const description = ref("")
 
     const comps = reactive({});
+
+    const dataX = datespace("2022-01-01", "2022-12-31", 50);
     for (const t in GENERATOR_DEFAULTS) {
         const g = GENERATOR_DEFAULTS[t];
         if (comps[g.type] === undefined) {
@@ -67,7 +70,7 @@
             key: g.key,
             name: g.name,
             title: g.title,
-            values: Array.from(makePreview(g.key, 35)[0])
+            values: Array.from(makePreview(g.key, dataX)[0])
         };
     }
 
