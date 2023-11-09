@@ -8,3 +8,26 @@
 // @use 'vuetify/settings' with (
 //   $color-pack: false
 // );
+
+.clickable {
+    cursor: pointer;
+}
+
+.clickable:hover {
+    animation: wobble 400ms ease-in-out infinite;
+}
+
+@keyframes wobble {
+    0% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-2deg);
+    }
+    75% {
+        transform: rotate(2deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}

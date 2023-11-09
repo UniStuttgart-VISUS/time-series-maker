@@ -51,6 +51,15 @@ export const useApp = defineStore('app', {
             this.tsColorScale.domain(domain);
         },
 
+        getColor(name) {
+            if (this.mainTab === MAIN_TABS.TSC) {
+                return this.tscColorScale(name)
+            } else if (this.mainTab === MAIN_TABS.TS) {
+                return this.tsColorScale(name)
+            }
+            return "black"
+        },
+
         setLineChartZoom(transform) {
             this.lineChartZoom = transform;
         },

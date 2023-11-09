@@ -13,6 +13,35 @@ const DEFAULT_OPTIONS = {
     validators: [],
 }
 
+function rangeToString(min, max, validators) {
+
+    let minVal = min;
+    let maxVal = max;
+    let left = Number.isNaN(min) ? "(" : "[";
+    let right = Number.isNaN(max) ? ")" : "]";
+
+    if (validators.includes("EXCLUSIVE_0_1")) {
+        left = "(";
+        right = ")";
+        minVal = Math.max(minVal, 0);
+        maxVal = Math.min(maxVal, 1);
+    } else if (validators.includes("POSITIVE")) {
+        left = "(";
+        minVal = Math.max(minVal, 0);
+    }
+
+    if (Number.isNaN(min)) { minVal = "-&infin;" }
+    if (Number.isNaN(max)) { maxVal = "+&infin;" }
+
+    return `x &isinv; ${left}${minVal}, ${maxVal}${right}`
+}
+function validatorToString(validator) {
+    switch(validator) {
+        case "NOT_ZERO": return "x &ne; 0"
+        case "INTEGER": return "x &isinv; Z"
+    }
+}
+
 class GeneratorOption {
 
     constructor(name, value, options=DEFAULT_OPTIONS) {
@@ -57,6 +86,15 @@ class GeneratorOption {
             json["value"],
             json
         )
+    }
+
+    toString(includeName=true) {
+        const rstr = rangeToString(this.min, this.max, this.validators);
+        const vals = this.validators.map(validatorToString).filter(d => d).join(" | ");
+        if (vals.length > 0) {
+            return includeName ? `${this.name}: { ${rstr} | ${vals} }` : `{ ${rstr} | ${vals} }`
+        }
+        return includeName ? `${this.name}: { ${rstr} }` : `{ ${rstr} }`
     }
 
     isValid(value=this.value) {

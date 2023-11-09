@@ -203,27 +203,23 @@ export default class Generator {
                         const arr = filled(0, number);
                         const opts = { seed: this.seeds[index] }
                         const iter = simulate.iterawgn(array2iterator(arr), this.getOpt("sigma"), opts)
-                        this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
                     case "awln": {
                         const arr = filled(0, number);
                         const opts = { seed: this.seeds[index] }
                         const iter = simulate.iterawln(array2iterator(arr), this.getOpt("sigma"), opts)
-                        this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
                     case "awun": {
                         const arr = filled(0, number);
                         const opts = { seed: this.seeds[index] }
                         const iter = simulate.iterawun(array2iterator(arr), this.getOpt("sigma"), opts)
-                        this.state = iter.state;
                         return arr.map(() => iter.next().value);
                     }
                     default: {
                         const opts = { seed: this.seeds[index] }
                         const factory = Generator.makeRandomFactory(this.name, this.options, opts);
-                        this.state = factory.state;
                         return linspace(0, number, number).map(factory);
                     }
                 }

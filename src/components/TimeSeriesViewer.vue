@@ -1,34 +1,6 @@
 <template>
 
     <div>
-        <div class="d-flex align-center mt-2">
-            <v-btn icon="mdi-dice-6"
-                class="mr-2"
-                rounded="sm"
-                density="compact"
-                size="x-large"
-                variant="outlined"
-                @click="randomSeed"/>
-
-            <v-autocomplete v-model="generatorType"
-                :items="GENERATOR_DEFAULT_NAMES"
-                label="component type"
-                item-title="title"
-                item-value="key"
-                hide-details
-                hide-no-data
-                density="compact"
-                @update:model-value="addComponent"/>
-
-            <v-btn icon="mdi-plus"
-                class="ml-2"
-                rounded="sm"
-                density="compact"
-                size="x-large"
-                variant="outlined"
-                @click="addComponent"/>
-        </div>
-
         <v-text-field v-model.number="tscOpacity"
             label="opacity"
             class="mb-1 mt-1"
@@ -54,6 +26,7 @@
 
             </v-expansion-panel>
         </v-expansion-panels>
+
     </div>
 
 </template>
@@ -65,7 +38,6 @@
     import TimeSeriesComponentViewer from './TimeSeriesComponentViewer.vue';
     import TimeSeriesComponentTitle from './TimeSeriesComponentTitle.vue';
 
-    import { GENERATOR_DEFAULT_NAMES } from '@/use/generator-defaults.js';
     import { useApp } from '@/store/app';
     import { useComms } from '@/store/comms';
     import { storeToRefs } from 'pinia';
@@ -83,15 +55,6 @@
         }
     })
 
-    const generatorType = ref("")
-
-    function addComponent() {
-        try {
-            props.timeseries.addComponent(generatorType.value);
-        } catch(e) {
-            comms.error(e.message);
-        }
-    }
     function removeComponent(id) {
         try {
             props.timeseries.removeComponent(id);

@@ -1,6 +1,6 @@
 <template>
 
-    <div class="d-flex justify-center align-start">
+    <div class="d-flex justify-center align-start" style="overflow-y: auto;">
 
         <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
@@ -46,9 +46,16 @@
                 @update="update(true)"
                 @switch="switchComponents"/>
         </v-sheet>
-
         <ToastHandler/>
     </div>
+
+    <v-footer app elevation="4">
+        <KeepAlive>
+            <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer">
+                <ComponentPicker @click="addComponent" horizontal/>
+            </v-sheet >
+        </KeepAlive>
+    </v-footer>
 
 </template>
 
@@ -69,6 +76,7 @@
     import TimeSeriesCollectionViewer from '@/components/TimeSeriesCollectionViewer.vue';
     import TimeSeries from '@/use/time-series';
     import ToastHandler from '@/components/ToastHandler.vue';
+    import ComponentPicker from '@/components/ComponentPicker.vue';
 
     const app = useApp();
     const comms = useComms();
@@ -93,6 +101,15 @@
         return null;
     });
 
+    function addComponent(type) {
+        if (ts.value) {
+            try {
+                ts.value.addComponent(type);
+            } catch(e) {
+                comms.error(e.message);
+            }
+    }
+    }
 
     function switchComponents(from, to) {
         if (ts.value) {
@@ -162,3 +179,11 @@
     watch(() => tsc.lastUpdate, update);
     watch(mainTab, readTab)
 </script>
+
+<style scoped>
+.comp-footer {
+    overflow-x: auto;
+    width: 100%;
+    z-index: 1999;
+}
+</style>
