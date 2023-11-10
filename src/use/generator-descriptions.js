@@ -10,21 +10,37 @@ const GENERATOR_DESCRIPTIONS = Object.freeze({
     MONTHLY: "Produces a 0 for each sample except those that where the month changed, which have the given <b>value</b>.",
     WEEKEND: "Produces a 0 for each sample except those that lie on a weekend day (saturday or sunday), which have the given <b>value</b>.",
     WORK_WEEK: "Produces a 0 for each sample except those that lie on a work week day (monday to friday), which have the given <b>value</b>.",
+
     RNG_AWGN: "Samples an additive white gaussian noise function <i>N</i> times, where <b>sigma</b> defines the absolute scale of these values.",
-    RNG_AWLN: "Produces a timeseries by sampling an additive white laplacian noise function <i>N</i> times, where <b>sigma</b> defines the absolute scale of these values.",
-    RNG_AWUN: "Produces a timeseries by sampling an additive white uniform noise function <i>N</i> times, where <b>sigma</b> defines the absolute scale of these values.",
-    RNG_UNIFORM: "Produces random values that are uniformly distributed in [<b>minSupport</b>, <b>maxSupport</b>].",
-    RNG_NORMAL: "Produces random values that are normally distributed, with the mean at <b>mu</b> and standard deviation <b>std</b>.",
+    RNG_AWLN: "Produces random values by sampling an additive white laplacian noise function <i>N</i> times, where <b>sigma</b> defines the absolute scale of these values.",
+    RNG_AWUN: "Produces random values by sampling an additive white uniform noise function <i>N</i> times, where <b>sigma</b> defines the absolute scale of these values.",
+    RNG_UNIFORM: "Produces random values from a Uniform distribution in [<b>minSupport</b>, <b>maxSupport</b>].",
+    RNG_NORMAL: "Produces random values from a Normal distribution, with the mean at <b>mu</b> and standard deviation <b>std</b>.",
+    RNG_ARCSINE: "Produces random values from an Arcsine distribution in the range [<b>minSupport</b>, <b>maxSupport</b>].",
+    RNG_CHI_SQUARED: "Produces random values from an Chi-Squared distribution with degrees of freedom <b>k</b> - scaled with <b>scale</b>.",
+    RNG_STUDENTS_T: "Produces random values from a Student's t distribution at <i>N</i> points with the given degree of freedom <b>dof</b> in the range [<b>xMin</b>, <b>xMax</b>] - scaled with <b>scale</b>.",
+    RNG_POISSON: "Produces random values from a Poisson distribution at <i>N</i> points with the given <b>lambda</b> - scaled with <b>scale</b>.",
+    RNG_BERNOULLI: "Produces random values from a Bernoulli distribution at <i>N</i> points with the given probability <b>p</b> - scaled with <b>scale</b>.",
+    RNG_BINOMIAL: "Produces random values from a Bernoulli distribution at <i>N</i> points with the given number of trials <b>n</b> and probability <b>p</b> - scaled with <b>scale</b>.",
+
     WAVE_SINE: "Samples a sine wave with the given <b>period</b>, <b>amplitude</b> and <b>offset</b>.",
     WAVE_COSINE: "Samples a cosine wave with the given <b>period</b>, <b>amplitude</b> and <b>offset</b>.",
     WAVE_PULSE: "Samples a pulse wave with the given <b>period</b>, <b>duration</b> and <b>offset</b> in the range [<b>minAmplitude</b>, <b>maxAmplitude</b>].",
+    WAVE_SAWTOOTH: "Samples a sawtooth wave with the given <b>period</b>, <b>amplitude</b> and <b>offset</b>.",
     WAVE_BARTLETT_PULSE: "Samples a pulse wave with the given <b>period</b>, <b>duration</b>, <b>amplitude</b> and <b>offset</b>.",
+
     PDF_NORMAL: "Samples a normal PDF, with the specified <b>mean</b> and standard deviation <b>std</b> at <i>N</i> points in the range [<b>xMin</b>, <b>xMax</b>].",
     PDF_ARCSINE: "Samples a arcsine PDF at <i>N</i> points in the range [<b>xMin</b>, <b>xMax</b>].",
     PDF_CHI_SQUARED: "Samples a chi-squared PDF at <i>N</i> points in the range [<b>xMin</b>, <b>xMax</b>].",
+    PDF_STUDENTS_T: "Samples a Student's t PDF at <i>N</i> points with the given degree of freedom <b>dof</b> in the range [<b>xMin</b>, <b>xMax</b>] - scaled with <b>scale</b>.",
+
     CDF_NORMAL: "Samples a normal CDF, with the specified <b>mean</b> and standard deviation <b>std</b> at <i>N</i> points in the range [<b>xMin</b>, <b>xMax</b>].",
     CDF_ARCSINE: "Samples a arcsine CDF at <i>N</i> points in the range [<b>xMin</b>, <b>xMax</b>].",
     CDF_CHI_SQUARED: "Samples a chi-squared CDF at <i>N</i> points in the range [<b>xMin</b>, <b>xMax</b>].",
+    CDF_STUDENTS_T: "Samples a Student's t CDF at <i>N</i> points with the given degree of freedom <b>dof</b> in the range [<b>xMin</b>, <b>xMax</b>] - scaled with <b>scale</b>.",
+    CDF_POISSON: "Samples a Poisson CDF at <i>N</i> points with the given <b>lambda</b> in the range [<b>xMin</b>, <b>xMax</b>] - scaled with <b>scale</b>.",
+    CDF_BERNOULLI: "Samples a Bernoulli CDF at <i>N</i> points with the given probability <b>p</b> in the range [<b>xMin</b>, <b>xMax</b>] - scaled with <b>scale</b>.",
+    CDF_BINOMIAL: "Samples a Bernoulli CDF at <i>N</i> points with the given number of trials <b>n</b> and probability <b>p</b> in the range [<b>xMin</b>, <b>xMax</b>] - scaled with <b>scale</b>.",
 })
 
 export { GENERATOR_DESCRIPTIONS as default }
