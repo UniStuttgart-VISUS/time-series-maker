@@ -19,6 +19,7 @@
     import * as d3 from 'd3';
     import { ref, watch, onMounted } from 'vue';
     import { useApp } from '@/store/app'
+import { DateTime } from 'luxon';
 
     const props = defineProps({
         data: {
@@ -121,7 +122,7 @@
 
         const xAxis = svg.append("g")
             .attr("transform", `translate(0,${props.height-25})`)
-            .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%b")))
+            .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%0d %b")))
 
         const yAxis = svg.append("g")
             .attr("transform", "translate(35,0)")
@@ -137,7 +138,7 @@
 
             highlight(xz, yz);
 
-            xAxis.call(d3.axisBottom(xz).tickFormat(d3.timeFormat("%b")))
+            xAxis.call(d3.axisBottom(xz).tickFormat(d3.timeFormat("%0d %b")))
             yAxis.call(d3.axisLeft(yz))
 
             app.setLineChartZoom(transform);

@@ -18,7 +18,7 @@
                 <div :class="['d-flex', horizontal ? 'flex-row' : 'flex-column']">
                     <ComponentPreview v-for="c in cat" :key="c.key"
                         v-ripple
-                        class="ma-1 clickable"
+                        class="ma-1 clickable-wobble"
                         :data="c.values"
                         :title="c.title"
                         :width="100"

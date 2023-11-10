@@ -9,12 +9,35 @@
 //   $color-pack: false
 // );
 
-.clickable {
+.clickable,
+.clickable-wobble,
+.clickable-blink {
     cursor: pointer;
 }
 
-.clickable:hover {
+.clickable-blink:hover {
+    animation: blink 800ms ease-in-out infinite;
+}
+
+.clickable-wobble:hover {
     animation: wobble 400ms ease-in-out infinite;
+}
+
+.not-clickable {
+    cursor: default;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+        filter: hue-rotate(90deg);
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 @keyframes wobble {
