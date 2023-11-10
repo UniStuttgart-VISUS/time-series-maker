@@ -5,15 +5,15 @@ import datespace from '@stdlib/array/datespace';
 import { DateTime } from 'luxon';
 
 const TSC_DEFAULTS = Object.freeze({
-    samples: 150,
+    samples: 100,
     dynamicRange: true,
     min: -2,
     max: 2,
     start: "2022-01-01",
-    end: "2022-06-30",
+    end: "2022-03-31",
 })
 
-export default class TimeSeriesCollection {
+class TimeSeriesCollection {
 
     constructor(options=TSC_DEFAULTS, series=[]) {
         this.start = options.start;
@@ -194,3 +194,5 @@ export default class TimeSeriesCollection {
 
     }
 }
+
+export { TimeSeriesCollection as default, TSC_DEFAULTS };

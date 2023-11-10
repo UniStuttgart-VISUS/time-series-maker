@@ -44,7 +44,7 @@
     const style = computed(() => {
         return {
             maxWidth: (props.height * 1.8) + 'px',
-            height: props.height + 'px',
+            minHeight: props.height + 'px',
             bottom: props.height + 'px',
             left: 0
         };

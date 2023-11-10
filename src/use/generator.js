@@ -7,6 +7,7 @@ import simulate from '@stdlib/simulate/iter'
 import GENERATOR_DEFAULTS from './generator-defaults.js';
 import GENERATOR_TYPES from './generator-types.js';
 import { DateTime } from 'luxon';
+import { specificDate, specificDateChange } from './generator-utils.js';
 
 export default class Generator {
 
@@ -121,10 +122,12 @@ export default class Generator {
     }
 
     _apply(numberOrValues, index=0) {
+
         const number = typeof numberOrValues === "number" ? numberOrValues : numberOrValues.length;
+
         switch (this.type) {
             default:
-            case GENERATOR_TYPES.PREFAB:
+            case GENERATOR_TYPES.CUSTOM:
                 switch (this.name) {
                     case "trend": {
                         const pos = Math.round(this.getOpt("position") * number);
@@ -135,31 +138,71 @@ export default class Generator {
                         const vals = filled(0, number)
                         const pos = Math.round(this.getOpt("position") * number);
                         const width = this.getOpt("width")
-                        const magnitude = this.getOpt("magnitude");
+                        const value = this.getOpt("value");
                         const back = width > 1 ? Math.floor(width * 0.5) : 0;
                         const forward = width > 1 ? Math.floor((width-1) * 0.5) : 0;
                         for (let i = pos-back; i >= 0 && i < number && i <= pos+forward; i++) {
-                            vals[i] = magnitude;
+                            vals[i] = value;
                         }
                         return vals;
                     }
-                    case "weekend": {
-                        const magnitude = this.getOpt("magnitude");
-                        return numberOrValues.map(d => {
-                            const w = d.getDay();
-                            return w === 5 || w === 6 ? magnitude : 0;
-                        });
+                    case "day": {
+                        return specificDate(
+                            numberOrValues,
+                            this.getOpt("day"),
+                            this.getOpt("value"),
+                            "day"
+                        );
+                    }
+                    case "week": {
+                        return specificDate(
+                            numberOrValues,
+                            this.getOpt("week"),
+                            this.getOpt("value"),
+                            "weekNumber"
+                        );
+                    }
+                    case "month": {
+                        return specificDate(
+                            numberOrValues,
+                            this.getOpt("month"),
+                            this.getOpt("value"),
+                            "month"
+                        );
+                    }
+                    case "daily": {
+                        return specificDateChange(
+                            numberOrValues,
+                            this.getOpt("value"),
+                            "day"
+                        );
+                    }
+                    case "weekly": {
+                        return specificDateChange(
+                            numberOrValues,
+                            this.getOpt("value"),
+                            "weekNumber"
+                        );
                     }
                     case "monthly": {
-                        const magnitude = this.getOpt("magnitude");
-                        let month = -1;
+                        return specificDateChange(
+                            numberOrValues,
+                            this.getOpt("value"),
+                            "month"
+                        );
+                    }
+                    case "workweek": {
+                        const value = this.getOpt("value");
                         return numberOrValues.map(d => {
-                            const m = d.getMonth();
-                            if (m !== month) {
-                                month = m;
-                                return magnitude;
-                            }
-                            return 0;
+                            const w = DateTime.fromJSDate(d).weekday;
+                            return w <= 5 ? value : 0;
+                        });
+                    }
+                    case "weekend": {
+                        const value = this.getOpt("value");
+                        return numberOrValues.map(d => {
+                            const w = DateTime.fromJSDate(d).weekday;
+                            return w > 5 ? value : 0;
                         });
                     }
                     default:

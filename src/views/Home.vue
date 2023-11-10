@@ -41,10 +41,12 @@
         </v-sheet>
 
         <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
-            <ComponentOperatorViewer v-if="mainTab === MAIN_TABS.TS && ts"
-                :compositor="ts.compositor"
-                @update="update(true)"
-                @switch="switchComponents"/>
+            <KeepAlive>
+                <ComponentOperatorViewer v-if="mainTab === MAIN_TABS.TS && ts"
+                    :compositor="ts.compositor"
+                    @update="update(true)"
+                    @switch="switchComponents"/>
+            </KeepAlive>
         </v-sheet>
         <ToastHandler/>
     </div>
@@ -52,7 +54,7 @@
     <v-footer app elevation="4">
         <KeepAlive>
             <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer">
-                <ComponentPicker @click="addComponent" horizontal/>
+                <ComponentPicker @click="addComponent" horizontal :values="tsc.dataX"/>
             </v-sheet >
         </KeepAlive>
     </v-footer>

@@ -39,28 +39,47 @@
 
 <script setup>
     import { ref, reactive } from 'vue';
+    import { useApp } from '@/store/app';
+
     import ComponentPreview from '@/components/ComponentPreview.vue';
+    import ComponentInfoPanel from '@/components/ComponentInfoPanel.vue';
+
+    import datespace from '@stdlib/array/datespace';
+
+    import GENERATOR_TYPES from '@/use/generator-types';
     import GENERATOR_DEFAULTS from '@/use/generator-defaults';
     import makePreview from '@/use/time-series-component-preview';
-    import GENERATOR_TYPES from '@/use/generator-types';
-    import { useApp } from '@/store/app';
-    import ComponentInfoPanel from '@/components/ComponentInfoPanel.vue';
-    import datespace from '@stdlib/array/datespace';
+    import { TSC_DEFAULTS } from '@/use/timeseries-collection';
 
     const props = defineProps({
         horizontal: {
             type: Boolean,
             default: false
         },
+        start: {
+            type: String,
+            required: false
+        },
+        end: {
+            type: String,
+            required: false
+        },
+        n: {
+            type: Number,
+            default: 30
+        }
     })
 
     const app = useApp()
-    const tab = ref(GENERATOR_TYPES.PREFAB)
+    const tab = ref(GENERATOR_TYPES.CUSTOM)
     const description = ref("")
 
     const comps = reactive({});
 
-    const dataX = datespace("2022-01-01", "2022-12-31", 50);
+    const dataX = props.start && props.end ?
+        datespace(props.start, props.end, props.n) :
+        datespace(TSC_DEFAULTS.start, TSC_DEFAULTS.end, props.n);
+
     for (const t in GENERATOR_DEFAULTS) {
         const g = GENERATOR_DEFAULTS[t];
         if (comps[g.type] === undefined) {
@@ -70,7 +89,7 @@
             key: g.key,
             name: g.name,
             title: g.title,
-            values: Array.from(makePreview(g.key, dataX)[0])
+            values: Array.from(makePreview(g.key, dataX))
         };
     }
 

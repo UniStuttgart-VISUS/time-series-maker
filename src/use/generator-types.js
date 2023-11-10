@@ -1,5 +1,5 @@
 const GENERATOR_TYPES = Object.freeze({
-    PREFAB: "prefab",
+    CUSTOM: "custom",
     PDF: "pdf",
     CDF: "cdf",
     RNG: "random",

@@ -5,7 +5,7 @@ const GENERATOR_DEFAULTS = {
     CONSTANT: {
         key: "CONSTANT",
         name: "constant",
-        type: GENERATOR_TYPES.PREFAB,
+        type: GENERATOR_TYPES.CUSTOM,
         title: "Constant",
         seedRequired: false,
         options: { value: new GeneratorOption("value", 0, { step: 0.1 }) }
@@ -13,7 +13,7 @@ const GENERATOR_DEFAULTS = {
     TREND: {
         key: "TREND",
         name: "trend",
-        type: GENERATOR_TYPES.PREFAB,
+        type: GENERATOR_TYPES.CUSTOM,
         title: "Linear Trend",
         seedRequired: false,
         options: {
@@ -24,33 +24,96 @@ const GENERATOR_DEFAULTS = {
     OUTLIER: {
         key: "OUTLIER",
         name: "outlier",
-        type: GENERATOR_TYPES.PREFAB,
+        type: GENERATOR_TYPES.CUSTOM,
         title: "Outlier",
         seedRequired: false,
         options: {
             position: new GeneratorOption("position", 0.5, { min: 0, max: 1, step: 0.01 }),
             width: new GeneratorOption("width", 1, { min: 1, step: 1 }),
-            magnitude: new GeneratorOption("magnitude", 0.5, { min: 0, step: 0.01, validators: ["POSITIVE"] }),
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
         }
     },
-    WEEKEND: {
-        key: "WEEKEND",
-        name: "weekend",
-        type: GENERATOR_TYPES.PREFAB,
-        title: "Weekend",
+    DAY: {
+        key: "DAY",
+        name: "day",
+        type: GENERATOR_TYPES.CUSTOM,
+        title: "Day",
         seedRequired: false,
         options: {
-            magnitude: new GeneratorOption("magnitude", 0.5, { min: 0, step: 0.01, validators: ["POSITIVE"] }),
+            day: new GeneratorOption("day", 1, { min: 1, max: 31, step: 1, validators: ["INTEGER"] }),
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+        }
+    },
+    WEEK: {
+        key: "WEEK",
+        name: "week",
+        type: GENERATOR_TYPES.CUSTOM,
+        title: "Week",
+        seedRequired: false,
+        options: {
+            week: new GeneratorOption("week", 1, { min: 1, max: 53, step: 1, validators: ["INTEGER"] }),
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+        }
+    },
+    MONTH: {
+        key: "MONTH",
+        name: "month",
+        type: GENERATOR_TYPES.CUSTOM,
+        title: "Month",
+        seedRequired: false,
+        options: {
+            month: new GeneratorOption("month", 1, { min: 1, max: 12, step: 1, validators: ["INTEGER"] }),
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+        }
+    },
+    DAILY: {
+        key: "DAILY",
+        name: "daily",
+        type: GENERATOR_TYPES.CUSTOM,
+        title: "Daily",
+        seedRequired: false,
+        options: {
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+        }
+    },
+    WEEKLY: {
+        key: "WEEKLY",
+        name: "weekly",
+        type: GENERATOR_TYPES.CUSTOM,
+        title: "Weekly",
+        seedRequired: false,
+        options: {
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
         }
     },
     MONTHLY: {
         key: "MONTHLY",
         name: "monthly",
-        type: GENERATOR_TYPES.PREFAB,
+        type: GENERATOR_TYPES.CUSTOM,
         title: "Monthly",
         seedRequired: false,
         options: {
-            magnitude: new GeneratorOption("magnitude", 0.5, { min: 0, step: 0.01, validators: ["POSITIVE"] }),
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+        }
+    },
+    WORK_WEEK: {
+        key: "WORK_WEEK",
+        name: "workweek",
+        type: GENERATOR_TYPES.CUSTOM,
+        title: "Work Week",
+        seedRequired: false,
+        options: {
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+        }
+    },
+    WEEKEND: {
+        key: "WEEKEND",
+        name: "weekend",
+        type: GENERATOR_TYPES.CUSTOM,
+        title: "Weekend",
+        seedRequired: false,
+        options: {
+            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
         }
     },
 
@@ -119,7 +182,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             period: new GeneratorOption("period", 10, { min: 1, step: 1, validators: ["INTEGER"] }),
-            amplitude: new GeneratorOption("amplitude", 1, { min: 0.1, step: 0.1, validators: ["POSITIVE"] }),
+            amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 0.1, validators: ["POSITIVE"] }),
             offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
@@ -131,7 +194,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             period: new GeneratorOption("period", 10, { min: 1, step: 1, validators: ["INTEGER"] }),
-            amplitude: new GeneratorOption("amplitude", 1, { min: 0.1, step: 0.1, validators: ["POSITIVE"] }),
+            amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 0.1, validators: ["POSITIVE"] }),
             offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },

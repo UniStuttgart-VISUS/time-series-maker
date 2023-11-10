@@ -7,8 +7,8 @@ const VALIDATORS = Object.freeze({
 const VALIDATOR_IDS = Object.keys(VALIDATORS);
 
 const DEFAULT_OPTIONS = {
-    min: NaN,
-    max: NaN,
+    min: -Infinity,
+    max: Infinity,
     step: 0.001,
     validators: [],
 }
@@ -17,8 +17,8 @@ function rangeToString(min, max, validators) {
 
     let minVal = min;
     let maxVal = max;
-    let left = Number.isNaN(min) ? "(" : "[";
-    let right = Number.isNaN(max) ? ")" : "]";
+    let left = Number.isFinite(min) ? "[" : "(";
+    let right = Number.isFinite(max) ? "]" : ")";
 
     if (validators.includes("EXCLUSIVE_0_1")) {
         left = "(";
@@ -29,17 +29,21 @@ function rangeToString(min, max, validators) {
         left = "(";
         minVal = Math.max(minVal, 0);
     }
-
-    if (Number.isNaN(min)) { minVal = "-&infin;" }
-    if (Number.isNaN(max)) { maxVal = "+&infin;" }
+    if (!Number.isFinite(minVal)) { minVal = "-&infin;" }
+    if (!Number.isFinite(maxVal)) { maxVal = "+&infin;" }
 
     return `x &isinv; ${left}${minVal}, ${maxVal}${right}`
 }
-function validatorToString(validator) {
-    switch(validator) {
-        case "NOT_ZERO": return "x &ne; 0"
-        case "INTEGER": return "x &isinv; Z"
-    }
+function validatorsToString(validators) {
+    return validators.map(v => {
+        switch(v) {
+            case "NOT_ZERO": {
+                return validators.includes("EXCLUSIVE_0_1") || validators.includes("POSITIVE") ?
+                    "x > 0" : "x &ne; 0"
+            }
+            case "INTEGER": return validators.includes("POSITIVE") ? "x &isinv; Z\\{ 0 }" : "x &isinv; Z"
+        }
+    }).filter(d => d)
 }
 
 class GeneratorOption {
@@ -90,7 +94,7 @@ class GeneratorOption {
 
     toString(includeName=true) {
         const rstr = rangeToString(this.min, this.max, this.validators);
-        const vals = this.validators.map(validatorToString).filter(d => d).join(" | ");
+        const vals = validatorsToString(this.validators).join(" | ");
         if (vals.length > 0) {
             return includeName ? `${this.name}: { ${rstr} | ${vals} }` : `{ ${rstr} | ${vals} }`
         }
