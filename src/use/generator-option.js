@@ -9,7 +9,7 @@ const VALIDATOR_IDS = Object.keys(VALIDATORS);
 const DEFAULT_OPTIONS = {
     min: -Infinity,
     max: Infinity,
-    step: 0.001,
+    step: 0.01,
     validators: [],
 }
 

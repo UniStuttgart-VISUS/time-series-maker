@@ -67,7 +67,7 @@
     }
     function setVisible(value) {
         props.component.setVisible(value)
-        props.component.update();
+        props.component.update(false);
     }
 
 </script>

@@ -104,9 +104,9 @@ export default class TimeSeriesComponent {
         return this.data;
     }
 
-    update() {
+    update(generate=true) {
         if (!this._ts) return;
-        this.generate();
+        if (generate) this.generate()
         this._ts.generate();
     }
 

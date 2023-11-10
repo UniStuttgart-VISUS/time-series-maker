@@ -148,7 +148,6 @@ const GENERATOR_DEFAULTS = {
             sigma: new GeneratorOption("sigma", 0.1, { min: 0, validators: ["NOT_ZERO", "POSITIVE"] }),
         }
     },
-
     RNG_UNIFORM: {
         key: "RNG_UNIFORM",
         name: "uniform",
@@ -160,7 +159,6 @@ const GENERATOR_DEFAULTS = {
             maxSupport: new GeneratorOption("maxSupport", 1),
         }
     },
-
     RNG_NORMAL: {
         key: "RNG_NORMAL",
         name: "normal",
@@ -170,6 +168,73 @@ const GENERATOR_DEFAULTS = {
         options: {
             mean: new GeneratorOption("mean", 0),
             std: new GeneratorOption("std", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
+        }
+    },
+    RNG_ARCSINE: {
+        key: "RNG_ARCSINE",
+        name: "arcsine",
+        title: "Random Arcsine",
+        type: GENERATOR_TYPES.RNG,
+        seedRequired: true,
+        options: {
+            minSupport: new GeneratorOption("minSupport", 0),
+            maxSupport: new GeneratorOption("maxSupport", 1),
+        }
+    },
+    RNG_CHI_SQUARED: {
+        key: "RNG_CHI_SQUARED",
+        name: "chi-squared",
+        title: "Random Chi-Squared",
+        type: GENERATOR_TYPES.RNG,
+        seedRequired: true,
+        options: {
+            k: new GeneratorOption("k", 2, { min: 2, step: 1, validators: ["INTEGER"] }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+        }
+    },
+    RNG_STUDENTS_T: {
+        key: "RNG_STUDENTS_T",
+        name: "students-t",
+        title: "Random Student's T",
+        type: GENERATOR_TYPES.RNG,
+        seedRequired: true,
+        options: {
+            dof: new GeneratorOption("dof", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+        }
+    },
+    RNG_POISSON: {
+        key: "RNG_POISSON",
+        name: "poisson",
+        title: "Random Poisson",
+        type: GENERATOR_TYPES.RNG,
+        seedRequired: true,
+        options: {
+            lambda: new GeneratorOption("lambda", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+        }
+    },
+    RNG_BERNOULLI: {
+        key: "RNG_BERNOULLI",
+        name: "bernoulli",
+        title: "Random Bernoulli",
+        type: GENERATOR_TYPES.RNG,
+        seedRequired: true,
+        options: {
+            p: new GeneratorOption("p", 0.1, { min: 0, step: 0.01, max: 1 }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+        }
+    },
+    RNG_BINOMIAL: {
+        key: "RNG_BINOMIAL",
+        name: "binomial",
+        title: "Random Binomial",
+        type: GENERATOR_TYPES.RNG,
+        seedRequired: true,
+        options: {
+            n: new GeneratorOption("n", 1, { min: 0, step: 1, validators: ["INTEGER"] }),
+            p: new GeneratorOption("p", 0.1, { min: 0, step: 0.01, max: 1 }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
         }
     },
 
@@ -182,7 +247,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             period: new GeneratorOption("period", 10, { min: 1, step: 1, validators: ["INTEGER"] }),
-            amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 0.1, validators: ["POSITIVE"] }),
+            amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 1, validators: ["POSITIVE"] }),
             offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
@@ -194,11 +259,10 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             period: new GeneratorOption("period", 10, { min: 1, step: 1, validators: ["INTEGER"] }),
-            amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 0.1, validators: ["POSITIVE"] }),
+            amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 1, validators: ["POSITIVE"] }),
             offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
-
     WAVE_PULSE: {
         key: "WAVE_PULSE",
         name: "pulse",
@@ -207,13 +271,12 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             period: new GeneratorOption("period", 10, { min: 1, step: 1, validators: ["INTEGER"] }),
-            duration: new GeneratorOption("duration", 5, { min: 3, step: 0.1, validators: ["INTEGER"] }),
+            duration: new GeneratorOption("duration", 5, { min: 3, step: 1, validators: ["INTEGER"] }),
             offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
             minAmplitude: new GeneratorOption("minAmplitude", 0, { step: 0.1 }),
             maxAmplitude: new GeneratorOption("maxAmplitude", 1, { step: 0.1 }),
         }
     },
-
     WAVE_BARTLETT_PULSE: {
         key: "WAVE_BARTLETT_PULSE",
         name: "bartlett",
@@ -222,7 +285,19 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             period: new GeneratorOption("period", 50, { min: 2, step: 1, validators: ["INTEGER"] }),
-            duration: new GeneratorOption("duration", 50, { min: 2, step: 0.1, validators: ["INTEGER"] }),
+            duration: new GeneratorOption("duration", 50, { min: 2, step: 1, validators: ["INTEGER"] }),
+            amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 1, validators: ["POSITIVE"] }),
+            offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+        }
+    },
+    WAVE_SAWTOOTH: {
+        key: "WAVE_SAWTOOTH",
+        name: "sawtooth",
+        title: "Sawtooth Wave",
+        type: GENERATOR_TYPES.WAVE,
+        seedRequired: false,
+        options: {
+            period: new GeneratorOption("period", 10, { min: 2, step: 1, validators: ["INTEGER"] }),
             amplitude: new GeneratorOption("amplitude", 1, { min: 0, step: 1, validators: ["POSITIVE"] }),
             offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
@@ -238,8 +313,8 @@ const GENERATOR_DEFAULTS = {
         options: {
             mean: new GeneratorOption("mean", 0),
             std: new GeneratorOption("std", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
-            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
-            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
     PDF_ARCSINE: {
@@ -251,6 +326,8 @@ const GENERATOR_DEFAULTS = {
         options: {
             minSupport: new GeneratorOption("minSupport", 0),
             maxSupport: new GeneratorOption("maxSupport", 1),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
     PDF_CHI_SQUARED: {
@@ -261,8 +338,21 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             k: new GeneratorOption("k", 2, { min: 2, step: 1, validators: ["INTEGER"] }),
-            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
-            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
+        }
+    },
+    PDF_STUDENTS_T: {
+        key: "PDF_STUDENTS_T",
+        name: "students-t",
+        title: "PDF Student's T",
+        type: GENERATOR_TYPES.PDF,
+        seedRequired: false,
+        options: {
+            dof: new GeneratorOption("dof", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
 
@@ -276,8 +366,8 @@ const GENERATOR_DEFAULTS = {
         options: {
             mean: new GeneratorOption("mean", 0),
             std: new GeneratorOption("std", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
-            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
-            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
     CDF_ARCSINE: {
@@ -289,8 +379,8 @@ const GENERATOR_DEFAULTS = {
         options: {
             minSupport: new GeneratorOption("minSupport", 0),
             maxSupport: new GeneratorOption("maxSupport", 1),
-            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
-            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
     CDF_CHI_SQUARED: {
@@ -301,8 +391,61 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             k: new GeneratorOption("k", 2, { min: 2, step: 1, validators: ["INTEGER"] }),
-            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 0.1 }),
-            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
+        }
+    },
+    CDF_STUDENTS_T: {
+        key: "CDF_STUDENTS_T",
+        name: "students-t",
+        title: "CDF Student's T",
+        type: GENERATOR_TYPES.CDF,
+        seedRequired: false,
+        options: {
+            dof: new GeneratorOption("dof", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
+        }
+    },
+    CDF_POISSON: {
+        key: "CDF_POISSON",
+        name: "poisson",
+        title: "CDF Poisson",
+        type: GENERATOR_TYPES.CDF,
+        seedRequired: false,
+        options: {
+            lambda: new GeneratorOption("lambda", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
+        }
+    },
+    CDF_BERNOULLI: {
+        key: "CDF_BERNOULLI",
+        name: "bernoulli",
+        title: "CDF Bernoulli",
+        type: GENERATOR_TYPES.CDF,
+        seedRequired: false,
+        options: {
+            p: new GeneratorOption("p", 0.1, { min: 0, step: 0.01, max: 1 }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
+        }
+    },
+    CDF_BINOMIAL: {
+        key: "CDF_BINOMIAL",
+        name: "binomial",
+        title: "CDF Binomial",
+        type: GENERATOR_TYPES.CDF,
+        seedRequired: false,
+        options: {
+            n: new GeneratorOption("n", 1, { min: 0, step: 1, validators: ["INTEGER"] }),
+            p: new GeneratorOption("p", 0.1, { min: 0, step: 0.01, max: 1 }),
+            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
     },
 };

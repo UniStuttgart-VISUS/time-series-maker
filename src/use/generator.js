@@ -70,23 +70,35 @@ export default class Generator {
     static makePDFFactory(name, options) {
         const getOpt = opName => options[opName].value;
         switch (name) {
+            default:
             case "normal":
                 return dists.normal.pdf.factory(getOpt("mean"), getOpt("std"));
             case "arcsine":
                 return dists.arcsine.pdf.factory(getOpt("minSupport"), getOpt("maxSupport"))
             case "chi-squared":
                 return dists.chisquare.pdf.factory(getOpt("k"))
+            case "students-t":
+                return dists.t.pdf.factory(getOpt("dof"));
         }
     }
     static makeCDFFactory(name, options) {
         const getOpt = opName => options[opName].value;
         switch (name) {
+            default:
             case "normal":
                 return dists.normal.cdf.factory(getOpt("mean"), getOpt("std"));
             case "arcsine":
                 return dists.arcsine.cdf.factory(getOpt("minSupport"), getOpt("maxSupport"))
             case "chi-squared":
                 return dists.chisquare.cdf.factory(getOpt("k"));
+            case "students-t":
+                return dists.t.cdf.factory(getOpt("dof"));
+            case "poisson":
+                return dists.poisson.cdf.factory(getOpt("lambda"));
+            case "bernoulli":
+                return dists.bernoulli.cdf.factory(getOpt("p"));
+            case "binomial":
+                return dists.binomial.cdf.factory(getOpt("n"), getOpt("p"));
         }
     }
     static makeRandomFactory(name, options, opts) {
@@ -94,12 +106,18 @@ export default class Generator {
         switch (name) {
             case "normal":
                 return random.normal.factory(getOpt("mean"), getOpt("std"), opts);
-            case "lognomal":
-                return random.lognormal.factory(getOpt("mean"), getOpt("std"), opts);
+            case "arcsine":
+                return random.arcsine.factory(getOpt("minSupport"), getOpt("maxSupport"), opts);
+            case "chi-squared":
+                return random.chisquare.factory(getOpt("k"), opts);
+            case "students-t":
+                return random.t.factory(getOpt("dof"), opts);
             case "poisson":
                 return random.poisson.factory(getOpt("lambda"), opts);
-            case "geometric":
-                return random.geometric.factory(getOpt("p"), opts);
+            case "bernoulli":
+                return random.bernoulli.factory(getOpt("p"), opts);
+            case "binomial":
+                return random.binomial.factory(getOpt("n"), getOpt("p"), opts);
             default:
             case "uniform":
                 return random.uniform.factory(getOpt("minSupport"), getOpt("maxSupport"), opts);
@@ -109,6 +127,10 @@ export default class Generator {
     isValid() {
         const ops = Object.keys(this.options);
         return !ops.some(o => !this.options[o].isValid())
+    }
+
+    hasOpt(name) {
+        return name in this.options;
     }
 
     setOpt(name, value) {
@@ -215,7 +237,8 @@ export default class Generator {
                 const xMin = this.getOpt("xMin");
                 const xMax = this.getOpt("xMax")
                 console.assert(xMin < xMax, "min must be smaller than max")
-                return linspace(xMin, xMax, number).map(factory);
+                const scale = this.hasOpt("scale") ? this.getOpt("scale") : 1;
+                return linspace(xMin, xMax, number).map(d => factory(d) * scale);
             }
 
             case GENERATOR_TYPES.PDF: {
@@ -234,8 +257,9 @@ export default class Generator {
                     default: {
                         const xMin = this.getOpt("xMin");
                         const xMax = this.getOpt("xMax")
+                        const scale = this.hasOpt("scale") ? this.getOpt("scale") : 1;
                         console.assert(xMin < xMax, "min must be smaller than max")
-                        return linspace(xMin, xMax, number).map(factory);
+                        return linspace(xMin, xMax, number).map(d => factory(d) * scale);
                     }
                 }
             }
@@ -283,6 +307,16 @@ export default class Generator {
                         })
                         return filled(0, number).map(() => iter.next().value);
                     }
+                    case "sawtooth": {
+                        const iter = simulate.iterSawtoothWave({
+                            seed: this.seeds[index],
+                            period: this.getOpt("period"),
+                            amplitude: this.getOpt("amplitude"),
+                            offset: this.getOpt("offset"),
+                            iter: number
+                        })
+                        return filled(0, number).map(() => iter.next().value);
+                    }
 
                 }
             case GENERATOR_TYPES.RNG: {
@@ -308,7 +342,8 @@ export default class Generator {
                     default: {
                         const opts = { seed: this.seeds[index] }
                         const factory = Generator.makeRandomFactory(this.name, this.options, opts);
-                        return linspace(0, number, number).map(factory);
+                        const scale = this.hasOpt("scale") ? this.getOpt("scale") : 1;
+                        return linspace(0, number, number).map(d => factory() * scale);
                     }
                 }
             }
