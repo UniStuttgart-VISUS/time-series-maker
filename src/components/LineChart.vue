@@ -19,7 +19,7 @@
     import * as d3 from 'd3';
     import { ref, watch, onMounted } from 'vue';
     import { useApp } from '@/store/app'
-import { DateTime } from 'luxon';
+    import { DateTime } from 'luxon';
 
     const props = defineProps({
         data: {
@@ -151,7 +151,7 @@ import { DateTime } from 'luxon';
 
         zoom = d3.zoom()
             .scaleExtent([1, 8])
-            .translateExtent([[0, 0], [props.width, props.height]])
+            .translateExtent([[35, 10], [props.width - 10, props.height - 25]])
             .on("zoom", zoomed)
             .on("end", zoomEnd)
 
@@ -180,10 +180,12 @@ import { DateTime } from 'luxon';
         ctx.lineTo(scaleX(xDomain[1]), scaleY(0));
         ctx.stroke()
 
+        const otherOpacity = app.selectedComps.size > 0 ? 0.15 : null;
+
         ctx.lineWidth = 2;
         props.data.forEach(d => {
             ctx.beginPath();
-            ctx.globalAlpha = app.isSelectedComponent(id(d)) ? 1 : d.opacity;
+            ctx.globalAlpha = app.isSelectedComponent(id(d)) ? 1 : (otherOpacity ? otherOpacity : d.opacity);
             ctx.strokeStyle  = props.colorScale(color(d));
             line(d.values)
             ctx.stroke();

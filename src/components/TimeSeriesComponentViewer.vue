@@ -9,7 +9,7 @@
                 min="1"
                 max="2147483646"
                 @update:modelValue="setSeed"/>
-            <v-btn class="ml-2"
+            <v-btn class="ml-2 mt-2"
                 icon="mdi-dice-6"
                 rounded="sm"
                 variant="outlined"

@@ -27,7 +27,9 @@ export default class TimeSeries {
         this.lastUpdate = null;
         this.COMP_ID = components.length;
 
+        this.tree = null;
         this.compositor = compositor ? compositor : new Compositor();
+
         this.components = [];
         components.forEach(c => {
             c._ts = this;
@@ -92,6 +94,10 @@ export default class TimeSeries {
 
     toCSVHeader() {
         return this._tsc.toCSVHeader()
+    }
+
+    makeTree() {
+        this.tree = this.compositor.toTree();
     }
 
     copy() {
@@ -243,22 +249,29 @@ export default class TimeSeries {
             }
         }
 
-        this.compositor.iterate((opCase, left, op, right, extraOp) => {
+        let leftNode, rightNode;
+        this.makeTree()
+
+        this.compositor.iterateWithOpID((opCase, left, op, opID, right, extraOp, extraOpID) => {
 
             for (let i = 0; i < this.instances; ++i) {
 
                 const hasLeft = left !== undefined && left !== null;
-                const hasOp = op !== undefined && op !== null;
+                const hasOp = op !== undefined && op !== null && opID;
                 const hasRight = right !== undefined && right !== null;
-                const hasExtraOp = extraOp !== undefined && extraOp !== null;
+                const hasExtraOp = extraOp !== undefined && extraOp !== null && extraOpID;
 
                 switch(opCase) {
+                    case OP_CASE.APPLY_NESTED_LEFT:
+                    case OP_CASE.APPLY_NESTED_RIGHT:
                     case OP_CASE.APPLY_BOTH: {
                         console.assert(hasLeft && hasOp && hasRight, "wrong case - missing data");
                         const cl = getComp(left);
                         const cr = getComp(right);
                         leftVals = cl.getData(i);
                         rightVals = cr.getData(i);
+                        leftNode = this.tree.nodes.find(d => d.id === left);
+                        rightNode = this.tree.nodes.find(d => d.id === right);
                         break;
                     }
                     case OP_CASE.APPLY_LEFT: {
@@ -266,6 +279,7 @@ export default class TimeSeries {
                         const c = getComp(left);
                         leftVals = c.getData(i);
                         rightVals = values[i];
+                        leftNode = this.tree.nodes.find(d => d.id === left);
                         break;
                     }
                     case OP_CASE.APPLY_RIGHT: {
@@ -273,20 +287,18 @@ export default class TimeSeries {
                         const c = getComp(right);
                         leftVals = values[i];
                         rightVals = c.getData(i);
-                        break;
-                    }
-                    case OP_CASE.APPLY_NESTED_LEFT: {
-                        console.assert(hasLeft && hasOp && hasRight, "wrong case - missing data");
-                        const cl = getComp(left);
-                        const cr = getComp(right);
-                        leftVals = cl.getData(i);
-                        rightVals = cr.getData(i);
+                        rightNode = this.tree.nodes.find(d => d.id === right);
                         break;
                     }
                 }
 
+                if (leftNode) { leftNode.values = Array.from(leftVals) }
+                if (rightNode) { rightNode.values = Array.from(rightVals) }
+
                 if (hasOp) {
                     cacheVals = apply(op, i, !hasExtraOp);
+                    const opNode = this.tree.nodes.find(d => d.id === opID);
+                    opNode.values = Array.from(cacheVals ? cacheVals : values[i]);
                 }
 
                 if (hasExtraOp && cacheVals) {
@@ -303,7 +315,8 @@ export default class TimeSeries {
                             break;
                         }
                     }
-                    apply(extraOp, i);
+                    const opNode = this.tree.nodes.find(d => d.id === extraOpID);
+                    opNode.values = Array.from(apply(extraOp, i));
                     cacheVals = null;
                 }
             }

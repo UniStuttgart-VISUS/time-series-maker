@@ -42,11 +42,17 @@
 
         <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
             <KeepAlive>
-                <ComponentOperatorViewer v-if="mainTab === MAIN_TABS.TS && ts"
+                <OperationTree v-if="mainTab === MAIN_TABS.TS && tree"
+                    :nodes="tree.nodes"
+                    :links="tree.links"
+                    :x-values="tsc.dataX"
+                    :max-depth="tree.maxDepth"
+                    :num-leaves="tree.numLeaves"/>
+            </KeepAlive>
+                <!-- <ComponentOperatorViewer v-if="mainTab === MAIN_TABS.TS && ts"
                     :compositor="ts.compositor"
                     @update="update(true)"
-                    @switch="switchComponents"/>
-            </KeepAlive>
+                    @switch="switchComponents"/> -->
         </v-sheet>
         <ToastHandler/>
     </div>
@@ -79,6 +85,7 @@
     import TimeSeries from '@/use/time-series';
     import ToastHandler from '@/components/ToastHandler.vue';
     import ComponentPicker from '@/components/ComponentPicker.vue';
+    import OperationTree from '@/components/OperationTree.vue';
 
     const app = useApp();
     const comms = useComms();
@@ -86,6 +93,7 @@
     const { mainTab } = storeToRefs(app)
 
     let lineData = ref([]);
+    let tree = ref(null)
 
     const tsc = reactive(new TimeSeriesCollection());
 
@@ -132,6 +140,7 @@
                     comms.error(e.message);
                 }
             }
+            tree.value = ts.value.tree;
             lineData.value = ts.value.toChartData(true, app.tscOpacity)
         } else {
             app.setTSCDomain(tsc.series.map(d => d.id));
@@ -142,6 +151,7 @@
                     comms.error(e.message);
                 }
             }
+            tree.value = null
             lineData.value = tsc.toChartData(app.tsOpacity)
         }
     }
