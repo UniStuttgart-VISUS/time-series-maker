@@ -253,7 +253,7 @@
                         return {
                             id: d.id, values: vals,
                             key: key, data: d.data,
-                            opacity: d.data === key ? 1 : 0.33
+                            opacity: d.data === key ? 1 : 0.2
                         }
                     })
             })

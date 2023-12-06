@@ -119,7 +119,7 @@
             try {
                 ts.value.addComponent(type);
             } catch(e) {
-                comms.error(e.message);
+                comms.error(e.toString());
             }
         }
     }
@@ -127,11 +127,10 @@
     function updateCompositor(id, op) {
         if (ts.value) {
             try {
-                console.log(id, op)
                 ts.value.compositor.setOperator(id, op);
                 update(true);
             } catch(e) {
-                comms.error(e.message);
+                comms.error(e.toString());
             }
         }
     }
@@ -141,7 +140,7 @@
             try {
                 ts.value.switchComponents(from, to);
             } catch(e) {
-                comms.error(e.message);
+                comms.error(e.toString());
             }
         }
     }
@@ -152,7 +151,7 @@
                 try {
                     ts.value.generate();
                 } catch(e) {
-                    comms.error(e.message);
+                    comms.error(e.toString());
                 }
             }
             tree.value = ts.value.tree;
@@ -163,7 +162,7 @@
                 try {
                     tsc.generate();
                 } catch(e) {
-                    comms.error(e.message);
+                    comms.error(e.toString());
                 }
             }
             tree.value = null
@@ -177,7 +176,7 @@
             try {
                 tsc.addTimeSeries(TimeSeries.fromJSON(tsc, json))
             } catch(e) {
-                comms.error(e.message);
+                comms.error(e.toString());
             }
             update(true)
         } else if (json.type === "timeseries-collection") {
@@ -185,7 +184,7 @@
             try {
                 tsc.fromJSON(json);
             } catch(e) {
-                comms.error(e);
+                comms.error(e.toString());
             }
             update(true)
         }

@@ -247,6 +247,26 @@ class Compositor {
         let leafIndex = 0;
         const graph = { nodes: [], links: [] };
 
+        if (this.size === 0) {
+            return graph;
+        }
+
+        // only one or two component
+        if (this.size < 3) {
+            graph.nodes.push({
+                depth: 1, id: this.flat[0].id, type: NODE_TYPE.DATA,
+                index: 0, data: this.flat[0].name
+            });
+            graph.nodes.push({
+                depth: 0,
+                id: this.size === 1  ? "op_base" : this.flat[1].id,
+                type: NODE_TYPE.OPERATOR,
+                minIndex: 0, maxIndex: 0,
+                data: this.size === 1 ? OPERATOR.ADD : this.flat[1].name
+            });
+            return graph;
+        }
+
         const traverse = node => {
 
             // reached the end
@@ -505,13 +525,12 @@ class Compositor {
 
         // only one component
         if (this.size === 1) {
-            callback(
+            return callback(
                 OP_CASE.APPLY_LEFT,
                 this.flat[0].id,
                 OPERATOR.ADD,
                 'op_base',
             );
-            return;
         }
 
         // only one operation
