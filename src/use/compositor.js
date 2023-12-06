@@ -3,16 +3,6 @@ const OPERATOR = Object.freeze({
     SUBTRACT: "SUBTRACT",
     MULTIPLY: "MULTIPLY",
 });
-const OPERATOR_PRECEDENCE = Object.freeze({
-    ADD: 1,
-    SUBTRACT: 1,
-    MULTIPLY: 2,
-});
-const PRECEDENCE_RESULT = Object.freeze({
-    SAME: 0,
-    MORE: 1,
-    LESS: -1,
-});
 
 const NODE_TYPE = Object.freeze({
     DATA: "DATA",
@@ -145,12 +135,6 @@ class Compositor {
         return "op_" + (this.ID_NUM++)
     }
 
-    static precedence(opA, opB) {
-        const diff = OPERATOR_PRECEDENCE[opA] - OPERATOR_PRECEDENCE[opB];
-        if (diff < 0) return PRECEDENCE_RESULT.LESS;
-        else if (diff > 0) return PRECEDENCE_RESULT.MORE
-        return PRECEDENCE_RESULT.SAME;
-    }
 
     static isOperator(item) {
         return item in OPERATOR;
@@ -400,40 +384,17 @@ class Compositor {
         } else {
 
             const node = this.tree.lastNode ? this.tree.lastNode : this.tree;
-            const opNode = this.getNode(node.op)
 
-            switch (Compositor.precedence(op, opNode.name)) {
-                case PRECEDENCE_RESULT.MORE:
-                case PRECEDENCE_RESULT.SAME: {
-                    // replace right side in previous array/operation
-                    const newNode = new CompGroup(node);
-                    newNode.left = node.right
-                    newNode.op = id;
-                    node.right = newNode
-                    // replace last node if it is deeper than previous or none exists
-                    if (newNode.depth >= this.tree.deepestNode.depth) {
-                        this.tree.deepestNode = newNode;
-                    }
-                    this.tree.lastNode = newNode;
-                    break;
-                }
-                case PRECEDENCE_RESULT.LESS: {
-                    // replace left side in previous array/operation
-                    const newNode = new CompGroup(node);
-                    newNode.left = node.left
-                    newNode.op = node.op
-                    newNode.right = node.right
-                    node.left = newNode;
-                    node.op = id;
-                    node.right = null;
-                    // replace last node if it is deeper than previous or none exists
-                    if (newNode.depth >= this.tree.deepestNode.depth) {
-                        this.tree.deepestNode = newNode;
-                    }
-                    this.tree.lastNode = node;
-                    break;
-                }
+            // replace right side in previous array/operation
+            const newNode = new CompGroup(node);
+            newNode.left = node.right
+            newNode.op = id;
+            node.right = newNode
+            // replace last node if it is deeper than previous or none exists
+            if (newNode.depth >= this.tree.deepestNode.depth) {
+                this.tree.deepestNode = newNode;
             }
+            this.tree.lastNode = newNode;
         }
     }
 

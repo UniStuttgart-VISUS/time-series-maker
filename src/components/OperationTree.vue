@@ -117,8 +117,6 @@
         const svg = d3.select(el.value);
         svg.selectAll("*").remove();
 
-        if (props.nodes.length < 3) return;
-
         const x = d3.scaleBand()
             .domain(d3.range(0, maxLeafIndex.value + 1))
             .range([5, realWidth.value - 5])
