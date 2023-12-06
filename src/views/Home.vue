@@ -46,8 +46,7 @@
                     :nodes="tree.nodes"
                     :links="tree.links"
                     :x-values="tsc.dataX"
-                    :max-depth="tree.maxDepth"
-                    :num-leaves="tree.numLeaves"/>
+                    @update="updateCompositor"/>
             </KeepAlive>
                 <!-- <ComponentOperatorViewer v-if="mainTab === MAIN_TABS.TS && ts"
                     :compositor="ts.compositor"
@@ -118,7 +117,18 @@
             } catch(e) {
                 comms.error(e.message);
             }
+        }
     }
+
+    function updateCompositor(id, op) {
+        if (ts.value) {
+            try {
+                ts.value.compositor.setOperator(id, op);
+                update(true);
+            } catch(e) {
+                comms.error(e.message);
+            }
+        }
     }
 
     function switchComponents(from, to) {

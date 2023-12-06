@@ -260,8 +260,9 @@ class Compositor {
             this.tree.setVisited(false)
         }
 
-        let nodeIndex = 0;
-        const graph = { nodes: [], links: [], numLeaves: 0, maxDepth: 0 };
+        let leafIndex = 0;
+        const graph = { nodes: [], links: [] };
+
         const traverse = node => {
 
             // reached the end
@@ -269,33 +270,50 @@ class Compositor {
 
             // non-nested node
             if (!node.isNested()) {
-                graph.nodes.push({ depth: node.depth, id: node.left, type: NODE_TYPE.DATA, index: nodeIndex++ });
-                graph.nodes.push({ depth: node.depth-1, id: node.op, type: NODE_TYPE.OPERATOR, index: nodeIndex++ });
-                graph.nodes.push({ depth: node.depth, id: node.right, type: NODE_TYPE.DATA, index: nodeIndex++ });
+                graph.nodes.push({
+                    depth: node.depth+1, id: node.left, type: NODE_TYPE.DATA, index: leafIndex++,
+                    data: this.getNode(node.left) ? this.getNode(node.left).name : ""
+                });
+                graph.nodes.push({
+                    depth: node.depth, id: node.op, type: NODE_TYPE.OPERATOR,
+                    minIndex: leafIndex-1, maxIndex: leafIndex,
+                    data: this.getNode(node.op).name
+                });
+                graph.nodes.push({
+                    depth: node.depth+1, id: node.right, type: NODE_TYPE.DATA, index: leafIndex++,
+                    data: this.getNode(node.right) ? this.getNode(node.right).name : ""
+                });
                 graph.links.push({ source: node.op, target: node.left });
                 graph.links.push({ source: node.op, target: node.right });
                 node.visited = true;
-                graph.numLeaves += 2;
                 // go to parent
                 return traverse(node.parent)
             }
 
             // nested on left side (already visited)
             if (node.isNestedLeft(true)) {
-                graph.nodes.push({ depth: node.depth-1, id: node.op, type: NODE_TYPE.OPERATOR, index: nodeIndex++ });
-                graph.nodes.push({ depth: node.depth, id: node.right, type: NODE_TYPE.DATA, index: nodeIndex++ });
+                graph.nodes.push({
+                    depth: node.depth, id: node.op, type: NODE_TYPE.OPERATOR,
+                    minIndex: Math.min(leafIndex, graph.nodes.find(d => d.id === node.left.op).minIndex),
+                    maxIndex: Math.max(leafIndex, graph.nodes.find(d => d.id === node.left.op).maxIndex),
+                    data: this.getNode(node.op).name,
+                });
+                graph.nodes.push({ depth: node.depth+1, id: node.right, type: NODE_TYPE.DATA, index: leafIndex++, data: this.getNode(node.right).name });
                 graph.links.push({ source: node.op, target: node.right });
                 graph.links.push({ source: node.op, target: node.left.op });
-                graph.numLeaves++;
                 node.visited = true;
 
             // nested on right side (already visited)
             } else if (node.isNestedRight(true)) {
-                graph.nodes.push({ depth: node.depth, id: node.left, type: NODE_TYPE.DATA, index: nodeIndex++ });
-                graph.nodes.push({ depth: node.depth-1, id: node.op, type: NODE_TYPE.OPERATOR, index: nodeIndex++ });
+                graph.nodes.push({
+                    depth: node.depth, id: node.op, type: NODE_TYPE.OPERATOR,
+                    minIndex: Math.min(leafIndex, graph.nodes.find(d => d.id === node.right.op).minIndex),
+                    maxIndex: Math.max(leafIndex, graph.nodes.find(d => d.id === node.right.op).maxIndex),
+                    data: this.getNode(node.op).name,
+                });
+                graph.nodes.push({ depth: node.depth+1, id: node.left, type: NODE_TYPE.DATA, index: leafIndex++, data: this.getNode(node.left).name });
                 graph.links.push({ source: node.op, target: node.left });
                 graph.links.push({ source: node.op, target: node.right.op });
-                graph.numLeaves++;
                 node.visited = true;
 
             // both are nested, but one should have already been visited
@@ -305,6 +323,18 @@ class Compositor {
                 const vRight = node.right.visited;
                 console.assert(vLeft ^ vRight, "only one side should have been visited beforehand");
 
+                graph.nodes.push({
+                    depth: node.depth, id: node.op, type: NODE_TYPE.OPERATOR,
+                    minIndex: Math.min(
+                        graph.nodes.find(d => d.id === node.left.op).minIndex,
+                        graph.nodes.find(d => d.id === node.right.op).minIndex
+                    ),
+                    maxIndex: Math.max(
+                        graph.nodes.find(d => d.id === node.left.op).minIndex,
+                        graph.nodes.find(d => d.id === node.right.op).minIndex
+                    ),
+                    data: this.getNode(node.op).name,
+                });
                 graph.links.push({ source: node.op, target: node.left.op });
                 graph.links.push({ source: node.op, target: node.right.op });
                 node.visited = true;
@@ -316,7 +346,6 @@ class Compositor {
 
         if (this.tree) {
             traverse(this.tree.deepestNode);
-            graph.maxDepth = this.tree.deepestNode.depth;
         }
 
         return graph;
