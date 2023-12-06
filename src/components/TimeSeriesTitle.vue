@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-    import { ref, computed, watch } from 'vue';
+    import { ref, watch } from 'vue';
     import { useApp } from '@/store/app';
     import TimeSeries from '@/use/time-series.js';
 
@@ -76,7 +76,7 @@
     const instances = ref(props.timeseries.instances);
     const name = ref(props.timeseries.name);
     const editName = ref(false);
-    const tsColor = computed(() => app.tscColorScale(props.timeseries.id))
+    const tsColor = ref(app.tscColorScale(props.timeseries.id))
 
     function toggleEdit() {
         if (editName.value) {
@@ -111,5 +111,6 @@
         if (props.timeseries.name !== name.value) {
             name.value = props.timeseries.name;
         }
+        tsColor.value = app.tscColorScale(props.timeseries.id);
     })
 </script>

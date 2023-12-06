@@ -197,7 +197,7 @@
     }
 
     onMounted(function() {
-        app.setTSDomain(tsc.series.map(d => d.id));
+        app.setTSCDomain(tsc.series.map(d => d.id));
         app.setTSDomain(["result"].concat(Object.values(GENERATOR_TYPES)))
         update();
     })

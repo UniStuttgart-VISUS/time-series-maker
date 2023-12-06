@@ -21,7 +21,7 @@
 
         <div v-for="(ts, index) in collection.series" :key="ts.id" class="mb-2">
             <v-sheet class="pa-2" rounded>
-                <TimeSeriesTitle :timeseries="ts"
+                <TimeSeriesTitle :timeseries="ts" :key="ts.id"
                     @remove="remove"
                     @copy="copy"/>
             </v-sheet>
@@ -58,14 +58,14 @@
         try {
             props.collection.addTimeSeries();
         } catch(e) {
-            comms.error(e.message);
+            comms.error(e.toString());
         }
     }
     function remove(id) {
         try {
             props.collection.removeTimeSeries(id);
         } catch(e) {
-            comms.error(e.message);
+            comms.error(e.toString());
         }
     }
     function copy(id) {
@@ -75,7 +75,7 @@
                 // tsCopy.randomSeed();
                 props.collection.addTimeSeries(ts.copy());
             } catch(e) {
-                comms.error(e.message);
+                comms.error(e.toString());
             }
         }
     }
