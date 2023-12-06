@@ -1,9 +1,34 @@
 <template>
     <div>
-        <svg ref="el" :width="realWidth" :height="realHeight"></svg>
+        <div class="d-flex justify-space-between">
+            <svg ref="el" :width="realWidth" :height="realHeight"></svg>
+            <v-divider vertical class="ml-2 mr-2"></v-divider>
+            <div class="d-flex flex-column align-end ma-4">
+                <span class="mb-1 text-caption">operators:</span>
+                <div>
+                    <v-icon class="mr-4" color="primary">{{ operatorToIcon(OPERATOR.ADD) }}</v-icon>
+                    <svg width="25" height="6">
+                        <path d="M 0,3 l 25,0" stroke="black" stroke-width="2"></path>
+                    </svg>
+                </div>
+                <div>
+                    <v-icon class="mr-4" color="primary">{{ operatorToIcon(OPERATOR.MULTIPLY) }}</v-icon>
+                    <svg width="25" height="6">
+                        <path d="M 0,3 l 25,0" stroke="black" stroke-width="2" stroke-dasharray="2,2"></path>
+                    </svg>
+                </div>
+                <div>
+                    <v-icon class="mr-4" color="primary">{{ operatorToIcon(OPERATOR.SUBTRACT) }}</v-icon>
+                    <svg width="25" height="6">
+                        <path d="M 0,1 l 25,0" stroke="black" stroke-width="2" stroke-dasharray="6,2,6,2"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
         <div v-if="selected" class="op-picker" :style="{ top: mouseY+'px', left: mouseX+'px' }">
             <v-btn-toggle :model-value="selectedValue"
-                divided mandatory
+                divided mandatory border
                 density="compact"
                 class="mt-1 mb-1">
                 <v-btn :icon="operatorToIcon(OPERATOR.SUBTRACT)" :value="OPERATOR.SUBTRACT"
@@ -23,6 +48,7 @@
     import * as d3 from 'd3';
     import { ref, onMounted, watch, computed } from 'vue';
     import { OPERATOR } from '@/use/compositor.js';
+    import { useApp } from '@/store/app';
 
     const props = defineProps({
         nodes: {
@@ -39,14 +65,16 @@
         },
         width: {
             type: Number,
-            default: 300
-        },
-        height: {
-            type: Number,
             default: 800
+        },
+        levelHeight: {
+            type: Number,
+            default: 100
         },
     })
     const emit = defineEmits(["update"])
+
+    const app = useApp();
 
     const el = ref(null)
     const selected = ref(null);
@@ -78,13 +106,11 @@
         return d.index !== undefined ? d.index : d.maxIndex
     }
 
+    const minPadding = 20;
     const maxDepth = computed(() => d3.max(props.nodes, d => d.depth));
     const maxLeafIndex = computed(() => d3.max(props.nodes, d => maxIndex(d)));
-    const realHeight = computed(() => props.height / maxLeafIndex.value < 100 ? maxLeafIndex.value * 100 : props.height)
-    const realWidth = computed(() => {
-        const aspectRatio = props.width / (realHeight.value / maxLeafIndex.value)
-        return aspectRatio > 1 ? (realHeight.value / maxLeafIndex.value) : props.width
-    })
+    const realWidth = computed(() => props.width / maxLeafIndex.value < 100 ? maxLeafIndex.value * 100 : props.width)
+    const realHeight = computed(() => (props.levelHeight + minPadding) * maxDepth.value)
 
     function draw() {
 
@@ -94,28 +120,28 @@
         if (props.nodes.length < 3) return;
 
         const x = d3.scaleBand()
-            .domain(d3.range(0, maxDepth.value + 1))
-            .range([25, realWidth.value])
+            .domain(d3.range(0, maxLeafIndex.value + 1))
+            .range([5, realWidth.value - 5])
             .paddingInner(0.1)
 
         const y = d3.scaleBand()
-            .domain(d3.range(0, maxLeafIndex.value + 1))
-            .range([0, realHeight.value])
+            .domain(d3.range(maxDepth.value, -1, -1))
+            .range([25, realHeight.value - 5])
             .paddingInner(0.1)
 
         const gs = svg.selectAll("g")
             .data(props.nodes.filter(d => minIndex(d) !== undefined))
             .join("g")
-            .attr("transform", d => `translate(${x(d.depth)},${y(minIndex(d))})`)
+            .attr("transform", d => `translate(${x(minIndex(d))},${y(d.depth)})`)
 
 
         gs.append("line")
-            .attr("x1", x.bandwidth() * 0.5)
-            .attr("y1", 0)
-            .attr("x2", x.bandwidth() * 0.5)
-            .attr("y2", d => (maxIndex(d) !== minIndex(d) ? y(maxIndex(d)) : 0) + y.bandwidth())
+            .attr("x1", 0)
+            .attr("y1", y.bandwidth() * 0.5)
+            .attr("x2", d => (maxIndex(d) !== minIndex(d) ? x(maxIndex(d)) : 0) + x.bandwidth())
+            .attr("y2", y.bandwidth() * 0.5)
             .attr("stroke", "black")
-            .attr("stroke-width", 2)
+            .attr("stroke-width", 1)
             .attr("stroke-opacity", 0.5)
 
 
@@ -128,41 +154,136 @@
         props.nodes.forEach(d => {
             if (!d.values) return;
 
+            const single = Array.isArray(d.values);
+            const extent = single ? d3.extent(d.values) : [Infinity, -Infinity]
+            if (!single) {
+                Object.values(d.values).forEach(array => {
+                    const e = d3.extent(array);
+                    extent[0] = Math.min(extent[0], e[0]);
+                    extent[1] = Math.max(extent[1], e[1]);
+                });
+            }
+
             xs[d.id] = d3.scaleLinear()
-                .domain(d3.extent(d.values))
-                .range([0, x.bandwidth()])
+                .domain(xdomain)
+                .range([0, (maxIndex(d) !== minIndex(d) ? x(maxIndex(d)) : 0) + x.bandwidth()])
 
             ys[d.id] = d3.scaleLinear()
-                .domain(xdomain)
-                .range([0, (maxIndex(d) !== minIndex(d) ? y(maxIndex(d)) : 0) + y.bandwidth()])
+                .domain(extent)
+                .range([y.bandwidth(), 0])
 
             line[d.id] = d3.line()
-                .curve(d3.curveMonotoneY)
-                .x(dd => xs[d.id](dd))
-                .y((_, i) => ys[d.id](props.xValues[i]))
+                .curve(d3.curveMonotoneX)
+                .x((_, i) => xs[d.id](props.xValues[i]))
+                .y(dd => ys[d.id](dd))
         });
 
-        gs.filter(d => line[d.id])
-            .append("path")
-            .attr("d", d => line[d.id](d.values))
-            .attr("stroke", "black")
+        gs.filter(d => line[d.id] !== undefined)
+            .append("g")
             .attr("fill", "none")
-            .attr("stroke-width", 1)
+            .attr("stroke-width", 2)
+            .selectAll("path")
+            .data(d => {
+                return Array.isArray(d.values) ?
+                    [{ id: d.id, color: d.color, values: d.values, opacity: 1 }] :
+                    Object.entries(d.values).map(([key, vals]) => {
+                        return {
+                            id: d.id, values: vals,
+                            key: key, data: d.data,
+                            opacity: d.data === key ? 1 : 0.33
+                        }
+                    })
+            })
+            .join("path")
+            .attr("d", d => line[d.id](d.values))
+            .attr("stroke", d => d.color ? app.getColor(d.color) : 'black')
+            .attr("stroke-opacity", d => d.opacity)
+            .attr("stroke-dasharray", d => {
+                switch(d.key) {
+                    default:
+                    case OPERATOR.ADD: return ""
+                    case OPERATOR.MULTIPLY: return "2,2"
+                    case OPERATOR.SUBTRACT: return "6,2,6,2"
+                }
+            })
+            .on("mouseenter", function(_, d) {
+                if (d.key === undefined) return;
+                d3.select(this)
+                    .attr("stroke", "#1867c0")
+                    .attr("stroke-width", 3)
+                    .attr("stroke-opacity", 1)
+            })
+            .on("mouseleave", function(_, d) {
+                if (d.key === undefined) return;
+                d3.select(this)
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 2)
+                    .attr("stroke-opacity", d.opacity)
+            })
+            .on("click", (_, d) => {
+                if (d.key !== undefined) {
+                    emit("update", d.id, d.key)
+                }
+            })
+            .filter(d => d.opacity === 1)
+            .raise()
 
-        gs.filter(d => d.index === undefined)
-            .append("circle")
-            .attr("transform", d => `translate(${x.bandwidth()*0.5},${(y(maxIndex(d)) + y.bandwidth()) * 0.5})`)
-            .attr("r", 10)
+        const opGroup = gs.filter(d => d.index === undefined)
+            .append("g")
+            .attr("transform", d => `translate(${(x(maxIndex(d)) + x.bandwidth()) * 0.5},${y.bandwidth() * 0.5})`)
+            .on("mouseenter", function() {
+                d3.select(this)
+                    .selectAll("circle")
+                    .transition()
+                    .duration(250)
+                    .attr("fill", "#1867c0")
+                    .attr("r", 10)
+            })
+            .on("mouseleave", function() {
+                d3.select(this)
+                    .selectAll("circle")
+                    .transition()
+                    .duration(250)
+                    .attr("fill", "black")
+                    .attr("r", 8)
+            })
+            .on("click", function(event, d) {
+                if (selected.value === d.id) {
+                    selected.value = null;
+                    selectedValue.value = "";
+                } else {
+                    const [mx, my] = d3.pointer(event, document.body)
+                    mouseX.value = mx - 42;
+                    mouseY.value = my - 52;
+
+                    selectedValue.value = d.data;
+                    selected.value = d.id;
+                }
+            })
+
+        opGroup.append("circle")
+            .attr("r", 8)
             .attr("fill", "black")
             .style("cursor", "pointer")
-            .on("click", function(event, d) {
-                const [mx, my] = d3.pointer(event, document.body)
-                mouseX.value = mx - 42;
-                mouseY.value = my - 22;
 
-                selectedValue.value = d.data;
-                selected.value = d.id;
+        opGroup.append("path")
+            .attr("d", d => {
+                switch(d.data) {
+                    case OPERATOR.ADD: return d3.symbol(d3.symbolPlus)()
+                    case OPERATOR.MULTIPLY: return d3.symbol(d3.symbolTimes)()
+                    case OPERATOR.SUBTRACT: return "M -8,0 l 16,0"
+                }
             })
+            .attr("stroke", "white")
+            .attr("stroke-width", 2)
+
+        gs.filter(d => d.index !== undefined)
+            .append("text")
+            .attr("transform", `translate(${x.bandwidth()*0.5}, -10)`)
+            .attr("text-anchor", "middle")
+            .attr("font-size", 12)
+            .text(d => d.data)
+
     }
 
     onMounted(draw);

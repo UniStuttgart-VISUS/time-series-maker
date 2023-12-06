@@ -1,15 +1,17 @@
 <template>
-    <div>
-        <div>
+    <div class="d-flex justify-space-between">
+        <div style="position: relative;">
+            <canvas ref="el" :width="width" :height="height"></canvas>
+            <svg ref="overlay" :width="width" :height="height" class="overlay"></svg>
+        </div>
+        <v-divider vertical class="ml-2 mr-2"></v-divider>
+        <div class="d-flex flex-column align-end ma-4">
+            <span class="mb-1 text-caption">actions:</span>
             <v-btn icon="mdi-minus"
                 rounded="sm"
                 density="compact"
                 variant="outlined"
                 @click="resetZoom"/>
-        </div>
-        <div style="position: relative;">
-            <canvas ref="el" :width="width" :height="height"></canvas>
-            <svg ref="overlay" :width="width" :height="height" class="overlay"></svg>
         </div>
     </div>
 </template>

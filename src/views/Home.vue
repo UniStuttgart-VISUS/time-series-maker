@@ -1,6 +1,6 @@
 <template>
 
-    <div class="d-flex justify-center align-start" style="overflow-y: auto;">
+    <div class="d-flex align-start ml-4 mt-4" style="overflow-y: auto">
 
         <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
@@ -32,27 +32,30 @@
             </v-window>
         </v-sheet>
 
-        <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
-            <LineChart
+        <div class="d-flex flex-column">
+
+            <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
+                <LineChart
                 :data="lineData"
+                :width="975"
+                :height="250"
                 x-attr="0" y-attr="1"
                 :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
                 :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
-        </v-sheet>
+            </v-sheet>
 
-        <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
-            <KeepAlive>
-                <OperationTree v-if="mainTab === MAIN_TABS.TS && tree"
-                    :nodes="tree.nodes"
-                    :links="tree.links"
-                    :x-values="tsc.dataX"
-                    @update="updateCompositor"/>
-            </KeepAlive>
-                <!-- <ComponentOperatorViewer v-if="mainTab === MAIN_TABS.TS && ts"
-                    :compositor="ts.compositor"
-                    @update="update(true)"
-                    @switch="switchComponents"/> -->
-        </v-sheet>
+            <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
+                <KeepAlive>
+                    <OperationTree v-if="mainTab === MAIN_TABS.TS && tree"
+                        :nodes="tree.nodes"
+                        :links="tree.links"
+                        :x-values="tsc.dataX"
+                        :width="1000"
+                        @update="updateCompositor"/>
+                </KeepAlive>
+            </v-sheet>
+        </div>
+
         <ToastHandler/>
     </div>
 
@@ -123,6 +126,7 @@
     function updateCompositor(id, op) {
         if (ts.value) {
             try {
+                console.log(id, op)
                 ts.value.compositor.setOperator(id, op);
                 update(true);
             } catch(e) {

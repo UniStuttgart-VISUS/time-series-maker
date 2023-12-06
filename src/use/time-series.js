@@ -252,6 +252,8 @@ export default class TimeSeries {
         let leftNode, rightNode;
         this.makeTree()
 
+        const OPLIST = Object.values(OPERATOR);
+
         this.compositor.iterateWithOpID((opCase, left, op, opID, right, extraOp, extraOpID) => {
 
             for (let i = 0; i < this.instances; ++i) {
@@ -271,7 +273,9 @@ export default class TimeSeries {
                         leftVals = cl.getData(i);
                         rightVals = cr.getData(i);
                         leftNode = this.tree.nodes.find(d => d.id === left);
+                        leftNode.color = cl.generator.type;
                         rightNode = this.tree.nodes.find(d => d.id === right);
+                        rightNode.color = cr.generator.type;
                         break;
                     }
                     case OP_CASE.APPLY_LEFT: {
@@ -280,6 +284,7 @@ export default class TimeSeries {
                         leftVals = c.getData(i);
                         rightVals = values[i];
                         leftNode = this.tree.nodes.find(d => d.id === left);
+                        leftNode.color = c.generator.type;
                         break;
                     }
                     case OP_CASE.APPLY_RIGHT: {
@@ -288,17 +293,30 @@ export default class TimeSeries {
                         leftVals = values[i];
                         rightVals = c.getData(i);
                         rightNode = this.tree.nodes.find(d => d.id === right);
+                        rightNode.color = c.generator.type;
                         break;
                     }
                 }
 
-                if (leftNode) { leftNode.values = Array.from(leftVals) }
-                if (rightNode) { rightNode.values = Array.from(rightVals) }
+                if (leftNode) {
+                    leftNode.values = Array.from(leftVals)
+                    leftNode = null;
+                }
+                if (rightNode) {
+                    rightNode.values = Array.from(rightVals)
+                    rightNode = null;
+                }
 
                 if (hasOp) {
-                    cacheVals = apply(op, i, !hasExtraOp);
                     const opNode = this.tree.nodes.find(d => d.id === opID);
-                    opNode.values = Array.from(cacheVals ? cacheVals : values[i]);
+                    opNode.values = {}
+                    OPLIST.forEach(o => {
+                        if (o !== op) {
+                            opNode.values[o] = Array.from(apply(o, i, false));
+                        }
+                    });
+                    cacheVals = apply(op, i, !hasExtraOp);
+                    opNode.values[op] = Array.from(cacheVals ? cacheVals : values[i])
                 }
 
                 if (hasExtraOp && cacheVals) {
@@ -316,7 +334,13 @@ export default class TimeSeries {
                         }
                     }
                     const opNode = this.tree.nodes.find(d => d.id === extraOpID);
-                    opNode.values = Array.from(apply(extraOp, i));
+                    opNode.values = {}
+                    OPLIST.forEach(o => {
+                        if (o !== op) {
+                            opNode.values[o] = Array.from(apply(o, i, false));
+                        }
+                    });
+                    opNode.values[op] = Array.from(apply(extraOp, i));
                     cacheVals = null;
                 }
             }
