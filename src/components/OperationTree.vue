@@ -181,7 +181,7 @@
             .join("g")
             .attr("transform", d => `translate(${x(minIndex(d))},${y(d.depth)})`)
 
-        gs.call(drag)
+        gs.filter(d => d.index !== undefined).call(drag)
 
         gs.filter(d => d.index !== undefined)
             .classed("dragable", true)

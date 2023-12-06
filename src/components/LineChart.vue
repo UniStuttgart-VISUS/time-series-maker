@@ -21,7 +21,6 @@
     import * as d3 from 'd3';
     import { ref, watch, onMounted } from 'vue';
     import { useApp } from '@/store/app'
-    import { DateTime } from 'luxon';
 
     const props = defineProps({
         data: {

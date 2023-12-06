@@ -69,6 +69,10 @@
     function removeComponent(id) {
         try {
             props.timeseries.removeComponent(id);
+            if (app.isSelectedComponent(id)) {
+                selectedComponents.value.splice(selectedComponents.value.indexOf(id))
+                app.setSelectedComponents(selectedComponents.value);
+            }
         } catch(e) {
             comms.error(e.message);
         }
