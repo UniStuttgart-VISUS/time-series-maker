@@ -7,10 +7,10 @@
         <v-divider vertical class="ml-2 mr-2"></v-divider>
         <div class="d-flex flex-column align-end ma-4">
             <span class="mb-1 text-caption">actions:</span>
-            <v-btn icon="mdi-minus"
+            <v-btn icon="mdi-magnify-minus"
                 rounded="sm"
                 density="compact"
-                variant="outlined"
+                variant="plain"
                 @click="resetZoom"/>
         </div>
     </div>

@@ -51,7 +51,8 @@
                         :links="tree.links"
                         :x-values="tsc.dataX"
                         :width="1000"
-                        @update="updateCompositor"/>
+                        @update="updateCompositor"
+                        @switch="switchComponents"/>
                 </KeepAlive>
             </v-sheet>
         </div>

@@ -72,7 +72,7 @@
             default: 100
         },
     })
-    const emit = defineEmits(["update"])
+    const emit = defineEmits(["update", "switch"])
 
     const app = useApp();
 
@@ -80,8 +80,19 @@
     const selected = ref(null);
     const selectedValue = ref("");
 
+    const sourceID = ref("")
+    const targetID = ref("")
+
     const mouseX = ref(0);
     const mouseY = ref(0);
+
+    const minPadding = 20;
+    const maxDepth = computed(() => d3.max(props.nodes, d => d.depth));
+    const maxLeafIndex = computed(() => d3.max(props.nodes, d => maxIndex(d)));
+    const realWidth = computed(() => props.width / maxLeafIndex.value < 100 ? maxLeafIndex.value * 100 : props.width)
+    const realHeight = computed(() => (props.levelHeight + minPadding) * maxDepth.value)
+
+    let dragOffsetX = 0, dragOffsetY = 0;
 
     function operatorToIcon(name) {
         switch (name) {
@@ -106,12 +117,6 @@
         return d.index !== undefined ? d.index : d.maxIndex
     }
 
-    const minPadding = 20;
-    const maxDepth = computed(() => d3.max(props.nodes, d => d.depth));
-    const maxLeafIndex = computed(() => d3.max(props.nodes, d => maxIndex(d)));
-    const realWidth = computed(() => props.width / maxLeafIndex.value < 100 ? maxLeafIndex.value * 100 : props.width)
-    const realHeight = computed(() => (props.levelHeight + minPadding) * maxDepth.value)
-
     function draw() {
 
         const svg = d3.select(el.value);
@@ -127,11 +132,71 @@
             .range([25, realHeight.value - 5])
             .paddingInner(0.1)
 
+
+        function dragstarted(event, d) {
+            sourceID.value = d.id;
+            const [mx, my] = d3.pointer(event, this)
+            dragOffsetX = mx;
+            dragOffsetY = my;
+        }
+        function dragged(event) {
+            d3.select(this).attr("transform", `translate(${event.x-dragOffsetX},${event.y-dragOffsetY})`)
+        }
+        function dragended(event, datum) {
+
+            let id;
+            const [mx, my] = d3.pointer(event, document.body)
+
+            gs.each(function(d) {
+                if (id !== undefined || d.id === sourceID.value || d.index === undefined) return;
+                const rect = this.getBoundingClientRect();
+                if (mx >= rect.left && mx <= rect.right && my >= rect.top && my <= rect.bottom) {
+                    id = d.id
+                };
+            });
+
+            if (id !== undefined) {
+                targetID.value = id;
+                if (sourceID.value !== targetID.value) {
+                    emit("switch", sourceID.value, targetID.value)
+                }
+            } else {
+                // reset item
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr("transform", `translate(${x(minIndex(datum))},${y(datum.depth)})`)
+            }
+
+            sourceID.value = "";
+            targetID.value = "";
+        }
+        const drag = d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended);
+
         const gs = svg.selectAll("g")
-            .data(props.nodes.filter(d => minIndex(d) !== undefined))
+            .data(props.nodes.filter(d => minIndex(d) !== undefined), d => d.id)
             .join("g")
             .attr("transform", d => `translate(${x(minIndex(d))},${y(d.depth)})`)
 
+        gs.call(drag)
+
+        gs.filter(d => d.index !== undefined)
+            .classed("dragable", true)
+            .on("mouseenter", function(_, d) {
+                d3.select(this).selectChild(".bg").attr("fill", app.getColor(d.color))
+            })
+            .on("mouseleave", function() {
+                d3.select(this).selectChild(".bg").attr("fill", "none")
+            })
+            .append("rect")
+            .attr("fill", "none")
+            .attr("fill-opacity", 0.1)
+            .attr("width", d => (maxIndex(d) !== minIndex(d) ? x(maxIndex(d)) : 0) + x.bandwidth())
+            .attr("height", y.bandwidth())
+            .classed("bg", true)
 
         gs.append("line")
             .attr("x1", 0)
@@ -176,7 +241,7 @@
                 .y(dd => ys[d.id](dd))
         });
 
-        gs.filter(d => line[d.id] !== undefined)
+        const lines = gs.filter(d => line[d.id] !== undefined)
             .append("g")
             .attr("fill", "none")
             .attr("stroke-width", 2)
@@ -204,27 +269,25 @@
                     case OPERATOR.SUBTRACT: return "6,2,6,2"
                 }
             })
+
+        lines.filter(d => d.key !== undefined)
             .on("mouseenter", function(_, d) {
-                if (d.key === undefined) return;
                 d3.select(this)
                     .attr("stroke", "#1867c0")
                     .attr("stroke-width", 3)
                     .attr("stroke-opacity", 1)
             })
             .on("mouseleave", function(_, d) {
-                if (d.key === undefined) return;
                 d3.select(this)
                     .attr("stroke", "black")
                     .attr("stroke-width", 2)
                     .attr("stroke-opacity", d.opacity)
             })
             .on("click", (_, d) => {
-                if (d.key !== undefined) {
-                    emit("update", d.id, d.key)
-                }
+                emit("update", d.id, d.key)
             })
-            .filter(d => d.opacity === 1)
-            .raise()
+
+        lines.filter(d => d.opacity === 1).raise()
 
         const opGroup = gs.filter(d => d.index === undefined)
             .append("g")

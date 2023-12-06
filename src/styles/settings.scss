@@ -9,6 +9,13 @@
 //   $color-pack: false
 // );
 
+.dragable {
+    cursor: grab;
+}
+.dragging {
+    cursor: grabbing;
+}
+
 .clickable,
 .clickable-wobble,
 .clickable-blink {
