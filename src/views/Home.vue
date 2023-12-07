@@ -1,72 +1,77 @@
 <template>
+    <div class="d-flex flex-column justify-space-between" style="max-width: 100%; max-height: 95.3vh; height: 100%;">
 
-    <div class="d-flex align-start ml-4 mt-4" style="overflow-y: auto">
+        <div class="d-flex align-start justify-center" style="overflow-y: auto;">
 
-        <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
+            <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
-            <v-tabs v-model="mainTab" color="primary" grow>
-                <v-tab :value="MAIN_TABS.TSC"><v-icon size="x-large">mdi-home</v-icon></v-tab>
-                <v-tab :value="MAIN_TABS.TS"><v-icon size="x-large">mdi-format-list-group</v-icon></v-tab>
-                <v-tab :value="MAIN_TABS.EXPORT"><v-icon size="x-large">mdi-download</v-icon></v-tab>
-                <v-tab :value="MAIN_TABS.IMPORT"><v-icon size="x-large">mdi-upload</v-icon></v-tab>
-            </v-tabs>
+                <v-tabs v-model="mainTab" color="primary" grow>
+                    <v-tab :value="MAIN_TABS.TSC"><v-icon size="x-large">mdi-home</v-icon></v-tab>
+                    <v-tab :value="MAIN_TABS.TS"><v-icon size="x-large">mdi-format-list-group</v-icon></v-tab>
+                    <v-tab :value="MAIN_TABS.EXPORT"><v-icon size="x-large">mdi-download</v-icon></v-tab>
+                    <v-tab :value="MAIN_TABS.IMPORT"><v-icon size="x-large">mdi-upload</v-icon></v-tab>
+                </v-tabs>
 
-            <v-window v-model="mainTab">
+                <v-window v-model="mainTab">
 
-                <v-window-item :key="MAIN_TABS.TSC" :value="MAIN_TABS.TSC" class="mt-2 ml-2 mr-2">
-                    <TimeSeriesCollectionViewer :collection="tsc"/>
-                </v-window-item>
+                    <v-window-item :key="MAIN_TABS.TSC" :value="MAIN_TABS.TSC" class="mt-2 ml-2 mr-2">
+                        <TimeSeriesCollectionViewer :collection="tsc"/>
+                    </v-window-item>
 
-                <v-window-item :key="MAIN_TABS.TS" :value="MAIN_TABS.TS" class="mt-2 ml-2 mr-2">
-                    <TimeSeriesViewer v-if="ts" :timeseries="ts"/>
-                </v-window-item>
+                    <v-window-item :key="MAIN_TABS.TS" :value="MAIN_TABS.TS" class="mt-2 ml-2 mr-2">
+                        <TimeSeriesViewer v-if="ts" :timeseries="ts"/>
+                    </v-window-item>
 
-                <v-window-item :key="MAIN_TABS.EXPORT" :value="MAIN_TABS.EXPORT" class="mt-2 ml-2 mr-2">
-                    <ExportViewer :collection="tsc"/>
-                </v-window-item>
+                    <v-window-item :key="MAIN_TABS.EXPORT" :value="MAIN_TABS.EXPORT" class="mt-2 ml-2 mr-2">
+                        <ExportViewer :collection="tsc"/>
+                    </v-window-item>
 
-                <v-window-item :key="MAIN_TABS.IMPORT" :value="MAIN_TABS.IMPORT" class="mt-2 ml-2 mr-2">
-                    <ImportViewer @loaded="importData"/>
-                </v-window-item>
+                    <v-window-item :key="MAIN_TABS.IMPORT" :value="MAIN_TABS.IMPORT" class="mt-2 ml-2 mr-2">
+                        <ImportViewer @loaded="importData"/>
+                    </v-window-item>
 
-            </v-window>
-        </v-sheet>
-
-        <div class="d-flex flex-column">
-
-            <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
-                <LineChart
-                :data="lineData"
-                :width="975"
-                :height="250"
-                x-attr="0" y-attr="1"
-                :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
-                :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
+                </v-window>
             </v-sheet>
 
-            <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
-                <KeepAlive>
-                    <OperationTree v-if="mainTab === MAIN_TABS.TS && tree"
-                        :nodes="tree.nodes"
-                        :links="tree.links"
-                        :x-values="tsc.dataX"
-                        :width="1000"
-                        @update="updateCompositor"
-                        @switch="switchComponents"/>
-                </KeepAlive>
-            </v-sheet>
+            <div class="d-flex flex-column align-start" style="overflow: auto;">
+
+                <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
+                    <LineChart
+                        :data="lineData"
+                        :width="950"
+                        :height="300"
+                        x-attr="0" y-attr="1"
+                        :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
+                        :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
+                </v-sheet>
+
+                <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
+                    <KeepAlive>
+                        <OperationTree v-if="mainTab === MAIN_TABS.TS && tree"
+                            :nodes="tree.nodes"
+                            :links="tree.links"
+                            :x-values="tsc.dataX"
+                            :width="1000"
+                            @update="updateCompositor"
+                            @switch="switchComponents"/>
+                    </KeepAlive>
+                </v-sheet>
+            </div>
+
+            <ToastHandler/>
         </div>
 
-        <ToastHandler/>
+        <!-- <v-footer app elevation="4"> -->
+        <!-- <div style="position: fixed; bottom: 0; width: 100%"> -->
+        <v-sheet class="mt-2" elevation="4" style="max-height: fit-content;">
+            <KeepAlive>
+                <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer">
+                    <ComponentPicker @click="addComponent" horizontal :values="tsc.dataX"/>
+                </v-sheet >
+            </KeepAlive>
+        </v-sheet>
+        <!-- </v-footer> -->
     </div>
-
-    <v-footer app elevation="4">
-        <KeepAlive>
-            <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer">
-                <ComponentPicker @click="addComponent" horizontal :values="tsc.dataX"/>
-            </v-sheet >
-        </KeepAlive>
-    </v-footer>
 
 </template>
 

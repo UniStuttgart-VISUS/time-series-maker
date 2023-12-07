@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex justify-space-between">
+    <div class="d-flex">
         <div style="position: relative;">
             <canvas ref="el" :width="width" :height="height"></canvas>
             <svg ref="overlay" :width="width" :height="height" class="overlay"></svg>
@@ -204,6 +204,8 @@
             line(d.values)
             ctx.stroke();
         });
+
+        ctx.clearRect(0, 0, 35, props.height)
     }
 
     onMounted(draw);

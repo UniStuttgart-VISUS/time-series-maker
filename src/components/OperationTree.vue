@@ -1,29 +1,31 @@
 <template>
     <div>
-        <div class="d-flex justify-space-between">
-            <svg ref="el" :width="realWidth" :height="realHeight"></svg>
-            <v-divider vertical class="ml-2 mr-2"></v-divider>
-            <div class="d-flex flex-column align-end ma-4">
-                <span class="mb-1 text-caption">operators:</span>
+        <div style="overflow-x: auto; max-width: 100%; text-align: center;">
+            <div class="text-caption ma-1">operators:</div>
+            <div class="d-flex justify-center ma-1">
                 <div>
-                    <v-icon class="mr-4" color="primary">{{ operatorToIcon(OPERATOR.ADD) }}</v-icon>
+                    <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.ADD) }}</v-icon>
                     <svg width="25" height="6">
                         <path d="M 0,3 l 25,0" stroke="black" stroke-width="2"></path>
                     </svg>
                 </div>
+                <v-divider vertical class="ml-2 mr-2"></v-divider>
                 <div>
-                    <v-icon class="mr-4" color="primary">{{ operatorToIcon(OPERATOR.MULTIPLY) }}</v-icon>
+                    <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.MULTIPLY) }}</v-icon>
                     <svg width="25" height="6">
                         <path d="M 0,3 l 25,0" stroke="black" stroke-width="2" stroke-dasharray="2,2"></path>
                     </svg>
                 </div>
+                <v-divider vertical class="ml-2 mr-2"></v-divider>
                 <div>
-                    <v-icon class="mr-4" color="primary">{{ operatorToIcon(OPERATOR.SUBTRACT) }}</v-icon>
+                    <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.SUBTRACT) }}</v-icon>
                     <svg width="25" height="6">
                         <path d="M 0,1 l 25,0" stroke="black" stroke-width="2" stroke-dasharray="6,2,6,2"></path>
                     </svg>
                 </div>
             </div>
+            <v-divider vertical class="ml-2 mr-2"></v-divider>
+            <svg ref="el" :width="realWidth" :height="realHeight"></svg>
         </div>
 
         <div v-if="selected" class="op-picker" :style="{ top: mouseY+'px', left: mouseX+'px' }">
@@ -69,7 +71,7 @@
         },
         levelHeight: {
             type: Number,
-            default: 100
+            default: 80
         },
     })
     const emit = defineEmits(["update", "switch"])
@@ -86,11 +88,19 @@
     const mouseX = ref(0);
     const mouseY = ref(0);
 
-    const minPadding = 20;
+    const minPadding = 15;
     const maxDepth = computed(() => d3.max(props.nodes, d => d.depth));
     const maxLeafIndex = computed(() => d3.max(props.nodes, d => maxIndex(d)));
-    const realWidth = computed(() => props.width / maxLeafIndex.value < 100 ? maxLeafIndex.value * 100 : props.width)
-    const realHeight = computed(() => (props.levelHeight + minPadding) * maxDepth.value)
+    const realWidth = computed(() => props.width / maxLeafIndex.value < 100 ? maxLeafIndex.value * (100 + minPadding) : props.width)
+    const realHeight = computed(() => {
+        const h = (props.levelHeight + minPadding) * maxDepth.value
+        const w = props.width / (maxLeafIndex.value + minPadding)
+        const asp = w / h;
+        if (asp < 1.7 || asp > 1.9) {
+            return Math.max(50 + minPadding, (w / 1.8 + minPadding)) * maxDepth.value
+        }
+        return h;
+    })
 
     let dragOffsetX = 0, dragOffsetY = 0;
 

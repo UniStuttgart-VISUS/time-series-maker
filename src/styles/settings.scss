@@ -9,6 +9,10 @@
 //   $color-pack: false
 // );
 
+html {
+    overflow: hidden;
+}
+
 .dragable {
     cursor: grab;
 }
