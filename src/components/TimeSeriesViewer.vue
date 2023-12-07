@@ -13,16 +13,30 @@
                 hide-details
                 @update:model-value="timeseries.update()"/>
 
-            <v-tooltip text="reroll new seeds for all random components" open-delay="200">
+            <v-tooltip text="show/hide all components in the line chart" open-delay="300" location="top">
                 <template v-slot:activator="{ props }">
-                <v-btn v-bind="props"
-                    class="ml-2 mt-2"
-                    icon="mdi-dice-6"
-                    rounded="sm"
-                    variant="text"
-                    density="compact"
-                    size="x-large"
-                    @click="randomSeed"/>
+                    <v-btn v-bind="props"
+                        v-model="showAll"
+                        class="ml-2 mt-2"
+                        :icon="showAll ? 'mdi-eye' : 'mdi-eye-off'"
+                        rounded="sm"
+                        variant="text"
+                        density="compact"
+                        size="x-large"
+                        @click="toggleVisibility"/>
+                </template>
+            </v-tooltip>
+
+            <v-tooltip text="reroll new seeds for all random components" open-delay="300" location="top">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props"
+                        class="ml-2 mt-2"
+                        icon="mdi-dice-6"
+                        rounded="sm"
+                        variant="text"
+                        density="compact"
+                        size="x-large"
+                        @click="randomSeed"/>
                 </template>
             </v-tooltip>
         </div>
@@ -61,6 +75,7 @@
     const comms = useComms();
     const { tscOpacity } = storeToRefs(app)
 
+    const showAll = ref(true);
     const selectedComponents = ref([]);
 
     const props = defineProps({
@@ -69,6 +84,12 @@
             required: true,
         }
     })
+
+    function toggleVisibility() {
+        showAll.value = !showAll.value;
+        props.timeseries.components.forEach(c => c.visible = showAll.value)
+        props.timeseries.update();
+    }
 
     function removeComponent(id) {
         try {

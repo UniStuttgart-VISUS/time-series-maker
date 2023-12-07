@@ -5,11 +5,11 @@
 
             <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
-                <v-tabs v-model="mainTab" color="primary" grow>
-                    <v-tab :value="MAIN_TABS.TSC"><v-icon size="x-large">mdi-home</v-icon></v-tab>
-                    <v-tab :value="MAIN_TABS.TS"><v-icon size="x-large">mdi-format-list-group</v-icon></v-tab>
-                    <v-tab :value="MAIN_TABS.EXPORT"><v-icon size="x-large">mdi-download</v-icon></v-tab>
-                    <v-tab :value="MAIN_TABS.IMPORT"><v-icon size="x-large">mdi-upload</v-icon></v-tab>
+                <v-tabs v-model="mainTab" color="primary" grow class="main-tabs">
+                    <v-tab class="tab-home" :value="MAIN_TABS.TSC"><v-icon size="x-large">mdi-home</v-icon></v-tab>
+                    <v-tab class="tab-ts" :value="MAIN_TABS.TS"><v-icon size="x-large">mdi-format-list-group</v-icon></v-tab>
+                    <v-tab class="tab-export" :value="MAIN_TABS.EXPORT"><v-icon size="x-large">mdi-download</v-icon></v-tab>
+                    <v-tab class="tab-import" :value="MAIN_TABS.IMPORT"><v-icon size="x-large">mdi-upload</v-icon></v-tab>
                 </v-tabs>
 
                 <v-window v-model="mainTab">
@@ -61,16 +61,15 @@
             <ToastHandler/>
         </div>
 
-        <!-- <v-footer app elevation="4"> -->
-        <!-- <div style="position: fixed; bottom: 0; width: 100%"> -->
-        <v-sheet class="mt-2" elevation="4" style="max-height: fit-content;">
+        <v-sheet class="mt-2 comp-wrapper" elevation="4" style="max-height: fit-content;">
             <KeepAlive>
                 <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer">
                     <ComponentPicker @click="addComponent" horizontal :values="tsc.dataX"/>
                 </v-sheet >
             </KeepAlive>
         </v-sheet>
-        <!-- </v-footer> -->
+
+        <TutorialManager :tsID="tsc.series[0].id"/>
     </div>
 
 </template>
@@ -85,7 +84,6 @@
     import GENERATOR_TYPES from '@/use/generator-types';
 
     import LineChart from '@/components/LineChart.vue';
-    import ComponentOperatorViewer from '@/components/ComponentOperatorViewer.vue';
     import TimeSeriesViewer from '@/components/TimeSeriesViewer.vue';
     import ExportViewer from '@/components/ExportViewer.vue';
     import ImportViewer from '@/components/ImportViewer.vue';
@@ -94,6 +92,7 @@
     import ToastHandler from '@/components/ToastHandler.vue';
     import ComponentPicker from '@/components/ComponentPicker.vue';
     import OperationTree from '@/components/OperationTree.vue';
+    import TutorialManager from '@/components/TutorialManager.vue';
 
     const app = useApp();
     const comms = useComms();

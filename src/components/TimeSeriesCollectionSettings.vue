@@ -1,6 +1,5 @@
 <template>
-    <div>
-
+    <div class="tsc-settings">
         <div class="d-flex mb-1">
             <v-text-field v-model="start"
                 label="start date"

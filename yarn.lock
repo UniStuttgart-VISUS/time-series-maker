@@ -2280,6 +2280,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"intro.js@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "intro.js@npm:7.2.0"
+  checksum: 466b95f64d746890e1dce20c28c9813e74ea238fbd7270abf90997c1e70d8ad146a7035feee02f47a5b9328b65fdc54a4b2c204bfca07c605f18122d888de3a3
+  languageName: node
+  linkType: hard
+
 "ip@npm:^2.0.0":
   version: 2.0.0
   resolution: "ip@npm:2.0.0"
@@ -3335,6 +3342,7 @@ __metadata:
     eslint: ^8.37.0
     eslint-plugin-vue: ^9.3.0
     file-saver: ^2.0.5
+    intro.js: ^7.2.0
     luxon: ^3.4.3
     pinia: ^2.0.0
     roboto-fontface: "*"

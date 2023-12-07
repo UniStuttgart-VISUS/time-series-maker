@@ -19,7 +19,7 @@
         <div class="d-flex align-center justify-space-between">
 
         <v-icon :icon="app.selectedTs === timeseries.id ? 'mdi-circle-slice-8' : 'mdi-circle-outline'"
-            :class="app.selectedTs !== timeseries.id ? 'clickable-blink' : 'not-clickable'"
+            :class="app.selectedTs !== timeseries.id ? 'clickable-blink ts-icon' : 'not-clickable ts-icon'"
             @click="app.selectTimeSeries(timeseries.id)"
             :color="tsColor"/>
 

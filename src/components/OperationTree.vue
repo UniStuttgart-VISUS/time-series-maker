@@ -91,13 +91,13 @@
     const minPadding = 15;
     const maxDepth = computed(() => d3.max(props.nodes, d => d.depth));
     const maxLeafIndex = computed(() => d3.max(props.nodes, d => maxIndex(d)));
-    const realWidth = computed(() => props.width / maxLeafIndex.value < 100 ? maxLeafIndex.value * (100 + minPadding) : props.width)
+    const realWidth = computed(() => props.width / (maxLeafIndex.value+1) < 100 ? (maxLeafIndex.value + 1) * (100 + minPadding) : props.width)
     const realHeight = computed(() => {
-        const h = (props.levelHeight + minPadding) * maxDepth.value
-        const w = props.width / (maxLeafIndex.value + minPadding)
+        const h = (props.levelHeight + minPadding) * (maxDepth.value + 1)
+        const w = props.width / (maxLeafIndex.value + 1 + minPadding)
         const asp = w / h;
         if (asp < 1.7 || asp > 1.9) {
-            return Math.max(50 + minPadding, (w / 1.8 + minPadding)) * maxDepth.value
+            return Math.max(35 + minPadding, (w / 1.8 + minPadding)) * (maxDepth.value + 1)
         }
         return h;
     })
