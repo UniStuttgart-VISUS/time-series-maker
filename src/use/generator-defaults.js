@@ -5,7 +5,7 @@ const GENERATOR_DEFAULTS = {
     CONSTANT: {
         key: "CONSTANT",
         name: "constant",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Constant",
         seedRequired: false,
         options: { value: new GeneratorOption("value", 0, { step: 0.1 }) }
@@ -13,7 +13,7 @@ const GENERATOR_DEFAULTS = {
     TREND: {
         key: "TREND",
         name: "trend",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Linear Trend",
         seedRequired: false,
         options: {
@@ -24,7 +24,7 @@ const GENERATOR_DEFAULTS = {
     OUTLIER: {
         key: "OUTLIER",
         name: "outlier",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Outlier",
         seedRequired: false,
         options: {
@@ -36,7 +36,7 @@ const GENERATOR_DEFAULTS = {
     DAY: {
         key: "DAY",
         name: "day",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Day",
         seedRequired: false,
         options: {
@@ -47,7 +47,7 @@ const GENERATOR_DEFAULTS = {
     WEEK: {
         key: "WEEK",
         name: "week",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Week",
         seedRequired: false,
         options: {
@@ -58,7 +58,7 @@ const GENERATOR_DEFAULTS = {
     MONTH: {
         key: "MONTH",
         name: "month",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Month",
         seedRequired: false,
         options: {
@@ -69,7 +69,7 @@ const GENERATOR_DEFAULTS = {
     DAILY: {
         key: "DAILY",
         name: "daily",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Daily",
         seedRequired: false,
         options: {
@@ -79,7 +79,7 @@ const GENERATOR_DEFAULTS = {
     WEEKLY: {
         key: "WEEKLY",
         name: "weekly",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Weekly",
         seedRequired: false,
         options: {
@@ -89,7 +89,7 @@ const GENERATOR_DEFAULTS = {
     MONTHLY: {
         key: "MONTHLY",
         name: "monthly",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Monthly",
         seedRequired: false,
         options: {
@@ -99,7 +99,7 @@ const GENERATOR_DEFAULTS = {
     WORK_WEEK: {
         key: "WORK_WEEK",
         name: "workweek",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Work Week",
         seedRequired: false,
         options: {
@@ -109,13 +109,117 @@ const GENERATOR_DEFAULTS = {
     WEEKEND: {
         key: "WEEKEND",
         name: "weekend",
-        type: GENERATOR_TYPES.CUSTOM,
+        type: GENERATOR_TYPES.SPECIAL,
         title: "Weekend",
         seedRequired: false,
         options: {
             value: new GeneratorOption("value", 0.5, { step: 0.01 }),
         }
     },
+
+    // common math functions
+    MATH_EXP: {
+        key: "MATH_EXP",
+        name: "exp",
+        title: "Natural Exponential",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["INTEGER"] }),
+        }
+    },
+    MATH_POW: {
+        key: "MATH_POW",
+        name: "pow",
+        title: "Exponential",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            base: new GeneratorOption("base", 2, { min: 0.01, step: 1, validators: ["POSITIVE", "NOT_ZERO"] }),
+            xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["INTEGER"] }),
+        }
+    },
+    MATH_LN: {
+        key: "MATH_LN",
+        name: "ln",
+        title: "Natural Logarithm",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+        }
+    },
+    MATH_LOG: {
+        key: "MATH_LOG",
+        name: "log",
+        title: "Logarithm",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            base: new GeneratorOption("base", 2, { min: 0.01, step: 1, validators: ["POSITIVE", "NOT_ZERO"] }),
+            xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+        }
+    },
+    MATH_SQRT: {
+        key: "MATH_SQRT",
+        name: "sqrt",
+        title: "Square Root",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+        }
+    },
+    MATH_INV: {
+        key: "MATH_INV",
+        name: "inv",
+        title: "Multiplical Inverse",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+        }
+    },
+    MATH_COS: {
+        key: "MATH_COS",
+        name: "cos",
+        title: "Cosine",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+        }
+    },
+    MATH_SINE: {
+        key: "MATH_SINE",
+        name: "sine",
+        title: "Sine",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+        }
+    },
+    MATH_TAN: {
+        key: "MATH_TAN",
+        name: "tan",
+        title: "Tangent",
+        type: GENERATOR_TYPES.MATH,
+        seedRequired: false,
+        options: {
+            xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+        }
+    },
+
 
     // random numbers / noise
     RNG_AWGN: {

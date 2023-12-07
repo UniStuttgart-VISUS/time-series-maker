@@ -71,7 +71,7 @@
     })
 
     const app = useApp()
-    const tab = ref(GENERATOR_TYPES.CUSTOM)
+    const tab = ref(GENERATOR_TYPES.SPECIAL)
     const description = ref("")
 
     const comps = reactive({});

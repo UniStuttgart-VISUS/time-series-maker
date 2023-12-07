@@ -4,6 +4,8 @@ import array2iterator from '@stdlib/array/to-iterator'
 import dists from '@stdlib/stats/base/dists';
 import random from '@stdlib/random/base';
 import simulate from '@stdlib/simulate/iter'
+import { cos, sin, tan, ln, log, pow, sqrt, inv, exp } from '@stdlib/math/base/special'
+
 import GENERATOR_DEFAULTS from './generator-defaults.js';
 import GENERATOR_TYPES from './generator-types.js';
 import { DateTime } from 'luxon';
@@ -149,7 +151,7 @@ export default class Generator {
 
         switch (this.type) {
             default:
-            case GENERATOR_TYPES.CUSTOM:
+            case GENERATOR_TYPES.SPECIAL:
                 switch (this.name) {
                     case "trend": {
                         const pos = Math.round(this.getOpt("position") * number);
@@ -263,6 +265,66 @@ export default class Generator {
                     }
                 }
             }
+
+            case GENERATOR_TYPES.MATH:
+                switch (this.name) {
+                    case "exp": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(exp);
+                    }
+                    case "pow": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        const base = this.getOpt("base");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(d => pow(base, d));
+                    }
+                    case "ln": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(ln);
+                    }
+                    case "log": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        const base = this.getOpt("base");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(d => log(d, base));
+                    }
+                    case "sqrt": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(sqrt);
+                    }
+                    case "inv": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(inv);
+                    }
+                    case "cos": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(cos);
+                    }
+                    case "sine": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(sin);
+                    }
+                    case "tan": {
+                        const xMin = this.getOpt("xMin");
+                        const xMax = this.getOpt("xMax");
+                        console.assert(xMin < xMax, "min must be smaller than max")
+                        return linspace(xMin, xMax, number).map(tan);
+                    }
+                }
 
             case GENERATOR_TYPES.WAVE:
                 switch (this.name) {
