@@ -29,33 +29,84 @@ class CompGroup {
         this.visited = false;
     }
 
-    get size() { return this.data.length };
+    get size() { return this.data.filter(d => d !== null && d !== undefined).length };
 
     get left() { return this.data[0] }
     set left(value) {
-        if (value === null) {
-            this.data = []
-        } else {
-            this.data[0] = value
-        }
+        this.data[0] = value
     }
 
     get op() { return this.data[1] }
     set op(value) {
-        if (value === null) {
-            this.data = [this.data[0]]
-        } else {
-            this.data[1] = value
-        }
+        this.data[1] = value
     }
 
     get right() { return this.data[2] }
     set right(value) {
-        if (value === null) {
-            this.data.pop();
-        } else {
-            this.data[2] = value
+        this.data[2] = value
+    }
+
+    get full() {
+        return this.size === 3;
+    }
+
+    getMaxDepth() {
+        if (!this.isNested()) {
+            return this.depth;
         }
+        if (this.isNestedLeft(true)) {
+            return this.left.getMaxDepth();
+        }
+        if (this.isNestedRight(true)) {
+            return this.right.getMaxDepth();
+        }
+        return Math.max(this.left.getMaxDepth(), this.right.getMaxDepth())
+    }
+
+    getMaxDepthLeft() {
+        if (this.isNestedLeft()) {
+            return this.left.getMaxDepth();
+        }
+        return this.depth;
+    }
+
+    getMaxDepthRight() {
+        if (this.isNestedRight()) {
+            return this.right.getMaxDepth();
+        }
+        return this.depth;
+    }
+
+    getLastNode() {
+        if (!this.isNested()) {
+            return this;
+        }
+        let l, r;
+        if (this.isNestedLeft()) {
+            l = this.left.getLastNode();
+        }
+        if (this.isNestedRight()) {
+            r = this.right.getLastNode();
+        }
+
+        if (l && !r) return l;
+        if (r && !l) return r;
+
+        return l.depth > r.depth ? l : r;
+    }
+
+    getLastNodeLeft() {
+        if (this.isNestedLeft()) {
+            return this.left.getLastNode();
+        }
+        return this;
+    }
+
+    getLastNodeRight() {
+        if (this.isNestedRight()) {
+            return this.right.getLastNode();
+        }
+        return this;
     }
 
     includes(value) {
@@ -370,8 +421,11 @@ class Compositor {
             } else {
                 this._treeAddOperator(node.id, node.name);
             }
-            // console.log(this.tree.toString())
         })
+
+        // if (this.tree) {
+        //     console.log(this.tree.toString())
+        // }
     }
 
     _treeAddData(id) {
@@ -403,18 +457,34 @@ class Compositor {
             this.tree.op = id;
         } else {
 
-            const node = this.tree.lastNode ? this.tree.lastNode : this.tree;
+            const depthLeft = this.tree.getMaxDepthLeft();
+            const depthRight = this.tree.getMaxDepthRight();
 
-            // replace right side in previous array/operation
-            const newNode = new CompGroup(node);
-            newNode.left = node.right
-            newNode.op = id;
-            node.right = newNode
-            // replace last node if it is deeper than previous or none exists
-            if (newNode.depth >= this.tree.deepestNode.depth) {
-                this.tree.deepestNode = newNode;
+            if (depthLeft < depthRight) {
+                const node = this.tree.getLastNodeLeft()
+                // replace left side in previous array/operation
+                const newNode = new CompGroup(node);
+                newNode.left = node.left
+                newNode.op = id;
+                node.left = newNode
+                // replace last node if it is deeper than previous or none exists
+                if (newNode.depth >= this.tree.deepestNode.depth) {
+                    this.tree.deepestNode = newNode;
+                }
+                this.tree.lastNode = newNode;
+            } else {
+                const node = this.tree.getLastNodeRight()
+                // replace right side in previous array/operation
+                const newNode = new CompGroup(node);
+                newNode.left = node.right
+                newNode.op = id;
+                node.right = newNode
+                // replace last node if it is deeper than previous or none exists
+                if (newNode.depth >= this.tree.deepestNode.depth) {
+                    this.tree.deepestNode = newNode;
+                }
+                this.tree.lastNode = newNode;
             }
-            this.tree.lastNode = newNode;
         }
     }
 
