@@ -325,6 +325,7 @@
         opGroup.append("circle")
             .attr("r", 8)
             .attr("fill", "black")
+            .attr("stroke", "white")
             .style("cursor", "pointer")
 
         opGroup.append("path")

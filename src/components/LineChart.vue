@@ -124,6 +124,19 @@
         const xAxis = svg.append("g")
             .attr("transform", `translate(0,${props.height-25})`)
             .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%0d %b")))
+            // .call(g => {
+            //     g.call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%0d %b")))
+            //     g.selectAll(".tick text")
+            //         .classed("fg", true)
+            //         .clone(true)
+            //         .classed("fg", false)
+            //         .attr("fill", "white")
+            //         .attr("font-weight", "bold")
+            //         .style("font-size", "larger")
+
+            //     g.selectAll(".tick text.fg").raise()
+            // })
+
 
         const yAxis = svg.append("g")
             .attr("transform", "translate(35,0)")
