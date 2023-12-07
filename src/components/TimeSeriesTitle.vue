@@ -1,7 +1,11 @@
 <template>
     <div>
         <div class="text-caption mb-2">
-            <span class="mr-1">#instances:</span>
+            <v-tooltip text="number of copies with different random seeds" open-delay="500" location="top">
+                <template v-slot:activator="{ props }">
+                    <span class="mr-1" v-bind="props" style="cursor: help;">#instances:</span>
+                </template>
+            </v-tooltip>
             <v-sheet color="grey-lighten-4 d-inline pa-1" rounded="sm">
                 <input v-model.number="instances"
                     style="max-width: 50px;"
@@ -26,31 +30,51 @@
                 type="text"
                 :readonly="!editName"
                 @keyup="editKeyUp"/>
-            <v-icon :icon="editName ? 'mdi-check' : 'mdi-pencil'" @click.stop="toggleEdit()"/>
+
+            <v-tooltip text="edit time series name" open-delay="500" location="top">
+                <template v-slot:activator="{ props }">
+                    <v-icon v-bind="props" :icon="editName ? 'mdi-check' : 'mdi-pencil'" @click.stop="toggleEdit()"/>
+                </template>
+            </v-tooltip>
         </v-sheet>
 
         <div>
-            <v-btn class="mr-2"
-                icon="mdi-content-copy"
-                rounded="sm"
-                density="compact"
-                variant="text"
-                @click.stop="copy"/>
+            <v-tooltip text="duplicate time series" open-delay="500" location="top">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props"
+                        class="mr-2"
+                        icon="mdi-content-copy"
+                        rounded="sm"
+                        density="compact"
+                        variant="text"
+                        @click.stop="copy"/>
+                </template>
+            </v-tooltip>
 
-            <v-btn class="mr-2"
-                icon="mdi-dice-6"
-                rounded="sm"
-                density="compact"
-                variant="text"
-                @click.stop="randomize"/>
+            <v-tooltip text="reroll random seeds" open-delay="500" location="top">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props"
+                        class="mr-2"
+                        icon="mdi-dice-6"
+                        rounded="sm"
+                        density="compact"
+                        variant="text"
+                        @click.stop="randomize"/>
+                </template>
+            </v-tooltip>
 
-            <v-btn class="mr-2"
-                icon="mdi-delete"
-                color="error"
-                rounded="sm"
-                density="compact"
-                variant="text"
-                @click.stop="remove"/>
+            <v-tooltip text="delete time series" open-delay="500" location="top">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props"
+                        class="mr-2"
+                        icon="mdi-delete"
+                        color="error"
+                        rounded="sm"
+                        density="compact"
+                        variant="text"
+                        @click.stop="remove"/>
+                </template>
+            </v-tooltip>
         </div>
         </div>
 

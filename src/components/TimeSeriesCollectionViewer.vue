@@ -8,7 +8,7 @@
 
         <div>
             <v-text-field v-model.number="tsOpacity"
-                label="opacity"
+                label="line opacity"
                 class="mb-2"
                 type="number"
                 :min="0.01"

@@ -3,7 +3,7 @@
     <div>
         <div class="d-flex">
             <v-text-field v-model.number="tscOpacity"
-                label="opacity"
+                label="line opacity"
                 class="mb-1 mt-1"
                 type="number"
                 :min="0.01"
@@ -13,14 +13,18 @@
                 hide-details
                 @update:model-value="timeseries.update()"/>
 
-            <v-btn class="ml-2 mt-2"
-                icon="mdi-dice-6"
-                rounded="sm"
-                variant="outlined"
-                density="compact"
-                size="x-large"
-                color="primary"
-                @click="randomSeed"/>
+            <v-tooltip text="reroll new seeds for all random components" open-delay="200">
+                <template v-slot:activator="{ props }">
+                <v-btn v-bind="props"
+                    class="ml-2 mt-2"
+                    icon="mdi-dice-6"
+                    rounded="sm"
+                    variant="text"
+                    density="compact"
+                    size="x-large"
+                    @click="randomSeed"/>
+                </template>
+            </v-tooltip>
         </div>
 
         <v-expansion-panels v-model="selectedComponents" class="mt-4 mb-4" rounded="sm" variant="accordion" multiple @update:model-value="setSelected">

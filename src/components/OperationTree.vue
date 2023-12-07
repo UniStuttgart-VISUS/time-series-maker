@@ -103,6 +103,7 @@
     })
 
     let dragOffsetX = 0, dragOffsetY = 0;
+    let labels, rects;
 
     function operatorToIcon(name) {
         switch (name) {
@@ -193,7 +194,7 @@
 
         gs.filter(d => d.index !== undefined).call(drag)
 
-        gs.filter(d => d.index !== undefined)
+        rects = gs.filter(d => d.index !== undefined)
             .classed("dragable", true)
             .on("mouseenter", function(_, d) {
                 d3.select(this).selectChild(".bg").attr("fill", app.getColor(d.color))
@@ -254,7 +255,7 @@
         const lines = gs.filter(d => line[d.id] !== undefined)
             .append("g")
             .attr("fill", "none")
-            .attr("stroke-width", 2)
+            .attr("stroke-width", x.bandwidth() < 150 ? 1 : 2)
             .selectAll("path")
             .data(d => {
                 return Array.isArray(d.values) ?
@@ -349,18 +350,35 @@
             .attr("stroke", "white")
             .attr("stroke-width", 2)
 
-        gs.filter(d => d.index !== undefined)
+        labels = gs.filter(d => d.index !== undefined)
             .append("text")
             .attr("transform", `translate(${x.bandwidth()*0.5}, -10)`)
             .attr("text-anchor", "middle")
             .attr("font-size", 12)
-            .text(d => d.data)
+            .text(d => {
+                if (d.data.length * 7 > x.bandwidth()) {
+                    return d.data.slice(0, Math.floor(d.data.length / (d.data.length * 7 / x.bandwidth()))) + ".."
+                }
+                return d.data
+            })
 
+        highlight();
+    }
+
+    function highlight() {
+        if (app.selectedComps.size === 0) {
+            labels.attr("font-weight", "normal");
+            rects.attr("fill", "none")
+        } else {
+            labels.attr("font-weight", d => app.isSelectedComponent(d.id) ? "bold" : "normal")
+            rects.attr("fill", d => app.isSelectedComponent(d.id) ? "black" : "none")
+        }
     }
 
     onMounted(draw);
 
     watch(props, draw, { deep: true })
+    watch(() => app.selectedComps, highlight, { deep: true });
 </script>
 
 <style scoped>

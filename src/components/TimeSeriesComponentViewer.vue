@@ -2,21 +2,26 @@
     <v-sheet>
         <div v-if="component.generator.seedRequired" class="d-flex align-center mb-2">
             <v-text-field v-model.number="seed"
-                label="generator seed"
+                label="random generator seed"
                 type="number"
                 hide-details
                 density="compact"
                 min="1"
                 max="2147483646"
                 @update:modelValue="setSeed"/>
-            <v-btn class="ml-2 mt-2"
-                icon="mdi-dice-6"
-                rounded="sm"
-                variant="outlined"
-                density="compact"
-                size="x-large"
-                color="primary"
-                @click="randomSeed"/>
+
+            <v-tooltip text="reroll random seed" open-delay="200">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props"
+                        class="ml-2 mt-2"
+                        icon="mdi-dice-6"
+                        rounded="sm"
+                        variant="text"
+                        density="compact"
+                        size="x-large"
+                        @click="randomSeed"/>
+                </template>
+            </v-tooltip>
         </div>
 
         <v-text-field v-for="(o, key) in options" :key="component.id + '_' + o"

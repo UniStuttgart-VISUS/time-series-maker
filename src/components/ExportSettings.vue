@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex flex-column">
+    <div>
         <v-text-field v-model="filename"
             label="filename"
             density="compact"
