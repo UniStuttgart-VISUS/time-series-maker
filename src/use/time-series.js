@@ -204,96 +204,102 @@ export default class TimeSeries {
 
         if (!this._tsc) return;
 
-        let leftVals, rightVals, cacheVals;
+        let leftVals, rightVals;
 
-        // create array of arrays
-        const values = [];
-        for (let i = 0; i < this.instances; ++i) {
-            values.push(filled(0, this._tsc.samples));
-        }
+        const baseVals = filled(0, this._tsc.samples);
 
         xValues = xValues ? xValues : (this._tsc.dataX ? this._tsc.dataX : this._tsc.samples);
 
         const getComp = id => {
             const c = this.getComponent(id);
-            if (c.data.length === 0 || c.data[0].length !== this._tsc.samples) {
+            if (c && (c.data.length === 0 || c.data[0].length !== this._tsc.samples)) {
                 c.generate(xValues)
             }
             return c;
         }
 
-        const apply = (op, index=0, inplace=true) => {
+        const getNodeVals = id => {
+            const node = this.tree.nodes.find(d => d.id === id);
+            return Array.isArray(node.values) ? node.values : node.values[node.data];
+        }
+
+        const apply = op => {
             switch(op) {
                 default:
                 case OPERATOR.ADD:
-                    if (inplace) {
-                        inmap(values[index], (_, i) => add(leftVals[i], rightVals[i]));
-                    } else {
-                        return mapFun(i => add(leftVals[i], rightVals[i]), this._tsc.samples);
-                    }
-                    break;
+                    return mapFun(i => add(leftVals[i], rightVals[i]), this._tsc.samples);
                 case OPERATOR.MULTIPLY:
-                    if (inplace) {
-                        inmap(values[index], (_, i) => multiply(leftVals[i], rightVals[i]));
-                    } else {
-                        return mapFun(i => multiply(leftVals[i], rightVals[i]), this._tsc.samples);
-                    }
-                    break;
+                    return mapFun(i => multiply(leftVals[i], rightVals[i]), this._tsc.samples);
                 case OPERATOR.SUBTRACT:
-                    if (inplace) {
-                        inmap(values[index], (_, i) => subtract(leftVals[i], rightVals[i]));
-                    } else {
-                        return mapFun(i => subtract(leftVals[i], rightVals[i]), this._tsc.samples);
-                    }
-                    break;
+                    return mapFun(i => subtract(leftVals[i], rightVals[i]), this._tsc.samples);
             }
         }
 
         let leftNode, rightNode;
         this.makeTree()
+        // console.log(this.tree.nodes)
 
         const OPLIST = Object.values(OPERATOR);
 
-        this.compositor.iterateWithOpID((opCase, left, op, opID, right, extraOp, extraOpID) => {
+        // create array of arrays
+        const values = [];
+        for (let i = 0; i < this.instances; ++i) {
 
-            for (let i = 0; i < this.instances; ++i) {
+            values[i] = filled(0, this._tsc.samples);
+
+            leftNode = null;
+            rightNode = null;
+
+            this.compositor.iterate((opCase, left, op, opID, right) => {
 
                 const hasLeft = left !== undefined && left !== null;
                 const hasOp = op !== undefined && op !== null && opID;
                 const hasRight = right !== undefined && right !== null;
-                const hasExtraOp = extraOp !== undefined && extraOp !== null && extraOpID;
 
                 switch(opCase) {
-                    case OP_CASE.APPLY_NESTED_LEFT:
-                    case OP_CASE.APPLY_NESTED_RIGHT:
                     case OP_CASE.APPLY_BOTH: {
                         console.assert(hasLeft && hasOp && hasRight, "wrong case - missing data");
                         const cl = getComp(left);
                         const cr = getComp(right);
-                        leftVals = cl.getData(i);
-                        rightVals = cr.getData(i);
-                        leftNode = this.tree.nodes.find(d => d.id === left);
-                        leftNode.color = cl.generator.type;
-                        rightNode = this.tree.nodes.find(d => d.id === right);
-                        rightNode.color = cr.generator.type;
+
+                        leftVals = cl ? cl.getData(i) : getNodeVals(left);
+                        rightVals = cr ? cr.getData(i) : getNodeVals(right);
+
+                        if (cl) {
+                            leftNode = this.tree.nodes.find(d => d.id === left);
+                            leftNode.color = cl.generator.type;
+                        }
+                        if (cr) {
+                            rightNode = this.tree.nodes.find(d => d.id === right);
+                            rightNode.color = cr.generator.type;
+                        }
+
                         break;
                     }
                     case OP_CASE.APPLY_LEFT: {
                         console.assert(hasLeft, "wrong case - missing left");
                         const c = getComp(left);
-                        leftVals = c.getData(i);
-                        rightVals = values[i];
-                        leftNode = this.tree.nodes.find(d => d.id === left);
-                        leftNode.color = c.generator.type;
+
+                        leftVals = c ? c.getData(i) : getNodeVals(left);
+                        if (c) {
+                            leftNode = this.tree.nodes.find(d => d.id === left);
+                            leftNode.color = c.generator.type;
+                        }
+
+                        rightVals = hasRight ? getNodeVals(right) : baseVals;
                         break;
                     }
                     case OP_CASE.APPLY_RIGHT: {
                         console.assert(hasRight, "wrong case - missing right");
                         const c = getComp(right);
-                        leftVals = values[i];
-                        rightVals = c.getData(i);
-                        rightNode = this.tree.nodes.find(d => d.id === right);
-                        rightNode.color = c.generator.type;
+
+                        leftVals = hasLeft ? getNodeVals(left) : baseVals;
+
+                        rightVals = c ? c.getData(i) : getNodeVals(right);
+                        if (c) {
+                            rightNode = this.tree.nodes.find(d => d.id === right);
+                            rightNode.color = c.generator.type;
+                        }
                         break;
                     }
                 }
@@ -311,40 +317,13 @@ export default class TimeSeries {
                     const opNode = this.tree.nodes.find(d => d.id === opID);
                     opNode.values = {}
                     OPLIST.forEach(o => {
-                        if (o !== op) {
-                            opNode.values[o] = Array.from(apply(o, i, false));
-                        }
+                        const result = apply(o);
+                        if (op === o) { values[i] = result; }
+                        opNode.values[o] = Array.from(result);
                     });
-                    cacheVals = apply(op, i, !hasExtraOp);
-                    opNode.values[op] = Array.from(cacheVals ? cacheVals : values[i])
                 }
-
-                if (hasExtraOp && cacheVals) {
-
-                    switch(opCase) {
-                        case OP_CASE.APPLY_NESTED_LEFT: {
-                            leftVals = values[i];
-                            rightVals = cacheVals;
-                            break;
-                        }
-                        case OP_CASE.APPLY_NESTED_RIGHT: {
-                            leftVals = cacheVals;
-                            rightVals = values[i];
-                            break;
-                        }
-                    }
-                    const opNode = this.tree.nodes.find(d => d.id === extraOpID);
-                    opNode.values = {}
-                    OPLIST.forEach(o => {
-                        if (o !== op) {
-                            opNode.values[o] = Array.from(apply(o, i, false));
-                        }
-                    });
-                    opNode.values[op] = Array.from(apply(extraOp, i));
-                    cacheVals = null;
-                }
-            }
-        });
+            });
+        }
 
         this.dataY = values;
         this.update()

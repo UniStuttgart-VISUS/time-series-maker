@@ -120,11 +120,11 @@
 
     function addComponent(type) {
         if (ts.value) {
-            try {
+            // try {
                 ts.value.addComponent(type);
-            } catch(e) {
-                comms.error(e.toString());
-            }
+            // } catch(e) {
+            //     comms.error(e.toString());
+            // }
         }
     }
 

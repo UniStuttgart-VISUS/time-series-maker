@@ -18,36 +18,61 @@ const OP_CASE = Object.freeze({
     APPLY_NESTED_RIGHT: "APPLY_NESTED_RIGHT",
 });
 
-class CompGroup {
+class TreeNode {
 
-    constructor(parent=null) {
-        this.data = [];
+    constructor(parent=null, data=null) {
         this.parent = parent;
+        this.data = data;
+        this.left = null;
+        this.right = null;
+
         this.depth = parent === null ? 0 : parent.depth + 1;
-        this.lastNode = null;
-        this.deepestNode = null;
         this.visited = false;
     }
 
-    get size() { return this.data.filter(d => d !== null && d !== undefined).length };
-
-    get left() { return this.data[0] }
-    set left(value) {
-        this.data[0] = value
+    static fromArray(array) {
+        if (array.length === 0) return new TreeNode();
+        return TreeNode.buildTree(null, array[0], array[1], array[2]);
     }
 
-    get op() { return this.data[1] }
-    set op(value) {
-        this.data[1] = value
-    }
-
-    get right() { return this.data[2] }
-    set right(value) {
-        this.data[2] = value
+    static buildTree(parent, data, left, right) {
+        const node = new TreeNode(parent, data);
+        if (left) {
+            node.setLeft(TreeNode.buildTree(node, left[1], left[0], left[2]));
+        }
+        if (right) {
+            node.setRight(TreeNode.buildTree(node, right[1], right[0], right[2]));
+        }
+        return node;
     }
 
     get full() {
-        return this.size === 3;
+        return this.data && this.hasLeft() && this.hasRight();
+    }
+
+    get maxDepth() {
+        return this.getMaxDepth();
+    }
+
+    hasLeft() {
+        return this.left !== null && this.left !== undefined;
+    }
+    hasRight() {
+        return this.right !== null && this.right !== undefined;
+    }
+
+    setLeft(node) {
+        this.left = node;
+    }
+    addLeft(data) {
+        this.setLeft(new TreeNode(this, data));
+    }
+
+    setRight(node) {
+        this.right = node;
+    }
+    addRight(data) {
+        this.setRight(new TreeNode(this, data));
     }
 
     getMaxDepth() {
@@ -109,26 +134,49 @@ class CompGroup {
         return this;
     }
 
-    includes(value) {
-        return this.data.includes(value);
+    find(callback) {
+        if (callback(this)) {
+            return this;
+        }
+        if (this.isNestedLeft()) {
+            const node = this.left.find(callback);
+            if (node) return node;
+        }
+        if (this.isNestedRight()) {
+            const node = this.right.find(callback);
+            if (node) return node;
+        }
+    }
+
+    includes(callback) {
+        return callback(this.data) ||
+            (!this.isNestedLeft() || this.left.includes(callback)) ||
+            (!this.isNestedRight() || this.right.includes(callback))
     }
 
     isNested() {
         return this.isNestedLeft() || this.isNestedRight()
     }
     isNestedLeft(exclusive=false) {
-        return (this.left && this.left instanceof CompGroup) &&
-            (!exclusive || !this.isNestedRight())
+        return this.left instanceof TreeNode && (!exclusive || !this.isNestedRight())
     }
     isNestedRight(exclusive=false) {
-        return (this.right && this.right instanceof CompGroup) &&
-            (!exclusive || !this.isNestedLeft())
+        return this.right instanceof TreeNode && (!exclusive || !this.isNestedLeft())
     }
 
-    traverse(callback) {
-        callback(node.left, node.op, node.right);
+    traverseUp(callback) {
+        callback(this);
         if (this.parent) {
-            this.parent.traverse();
+            this.parent.traverseUp(callback);
+        }
+    }
+    traverseDown(callback) {
+        callback(this);
+        if (this.isNestedLeft()) {
+            this.left.traverseDown(callback);
+        }
+        if (this.isNestedRight()) {
+            this.right.traverseDown(callback);
         }
     }
 
@@ -142,16 +190,12 @@ class CompGroup {
         }
     }
 
-    toArray() {
-        if (!this.isNested()) {
-            return this.data.slice()
-        } else if (this.isNestedLeft(true)) {
-            return [this.left.toArray(), this.op, this.right]
-        } else if (this.isNestedRight(true)) {
-            return [this.left, this.op, this.right.toArray()]
-        } else {
-            return [this.left.toArray(), this.op, this.right.toArray()]
-        }
+    toArray(deep=false) {
+        return [
+            this.left ? this.left.toArray() : null,
+            deep && typeof data === "object" ? Object.assign({}, this.data) : this.data,
+            this.right ? this.right.toArray() : null
+        ]
     }
 
     toString() {
@@ -162,16 +206,25 @@ class CompGroup {
 class Compositor {
 
     constructor(items=[]) {
-        this.flat = items;
-        this.tree = null;
-        this.ID_NUM = items.length;
-        items.forEach(d => {
-            this.ID_NUM = Math.max(this.ID_NUM, Number.parseInt(d.id.slice(d.id.indexOf("_")+1))+1);
-        })
+        this.tree = items.length > 0 ? TreeNode.fromArray(items) : null;
+        this.lastTreeNode = this.tree;
+        this.size = items.length;
+        this.ID_NUM = 0;
+        if (this.size > 0) {
+            this.tree.traverseDown(node => {
+                this.ID_NUM = Math.max(
+                    this.ID_NUM,
+                    Number.parseInt(node.data.id.slice(node.data.id.indexOf("_")+1)) + 1
+                );
+                if (node.depth > this.lastTreeNode.depth) {
+                    this.lastTreeNode = node;
+                }
+            });
+        }
     }
 
     toJSON() {
-        return this.flat.slice()
+        return this.tree ? [] : this.tree.toArray(true);
     }
 
     static fromJSON(json) {
@@ -179,7 +232,7 @@ class Compositor {
     }
 
     copy() {
-        return new Compositor(this.flat.map(d => Object.assign({}, d)))
+        return new Compositor(this.toJSON())
     }
 
     nextID() {
@@ -191,109 +244,152 @@ class Compositor {
         return item in OPERATOR;
     }
 
-    get size() {
-        return this.flat.length;
-    }
-
     clear() {
         this.tree = null;
-        this.flat = [];
+        this.size = 0;
     }
 
     getNode(id) {
-        return this.flat.find(d => d.id === id);
+        return this.tree ? this.tree.find(d => d.data.id === id) : null;
     }
 
-    getNodeIndex(id) {
-        return this.flat.findIndex(d => d.id === id);
-    }
+    addData(id, name, genType, nodeID=null) {
 
-    addData(id, name, genType) {
+        const obj = {
+            name: name,
+            id: id,
+            type: NODE_TYPE.DATA,
+            genType: genType
+        };
 
         // when tree is empty
         if (this.size === 0) {
-            this.flat.push({ name: name, id: id, type: NODE_TYPE.DATA, genType: genType });
+            this.addOperator(OPERATOR.ADD);
+            this.addData(id, name, genType)
         } else {
+            const node = nodeID !== null && nodeID !== undefined ?
+                this.getNode(nodeID) : this.lastTreeNode;
 
-            const node = this.flat[this.size-1]
-            // last node is an operator
-            if (node.type === NODE_TYPE.OPERATOR) {
-                this.flat.push({ name: name, id: id, type: NODE_TYPE.DATA, genType: genType  });
+            if (!node) {
+                throw new Error("missing a node to add to")
+            }
+
+            // last node is already full
+            if (node.full) {
+
+                const replaceID = node.left.full ? node.right.data.id : node.left.data.id
+                const otherID = node.left.full ? node.left.data.id : node.right.data.id
+                const opNodeID = this.addOperator(OPERATOR.ADD, replaceID);
+                this.addData(id, name, genType, opNodeID)
+                // switch around to maintain previous order
+                this.switchData(id, otherID)
+
             } else {
-                // we have an item but are missing an operator - add ADD as default
-                this.addOperator(OPERATOR.ADD);
-                this.addData(id, name, genType)
+                if (node.isNestedLeft()) {
+                    node.addRight(obj)
+                } else {
+                    node.addLeft(obj)
+                }
+                this.size++;
             }
         }
-        this.tree = null;
+
+        return id;
     }
 
-    addOperator(op) {
+    addOperator(op, nodeID=null) {
 
         if (!Compositor.isOperator(op)) {
-            console.error("invalid input - not an operator");
-            return;
+            throw new Error("invalid input - not an operator");
         }
 
         const id = this.nextID();
+        const obj = {
+            name: op,
+            id: id,
+            type: NODE_TYPE.OPERATOR
+        };
+
         // when tree is empty
         if (this.size === 0) {
-            console.error("invalid input - cannot start with an operator");
-            return;
+            this.tree = new TreeNode(null, obj);
+            this.lastTreeNode = this.tree;
         } else {
-            this.flat.push({ name: op, id: id, type: NODE_TYPE.OPERATOR });
+            const node = nodeID !== null && nodeID !== undefined ?
+                this.getNode(nodeID) : this.lastTreeNode
+
+            if (!node) {
+                throw new Error("missing a node to add to")
+            }
+
+            const data = node.data;
+            node.data = obj;
+
+            if (node.isNestedLeft()) {
+                node.addRight(data)
+            } else {
+                node.addLeft(data)
+            }
+
+            this.lastTreeNode = node;
         }
-        this.tree = null;
+
+        this.size++;
+        return id;
     }
 
     remove(id) {
-        const index = this.flat.findIndex(node => node.id === id);
-        if (index >= 0) {
-            const isOp = this.flat[index].type === NODE_TYPE.OPERATOR;
-            this.flat.splice(
-                isOp || index === 0 ? index : index-1,
-                2
-            );
-            this.tree = null;
+        if (this.tree === null) return;
+
+        const node = this.getNode(id);
+        if (node) {
+            console.assert(!node.isNested(), "can only remove leaf nodes")
+            if (node === this.tree) {
+                this.tree = null;
+                this.size = 0;
+            } else {
+                this.tree._updateRemove(node);
+                if (node.parent.left === node) {
+                    node.parent.setLeft(null);
+                } else {
+                    node.parent.setRight(null);
+                }
+                this.size--;
+            }
         }
     }
 
     setOperator(id, newOp) {
-        const node = this.flat.find(node => node.id === id);
+        if (this.tree === null) return;
+
+        const node = this.getNode(id);
         if (node) {
-            node.name = newOp;
-            this.tree = null;
+            node.data.name = newOp;
         }
     }
 
     switchData(fromID, toID) {
-        const fromIndex = this.getNodeIndex(fromID);
-        const toIndex = this.getNodeIndex(toID);
-        if (fromIndex >= 0 && fromIndex <= this.flat.length &&
-            toIndex >= 0 && toIndex <= this.flat.length &&
-            fromIndex !== toIndex
-        ) {
-            const from = this.flat[fromIndex];
-            this.flat[fromIndex] = this.flat[toIndex];
-            this.flat[toIndex] = from;
-            this.tree = null;
+        if (this.tree === null) return;
+
+        const nodeFrom = this.getNode(fromID);
+        const nodeTo = this.getNode(toID);
+        if (nodeFrom !== nodeTo) {
+            const tmp = nodeFrom.data;
+            nodeFrom.data = nodeTo.data;
+            nodeTo.data = tmp;
         }
     }
 
     rename(id, name) {
-        this.flat.forEach(node => {
-            if (node.id === id) {
-                node.name = name;
-            }
-        });
+        if (this.tree === null) return;
+
+        const node = this.getNode(id);
+        if (node) {
+            node.data.name = name;
+        }
     }
 
     toTree() {
-        if (!this.tree) {
-            this._makeTree();
-        } else {
-            this.tree.setVisited(false)
-        }
 
         let leafIndex = 0;
         const graph = { nodes: [], links: [] };
@@ -302,404 +398,107 @@ class Compositor {
             return graph;
         }
 
-        // only one or two component
-        if (this.size < 3) {
+        const build = node => {
+
             graph.nodes.push({
-                depth: 1, id: this.flat[0].id, type: NODE_TYPE.DATA,
-                index: 0, data: this.flat[0].name
+                depth: node.depth,
+                id: node.data.id,
+                type: NODE_TYPE.DATA,
+                data: node.data.name
             });
-            graph.nodes.push({
-                depth: 0,
-                id: this.size === 1  ? "op_base" : this.flat[1].id,
-                type: NODE_TYPE.OPERATOR,
-                minIndex: 0, maxIndex: 0,
-                data: this.size === 1 ? OPERATOR.ADD : this.flat[1].name
-            });
-            return graph;
-        }
 
-        const traverse = node => {
-
-            // reached the end
-            if (!node) return;
-
-            // non-nested node
             if (!node.isNested()) {
-                graph.nodes.push({
-                    depth: node.depth+1, id: node.left, type: NODE_TYPE.DATA, index: leafIndex++,
-                    data: this.getNode(node.left) ? this.getNode(node.left).name : ""
-                });
-                graph.nodes.push({
-                    depth: node.depth, id: node.op, type: NODE_TYPE.OPERATOR,
-                    minIndex: leafIndex-1, maxIndex: leafIndex,
-                    data: this.getNode(node.op).name
-                });
-                graph.nodes.push({
-                    depth: node.depth+1, id: node.right, type: NODE_TYPE.DATA, index: leafIndex++,
-                    data: this.getNode(node.right) ? this.getNode(node.right).name : ""
-                });
-                graph.links.push({ source: node.op, target: node.left });
-                graph.links.push({ source: node.op, target: node.right });
-                node.visited = true;
-                // go to parent
-                return traverse(node.parent)
+                graph.nodes.at(-1).index = leafIndex++;
             }
 
             // nested on left side (already visited)
-            if (node.isNestedLeft(true)) {
-                graph.nodes.push({
-                    depth: node.depth, id: node.op, type: NODE_TYPE.OPERATOR,
-                    minIndex: Math.min(leafIndex, graph.nodes.find(d => d.id === node.left.op).minIndex),
-                    maxIndex: Math.max(leafIndex, graph.nodes.find(d => d.id === node.left.op).maxIndex),
-                    data: this.getNode(node.op).name,
-                });
-                graph.nodes.push({ depth: node.depth+1, id: node.right, type: NODE_TYPE.DATA, index: leafIndex++, data: this.getNode(node.right).name });
-                graph.links.push({ source: node.op, target: node.right });
-                graph.links.push({ source: node.op, target: node.left.op });
-                node.visited = true;
-
-            // nested on right side (already visited)
-            } else if (node.isNestedRight(true)) {
-                graph.nodes.push({
-                    depth: node.depth, id: node.op, type: NODE_TYPE.OPERATOR,
-                    minIndex: Math.min(leafIndex, graph.nodes.find(d => d.id === node.right.op).minIndex),
-                    maxIndex: Math.max(leafIndex, graph.nodes.find(d => d.id === node.right.op).maxIndex),
-                    data: this.getNode(node.op).name,
-                });
-                graph.nodes.push({ depth: node.depth+1, id: node.left, type: NODE_TYPE.DATA, index: leafIndex++, data: this.getNode(node.left).name });
-                graph.links.push({ source: node.op, target: node.left });
-                graph.links.push({ source: node.op, target: node.right.op });
-                node.visited = true;
-
-            // both are nested, but one should have already been visited
-            } else if (node.isNested()) {
-
-                const vLeft = node.left.visited;
-                const vRight = node.right.visited;
-                console.assert(vLeft ^ vRight, "only one side should have been visited beforehand");
-
-                graph.nodes.push({
-                    depth: node.depth, id: node.op, type: NODE_TYPE.OPERATOR,
-                    minIndex: Math.min(
-                        graph.nodes.find(d => d.id === node.left.op).minIndex,
-                        graph.nodes.find(d => d.id === node.right.op).minIndex
-                    ),
-                    maxIndex: Math.max(
-                        graph.nodes.find(d => d.id === node.left.op).minIndex,
-                        graph.nodes.find(d => d.id === node.right.op).minIndex
-                    ),
-                    data: this.getNode(node.op).name,
-                });
-                graph.links.push({ source: node.op, target: node.left.op });
-                graph.links.push({ source: node.op, target: node.right.op });
-                node.visited = true;
+            if (node.isNestedLeft()) {
+                graph.links.push({ source: node.data.id, target: node.left.data.id });
             }
 
-            // go to parent
-            traverse(node.parent)
+            if (node.isNestedRight()) {
+                graph.links.push({ source: node.data.id, target: node.right.data.id });
+            }
         };
 
         if (this.tree) {
-            traverse(this.tree.deepestNode);
+            this.tree.traverseDown(build)
         }
 
         return graph;
     }
 
-    _makeTree() {
-        this.tree = null;
+    iterate(callback) {
 
-        if (this.size === 1) {
-            this._treeAddData(this.flat[0].id);
-            this._treeAddOperator('op_base', OPERATOR.ADD);
-            return;
+        if (!this.tree || this.size === 0) return;
+
+        // only one component
+        if (this.size === 2) {
+            return callback(
+                OP_CASE.APPLY_LEFT,
+                this.tree.left.data.id,
+                this.tree.data.name,
+                this.tree.data.id,
+                null
+            );
         }
 
-        this.flat.forEach(node => {
-            if (node.type === NODE_TYPE.DATA) {
-                this._treeAddData(node.id);
-            } else {
-                this._treeAddOperator(node.id, node.name);
+        // only one operation
+        if (this.size === 3) {
+            return callback(
+                OP_CASE.APPLY_BOTH,
+                this.tree.left.data.id,
+                this.tree.data.name,
+                this.tree.data.id,
+                this.tree.right.data.id,
+            );
+        }
+
+        let trees = [];
+        const targetDepth = this.tree.maxDepth - 1;
+
+        this.tree.traverseDown(d => {
+            if (d.depth === targetDepth) {
+                trees.push(d);
             }
         })
 
-        // if (this.tree) {
-        //     console.log(this.tree.toString())
-        // }
-    }
-
-    _treeAddData(id) {
-
-        // when tree is empty
-        if (this.tree === null) {
-            this.tree = new CompGroup();
-            this.tree.left = id;
-            this.tree.lastNode = this.tree;
-            this.tree.deepestNode = this.tree;
-        } else if (!this.tree.lastNode.right){
-            this.tree.lastNode.right = id;
-        } else {
-            console.error("what?!")
-        }
-    }
-    _treeAddOperator(id, op) {
-
-        if (!Compositor.isOperator(op)) {
-            console.error("invalid input - not an operator");
-            return;
-        }
-
-        // when tree is empty
-        if (this.tree === null) {
-            console.error("invalid input - cannot start with an operator");
-            return;
-        } else if (!this.tree.op) {
-            this.tree.op = id;
-        } else {
-
-            const depthLeft = this.tree.getMaxDepthLeft();
-            const depthRight = this.tree.getMaxDepthRight();
-
-            if (depthLeft < depthRight) {
-                const node = this.tree.getLastNodeLeft()
-                // replace left side in previous array/operation
-                const newNode = new CompGroup(node);
-                newNode.left = node.left
-                newNode.op = id;
-                node.left = newNode
-                // replace last node if it is deeper than previous or none exists
-                if (newNode.depth >= this.tree.deepestNode.depth) {
-                    this.tree.deepestNode = newNode;
-                }
-                this.tree.lastNode = newNode;
-            } else {
-                const node = this.tree.getLastNodeRight()
-                // replace right side in previous array/operation
-                const newNode = new CompGroup(node);
-                newNode.left = node.right
-                newNode.op = id;
-                node.right = newNode
-                // replace last node if it is deeper than previous or none exists
-                if (newNode.depth >= this.tree.deepestNode.depth) {
-                    this.tree.deepestNode = newNode;
-                }
-                this.tree.lastNode = newNode;
-            }
-        }
-    }
-
-    iterate(callback) {
-
-        if (this.size === 0) return;
-
-        // only one component
-        if (this.size === 1) {
-            callback(OP_CASE.APPLY_LEFT, this.flat[0].id, OPERATOR.ADD)
-            return;
-        }
-
-        // only one operation
-        if (this.size === 3) {
-            return callback(
-                OP_CASE.APPLY_BOTH,
-                this.flat[0].id,
-                this.flat[1].name,
-                this.flat[2].id
-            );
-        }
-
-        if (this.tree === null) {
-            this._makeTree();
-        } else {
-            this.tree.setVisited(false)
-        }
-
-        const traverse = node => {
-
-            // reached the end
-            if (!node) return;
-
-            // non-nested node
-            if (!node.isNested()) {
-                callback(
-                    OP_CASE.APPLY_BOTH,
-                    node.left,
-                    this.getNode(node.op).name,
-                    node.right,
-                );
-                node.visited = true;
-                // go to parent
-                return traverse(node.parent)
-            }
-
-            // nested on left side (already visited)
+        const apply = node => {
             if (node.isNestedLeft(true)) {
+                callback(
+                    OP_CASE.APPLY_LEFT,
+                    node.left.data.id,
+                    node.data.name,
+                    node.data.id,
+                    null,
+                );
+            } else if (node.isNestedRight(true)) {
                 callback(
                     OP_CASE.APPLY_RIGHT,
                     null,
-                    this.getNode(node.op).name,
-                    node.right,
+                    node.data.name,
+                    node.data.id,
+                    node.right.data.id,
                 );
-                node.visited = true;
-
-            // nested on right side (already visited)
-            } else if (node.isNestedRight(true)) {
-                callback(
-                    OP_CASE.APPLY_LEFT,
-                    node.left,
-                    this.getNode(node.op).name,
-                );
-                node.visited = true;
-
-            // both are nested, but one should have already been visited
             } else if (node.isNested()) {
-
-                const vLeft = node.left.visited;
-                const vRight = node.right.visited;
-                console.assert(vLeft ^ vRight, "only one side should have been visited beforehand");
-
-                if (vLeft) {
-                    // left side already calculated
-                    callback(
-                        OP_CASE.APPLY_NESTED_RIGHT,
-                        node.right.left,
-                        this.getNode(node.right.op).name,
-                        node.right.right,
-                        this.getNode(node.op).name
-                    );
-                    node.visited = true;
-                }
-                else if (vRight) {
-                    // right side already calculated
-                    callback(
-                        OP_CASE.APPLY_NESTED_LEFT,
-                        node.left.left,
-                        this.getNode(node.left.op).name,
-                        node.left.right,
-                        this.getNode(node.op).name
-                    );
-                    node.visited = true;
-                }
-            }
-
-            // go to parent
-            traverse(node.parent)
-        };
-
-        traverse(this.tree.deepestNode);
-    }
-
-    iterateWithOpID(callback) {
-
-        if (this.size === 0) return;
-
-        // only one component
-        if (this.size === 1) {
-            return callback(
-                OP_CASE.APPLY_LEFT,
-                this.flat[0].id,
-                OPERATOR.ADD,
-                'op_base',
-            );
-        }
-
-        // only one operation
-        if (this.size === 3) {
-            return callback(
-                OP_CASE.APPLY_BOTH,
-                this.flat[0].id,
-                this.flat[1].name,
-                this.flat[1].id,
-                this.flat[2].id
-            );
-        }
-
-        if (this.tree === null) {
-            this._makeTree();
-        } else {
-            this.tree.setVisited(false)
-        }
-
-        const traverse = node => {
-
-            // reached the end
-            if (!node) return;
-
-            // non-nested node
-            if (!node.isNested()) {
                 callback(
                     OP_CASE.APPLY_BOTH,
-                    node.left,
-                    this.getNode(node.op).name,
-                    node.op,
-                    node.right,
+                    node.left.data.id,
+                    node.data.name,
+                    node.data.id,
+                    node.right.data.id,
                 );
-                node.visited = true;
-                // go to parent
-                return traverse(node.parent)
             }
 
-            // nested on left side (already visited)
-            if (node.isNestedLeft(true)) {
-                callback(
-                    OP_CASE.APPLY_RIGHT,
-                    null,
-                    this.getNode(node.op).name,
-                    node.op,
-                    node.right,
-                );
-                node.visited = true;
-
-            // nested on right side (already visited)
-            } else if (node.isNestedRight(true)) {
-                callback(
-                    OP_CASE.APPLY_LEFT,
-                    node.left,
-                    this.getNode(node.op).name,
-                    node.op,
-                );
-                node.visited = true;
-
-            // both are nested, but one should have already been visited
-            } else if (node.isNested()) {
-
-                const vLeft = node.left.visited;
-                const vRight = node.right.visited;
-                console.assert(vLeft ^ vRight, "only one side should have been visited beforehand");
-
-                if (vLeft) {
-                    // left side already calculated
-                    callback(
-                        OP_CASE.APPLY_NESTED_RIGHT,
-                        node.right.left,
-                        this.getNode(node.right.op).name,
-                        node.right.op,
-                        node.right.right,
-                        this.getNode(node.op).name,
-                        node.op,
-                    );
-                    node.visited = true;
-                }
-                else if (vRight) {
-                    // right side already calculated
-                    callback(
-                        OP_CASE.APPLY_NESTED_LEFT,
-                        node.left.left,
-                        this.getNode(node.left.op).name,
-                        node.left.op,
-                        node.left.right,
-                        this.getNode(node.op).name,
-                        node.op,
-                    );
-                    node.visited = true;
-                }
+            if (node.parent) {
+                return node.parent
             }
+        }
 
-            // go to parent
-            traverse(node.parent)
-        };
 
-        traverse(this.tree.deepestNode);
+        while (trees.length > 0) {
+            trees = trees.map(apply).filter(d => d);
+        }
     }
 }
 
