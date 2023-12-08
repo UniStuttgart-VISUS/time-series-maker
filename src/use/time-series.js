@@ -158,7 +158,7 @@ export default class TimeSeries {
         this.generate();
     }
 
-    addComponent(generatorType) {
+    addComponent(generatorType, nodeID) {
         if (generatorType && (generatorType in GENERATOR_DEFAULTS)) {
             const generator = new Generator(generatorType, [randi()]);
             this.components.push(new TimeSeriesComponent(this, this.instances, generator))
@@ -170,7 +170,8 @@ export default class TimeSeries {
         this.compositor.addData(
             last.id,
             last.name,
-            last.generator.type
+            last.generator.type,
+            nodeID
         );
         this.generate();
     }

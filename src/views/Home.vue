@@ -54,7 +54,8 @@
                             :x-values="tsc.dataX"
                             :width="1000"
                             @update="updateCompositor"
-                            @switch="switchComponents"/>
+                            @switch="switchComponents"
+                            @select="selectNode"/>
                     </KeepAlive>
                 </v-sheet>
             </div>
@@ -100,8 +101,9 @@
 
     const { mainTab } = storeToRefs(app)
 
-    let lineData = ref([]);
-    let tree = ref(null)
+    const nextNode = ref("");
+    const lineData = ref([]);
+    const tree = ref(null)
 
     const tsc = reactive(new TimeSeriesCollection());
 
@@ -121,11 +123,18 @@
 
     function addComponent(type) {
         if (ts.value) {
-            // try {
-                ts.value.addComponent(type);
-            // } catch(e) {
-            //     comms.error(e.toString());
-            // }
+            try {
+                ts.value.addComponent(type, nextNode.value ? nextNode.value : null);
+                nextNode.value = "";
+            } catch(e) {
+                comms.error(e.toString());
+            }
+        }
+    }
+
+    function selectNode(id) {
+        if (ts.value) {
+            nextNode.value = id;
         }
     }
 

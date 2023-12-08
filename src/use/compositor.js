@@ -285,12 +285,18 @@ class Compositor {
                 this.switchData(id, otherID)
 
             } else {
-                if (node.isNestedLeft()) {
-                    node.addRight(obj)
+
+                if (node.data.type === NODE_TYPE.DATA) {
+                    const opNodeID = this.addOperator(OPERATOR.ADD, node.data.id)
+                    this.addData(id, name, genType, opNodeID)
                 } else {
-                    node.addLeft(obj)
+                    if (node.isNestedLeft()) {
+                        node.addRight(obj)
+                    } else {
+                        node.addLeft(obj)
+                    }
+                    this.size++;
                 }
-                this.size++;
             }
         }
 

@@ -78,7 +78,7 @@
             default: 80
         },
     })
-    const emit = defineEmits(["update", "switch"])
+    const emit = defineEmits(["update", "switch",, "select"])
 
     const app = useApp();
 
@@ -369,6 +369,22 @@
                 }
                 return text
             })
+
+        const buttons = gs.filter(d => !d.children)
+            .append("g")
+            .attr("transform", `translate(${x.bandwidth()*0.5}, ${y.bandwidth()+30})`)
+            .classed("clickable", true)
+            .on("click", function(event, d) {
+                event.preventDefault()
+                emit("select", d.data.id)
+            })
+
+        buttons.append("circle")
+            .attr("r", 8)
+            .attr("fill", "lightblue")
+        buttons.append("path")
+            .attr("d", d3.symbol(d3.symbolPlus))
+            .attr("stroke", "blue")
 
         highlight();
     }
