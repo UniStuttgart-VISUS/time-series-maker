@@ -391,41 +391,57 @@ class Compositor {
 
     toTree() {
 
-        let leafIndex = 0;
-        const graph = { nodes: [], links: [] };
-
         if (this.size === 0) {
-            return graph;
+            return {
+                root: {},
+                maxDepth: 0,
+                numLeaves: 0
+            };
         }
+
+        // const setParentIndex = (node, index) => {
+        //     if (node.parent) {
+        //         const p = graph.nodes.find(d => d.id === node.parent.data.id);
+        //         p.minIndex = Math.min(p.minIndex, index);
+        //         p.maxIndex = Math.max(p.maxIndex, index);
+
+        //         setParentIndex(node.parent, index)
+        //     }
+        // }
+
+        let maxDepth = 0, numLeaves = 0;
 
         const build = node => {
 
-            graph.nodes.push({
+            const currentNode = {
                 depth: node.depth,
                 id: node.data.id,
                 type: NODE_TYPE.DATA,
-                data: node.data.name
-            });
-
-            if (!node.isNested()) {
-                graph.nodes.at(-1).index = leafIndex++;
+                data: node.data.name,
+                parent: node.parent ? node.parent.data.id : null,
+                children: []
             }
+            maxDepth++;
 
-            // nested on left side (already visited)
             if (node.isNestedLeft()) {
-                graph.links.push({ source: node.data.id, target: node.left.data.id });
+                currentNode.children.push(build(node.left))
+            }
+            if (node.isNestedRight()) {
+                currentNode.children.push(build(node.right))
             }
 
-            if (node.isNestedRight()) {
-                graph.links.push({ source: node.data.id, target: node.right.data.id });
+            if (currentNode.children.length === 0) {
+                numLeaves++;
             }
+
+            return currentNode
         };
 
-        if (this.tree) {
-            this.tree.traverseDown(build)
-        }
-
-        return graph;
+        return {
+            root: build(this.tree),
+            maxDepth: maxDepth,
+            numLeaves: numLeaves
+        };
     }
 
     iterate(callback) {
@@ -495,7 +511,7 @@ class Compositor {
             }
         }
 
-
+        console.log(this.tree.toString())
         while (trees.length > 0) {
             trees = trees.map(apply).filter(d => d);
         }

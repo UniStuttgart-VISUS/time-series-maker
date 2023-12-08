@@ -218,8 +218,23 @@ export default class TimeSeries {
             return c;
         }
 
+        const getNode = id => {
+            const traverse = node => {
+                if (node.id === id) {
+                    return node;
+                }
+
+                for (let i = 0; i < node.children.length; ++i) {
+                    const n = traverse(node.children[i]);
+                    if (n) {
+                        return n;
+                    }
+                }
+            }
+            return traverse(this.tree.root)
+        }
         const getNodeVals = id => {
-            const node = this.tree.nodes.find(d => d.id === id);
+            const node = getNode(id);
             return Array.isArray(node.values) ? node.values : node.values[node.data];
         }
 
@@ -237,7 +252,6 @@ export default class TimeSeries {
 
         let leftNode, rightNode;
         this.makeTree()
-        // console.log(this.tree.nodes)
 
         const OPLIST = Object.values(OPERATOR);
 
@@ -266,11 +280,11 @@ export default class TimeSeries {
                         rightVals = cr ? cr.getData(i) : getNodeVals(right);
 
                         if (cl) {
-                            leftNode = this.tree.nodes.find(d => d.id === left);
+                            leftNode = getNode(left);
                             leftNode.color = cl.generator.type;
                         }
                         if (cr) {
-                            rightNode = this.tree.nodes.find(d => d.id === right);
+                            rightNode = getNode(right);
                             rightNode.color = cr.generator.type;
                         }
 
@@ -282,7 +296,7 @@ export default class TimeSeries {
 
                         leftVals = c ? c.getData(i) : getNodeVals(left);
                         if (c) {
-                            leftNode = this.tree.nodes.find(d => d.id === left);
+                            leftNode = getNode(left);
                             leftNode.color = c.generator.type;
                         }
 
@@ -297,7 +311,7 @@ export default class TimeSeries {
 
                         rightVals = c ? c.getData(i) : getNodeVals(right);
                         if (c) {
-                            rightNode = this.tree.nodes.find(d => d.id === right);
+                            rightNode = getNode(right);
                             rightNode.color = c.generator.type;
                         }
                         break;
@@ -314,7 +328,7 @@ export default class TimeSeries {
                 }
 
                 if (hasOp) {
-                    const opNode = this.tree.nodes.find(d => d.id === opID);
+                    const opNode = getNode(opID);
                     opNode.values = {}
                     OPLIST.forEach(o => {
                         const result = apply(o);

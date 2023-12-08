@@ -47,9 +47,10 @@
 
                 <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
                     <KeepAlive>
-                        <OperationTree v-if="mainTab === MAIN_TABS.TS && tree"
-                            :nodes="tree.nodes"
-                            :links="tree.links"
+                        <OperationTree v-if="mainTab === MAIN_TABS.TS && tree && tree.maxDepth > 0"
+                            :data="tree.root"
+                            :max-depth="tree.maxDepth"
+                            :num-leaves="tree.numLeaves"
                             :x-values="tsc.dataX"
                             :width="1000"
                             @update="updateCompositor"
