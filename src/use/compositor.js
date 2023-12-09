@@ -63,6 +63,9 @@ class TreeNode {
 
     setLeft(node) {
         this.left = node;
+        if (node instanceof TreeNode) {
+            node.parent = this;
+        }
     }
     addLeft(data) {
         this.setLeft(new TreeNode(this, data));
@@ -70,6 +73,9 @@ class TreeNode {
 
     setRight(node) {
         this.right = node;
+        if (node instanceof TreeNode) {
+            node.parent = this;
+        }
     }
     addRight(data) {
         this.setRight(new TreeNode(this, data));
@@ -378,12 +384,37 @@ class Compositor {
                 this.tree = null;
                 this.size = 0;
             } else {
-                if (node.parent.left === node) {
-                    node.parent.setLeft(null);
+                const onLeft = node.parent.left === node;
+
+                // if the other side is nested
+                if (onLeft && node.parent.isNestedRight() ||
+                    !onLeft && node.parent.isNestedLeft()
+                ) {
+                    const p = node.parent.parent;
+                    if (!p) {
+                        this.tree = onLeft ? node.parent.right : node.parent.left;
+                        this.tree.parent = null;
+                    } else {
+                        const pOnLeft = p.left === node.parent;
+                        if (pOnLeft) {
+                            p.setLeft(onLeft ? node.parent.right : node.parent.left);
+                        } else {
+                            p.setRight(onLeft ? node.parent.right : node.parent.left);
+                        }
+                    }
+                    this.lastTreeNode = this.tree.getLastNode();
+                    if (this.lastTreeNode.data.type === NODE_TYPE.DATA) {
+                        this.lastTreeNode = this.lastTreeNode.parent;
+                    }
+
                 } else {
-                    node.parent.setRight(null);
+                    if (node.parent.left === node) {
+                        node.parent.setLeft(null);
+                    } else {
+                        node.parent.setRight(null);
+                    }
+                    this.size--;
                 }
-                this.size--;
             }
         }
     }
@@ -427,16 +458,6 @@ class Compositor {
                 numLeaves: 0
             };
         }
-
-        // const setParentIndex = (node, index) => {
-        //     if (node.parent) {
-        //         const p = graph.nodes.find(d => d.id === node.parent.data.id);
-        //         p.minIndex = Math.min(p.minIndex, index);
-        //         p.maxIndex = Math.max(p.maxIndex, index);
-
-        //         setParentIndex(node.parent, index)
-        //     }
-        // }
 
         let maxDepth = 0, numLeaves = 0;
 

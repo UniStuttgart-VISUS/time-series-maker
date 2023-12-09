@@ -1,11 +1,11 @@
 <template>
-    <v-sheet v-if="visible" :style="style" class="pa-2 ma-2 comp-hint" color="grey-lighten-3" rounded>
-        <span class="text-subcaption">{{ GENERATOR_DEFAULTS[component].title }}</span>
-        <v-divider class="mt-1 mb-2"></v-divider>
+    <v-sheet v-if="visible" :style="style" class="pa-2 ma-2 comp-hint" color="#f1f1f1" rounded="sm">
+        <span class="text-subcaption" style="font-weight: bold;">{{ GENERATOR_DEFAULTS[component].title }}</span>
+        <v-divider class="mt-1 mb-2 border-opacity-100" thickness="2" :color="color"></v-divider>
         <p v-for="(o, name) in options" class="text-caption">
             <b>{{ name }}</b>: <span v-html="o"></span>
         </p>
-        <v-divider class="mt-1 mb-2"></v-divider>
+        <v-divider class="mt-1 mb-2 border-opacity-100" :color="color"></v-divider>
         <p class="text-caption" v-html="GENERATOR_DESCRIPTIONS[component]" style="overflow-y: auto;"></p>
     </v-sheet>
 </template>
@@ -20,6 +20,18 @@
         component: {
             type: String,
             default: ""
+        },
+        color: {
+            type: String,
+            default: "#f1f1f1"
+        },
+        xPos: {
+            type: Number,
+            default: 200
+        },
+        yPos: {
+            type: Number,
+            default: 200
         },
         height: {
             type: Number,
@@ -44,9 +56,10 @@
     const style = computed(() => {
         return {
             maxWidth: (props.height * 1.8) + 'px',
+            width: (props.height * 1.8) + 'px',
             minHeight: props.height + 'px',
-            bottom: props.height + 'px',
-            left: 0
+            left: (props.xPos - (props.height * 1.8)) + 'px',
+            top: Math.max(0, Math.min(window.innerHeight - props.height - 10, props.yPos - props.height * 0.5)) + 'px',
         };
     })
 

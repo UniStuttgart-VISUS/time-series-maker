@@ -27,10 +27,10 @@ body {
     border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb {
-    background: #a7a7a7;
+    background: #cdcdcd;
     border-radius: 5px;
 }
-::-webkit-scrollbar-thumb:hover { background: #757575; }
+::-webkit-scrollbar-thumb:hover { background: #a7a7a7; }
 
 .dragable {
     cursor: grab;

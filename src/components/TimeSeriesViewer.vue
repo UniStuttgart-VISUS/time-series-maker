@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-    import { ref, watch } from 'vue';
+    import { ref, watch, onMounted } from 'vue';
 
     import TimeSeries from '@/use/time-series.js';
     import TimeSeriesComponentViewer from './TimeSeriesComponentViewer.vue';
@@ -115,4 +115,5 @@
     }
 
     watch(() => app.selectedComps, readSelected, { deep: true })
+
 </script>

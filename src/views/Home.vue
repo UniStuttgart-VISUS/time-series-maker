@@ -1,7 +1,7 @@
 <template>
-    <div ref="wrapper" style="max-width: 100%; max-height: 100%; overflow: auto;">
+    <div ref="wrapper" style="width: 100%; height: 100vh; overflow: auto;">
 
-        <div class="d-flex align-start justify-center">
+        <div class="d-flex align-start justify-center" style="height: 100%;">
 
             <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
@@ -33,9 +33,9 @@
                 </v-window>
             </v-sheet>
 
-            <div class="d-flex flex-column align-center" style="overflow-x: hidden; max-height: 100vh;">
+            <v-sheet class="ma-2 d-flex flex-column align-center" style="overflow-x: hidden; max-height: 100vh; min-width: 60%;" color="grey-lighten-5" rounded="sm">
 
-                <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
+                <div class="ma-1 mt-2 pa-1">
                     <LineChart
                         :data="lineData"
                         :width="950"
@@ -43,9 +43,9 @@
                         x-attr="0" y-attr="1"
                         :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
                         :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
-                </v-sheet>
+                </div>
 
-                <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="max-width: 100%;">
+                <div class="ma-1 mt-2 pa-1" style="max-width: 100%;">
                     <KeepAlive>
                         <OperationTree v-if="mainTab === MAIN_TABS.TS && tree && tree.maxDepth > 0"
                             :data="tree.root"
@@ -57,8 +57,8 @@
                             @switch="switchComponents"
                             @select="selectNode"/>
                     </KeepAlive>
-                </v-sheet>
-            </div>
+                </div>
+            </v-sheet>
 
             <div class="ma-2 pa-1 comp-wrapper">
                 <KeepAlive>
@@ -127,12 +127,12 @@
 
     function addComponent(type) {
         if (ts.value) {
-            // try {
+            try {
                 ts.value.addComponent(type, nextNode.value ? nextNode.value : null);
                 nextNode.value = "";
-            // } catch(e) {
-            //     comms.error(e.toString());
-            // }
+            } catch(e) {
+                comms.error(e.toString());
+            }
         }
     }
 
