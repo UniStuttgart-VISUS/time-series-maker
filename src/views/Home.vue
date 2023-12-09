@@ -1,7 +1,7 @@
 <template>
-    <div class="d-flex flex-column justify-space-between" style="max-width: 100%; max-height: 95.3vh; height: 100%;">
+    <div ref="wrapper" style="max-width: 100%; max-height: 100%; overflow: auto;">
 
-        <div class="d-flex align-start justify-center" style="overflow-y: auto;">
+        <div class="d-flex align-start justify-center">
 
             <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
@@ -33,7 +33,7 @@
                 </v-window>
             </v-sheet>
 
-            <div class="d-flex flex-column align-start" style="overflow: auto;">
+            <div class="d-flex flex-column align-center" style="overflow-x: hidden; max-height: 100vh;">
 
                 <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm">
                     <LineChart
@@ -45,7 +45,7 @@
                         :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
                 </v-sheet>
 
-                <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="min-width: 150px;">
+                <v-sheet class="ma-1 mt-2 pa-1" color="grey-lighten-5" rounded="sm" style="max-width: 100%;">
                     <KeepAlive>
                         <OperationTree v-if="mainTab === MAIN_TABS.TS && tree && tree.maxDepth > 0"
                             :data="tree.root"
@@ -60,16 +60,16 @@
                 </v-sheet>
             </div>
 
+            <div class="ma-2 pa-1 comp-wrapper">
+                <KeepAlive>
+                    <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer" color="grey-lighten-5" rounded="sm">
+                        <ComponentPicker @click="addComponent"/>
+                    </v-sheet >
+                </KeepAlive>
+            </div>
+
             <ToastHandler/>
         </div>
-
-        <v-sheet class="mt-2 comp-wrapper" elevation="4" style="max-height: fit-content;">
-            <KeepAlive>
-                <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer">
-                    <ComponentPicker @click="addComponent" horizontal :values="tsc.dataX"/>
-                </v-sheet >
-            </KeepAlive>
-        </v-sheet>
 
         <TutorialManager :tsID="tsc.series[0].id"/>
     </div>
@@ -81,6 +81,7 @@
     import { useApp, MAIN_TABS } from '@/store/app';
     import { storeToRefs } from 'pinia';
     import { useComms } from '@/store/comms';
+    import { useElementSize } from '@vueuse/core'
 
     import TimeSeriesCollection from '@/use/timeseries-collection';
     import GENERATOR_TYPES from '@/use/generator-types';
@@ -98,6 +99,9 @@
 
     const app = useApp();
     const comms = useComms();
+
+    const wrapper = ref(null);
+    const wSize = useElementSize(wrapper)
 
     const { mainTab } = storeToRefs(app)
 
@@ -123,12 +127,12 @@
 
     function addComponent(type) {
         if (ts.value) {
-            try {
+            // try {
                 ts.value.addComponent(type, nextNode.value ? nextNode.value : null);
                 nextNode.value = "";
-            } catch(e) {
-                comms.error(e.toString());
-            }
+            // } catch(e) {
+            //     comms.error(e.toString());
+            // }
         }
     }
 

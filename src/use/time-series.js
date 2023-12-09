@@ -258,7 +258,7 @@ export default class TimeSeries {
 
         // create array of arrays
         const values = [];
-        for (let i = 0; i < this.instances; ++i) {
+        for (let i = this.instances-1; i >= 0; --i) {
 
             values[i] = filled(0, this._tsc.samples);
 

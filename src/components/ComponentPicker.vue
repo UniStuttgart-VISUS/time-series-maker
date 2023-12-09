@@ -1,21 +1,21 @@
 
 <template>
-    <v-sheet>
-        <v-tabs v-model="tab" density="compact">
+    <div :class="horizontal ? '' : 'd-flex'">
+        <v-tabs v-model="tab" density="compact" :direction="horizontal ? 'horizontal' : 'vertical'">
             <v-tab v-for="(_, name) in comps"
                 :value="name"
                 :key="'tab'+name"
                 :color="app.getColor(name)">
-                {{ name }} <v-icon :color="app.getColor(name)" class="ml-1" size="sm">mdi-circle</v-icon>
+                <v-icon :color="app.getColor(name)" class="mr-1" size="sm">mdi-circle</v-icon> {{ name }}
             </v-tab>
         </v-tabs>
 
         <v-window v-model="tab">
             <v-window-item v-for="(cat, name) in comps" :value="name" :key="'window'+name"
-                transition="slide-y-reverse-transition"
-                reverse-transition="slide-y-reverse-transition">
+                transition="slide-x-reverse-transition"
+                reverse-transition="slide-x-reverse-transition">
 
-                <div :class="['d-flex', horizontal ? 'flex-row' : 'flex-column']">
+                <div :class="['d-flex', horizontal ? 'flex-row' : 'flex-column']" style="max-height: 95vh; overflow-y: auto;">
                     <ComponentPreview v-for="c in cat" :key="c.key"
                         v-ripple
                         class="ma-1 clickable-wobble"
@@ -24,7 +24,7 @@
                         :width="100"
                         :height="100"
                         :color="app.getColor(name)"
-                        background-color="#f5f5f5"
+                        background-color="#ffffff"
                         @click="emit('click', c.key)"
                         @mouseenter="setDescription(c.key)"
                         @mouseleave="setDescription()"/>
@@ -34,7 +34,7 @@
         </v-window>
 
         <ComponentInfoPanel :component="description"/>
-    </v-sheet>
+    </div>
 </template>
 
 <script setup>

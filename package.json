@@ -16,6 +16,7 @@
     "@stdlib/simulate": "^0.0.10",
     "@stdlib/stats": "^0.0.13",
     "@stdlib/utils": "^0.0.12",
+    "@vueuse/core": "^10.7.0",
     "core-js": "^3.29.0",
     "d3": "^7.8.5",
     "file-saver": "^2.0.5",

@@ -190,6 +190,26 @@ class TreeNode {
         }
     }
 
+    nodesAtDepth(depth) {
+        const nodes = [];
+        this.traverseDown(node => {
+            if (node.depth === depth) {
+                nodes.push(node);
+            }
+        });
+        return nodes;
+    }
+
+    leaves() {
+        const nodes = [];
+        this.traverseDown(node => {
+            if (!node.isNested()) {
+                nodes.push(node);
+            }
+        });
+        return nodes;
+    }
+
     toArray(deep=false) {
         return [
             this.left ? this.left.toArray() : null,
@@ -199,7 +219,11 @@ class TreeNode {
     }
 
     toString() {
-        return JSON.stringify(this.toArray(), null, 2)
+        // return JSON.stringify(this.toArray(), null, 2)
+        let str = Array(this.depth+1).join('--|') + ` ${this.data.name} (${this.data.id})\n`
+        if (this.isNestedLeft()) { str += this.left.toString() }
+        if (this.isNestedRight()) { str += this.right.toString() }
+        return str;
     }
 }
 
@@ -354,7 +378,6 @@ class Compositor {
                 this.tree = null;
                 this.size = 0;
             } else {
-                this.tree._updateRemove(node);
                 if (node.parent.left === node) {
                     node.parent.setLeft(null);
                 } else {
@@ -427,7 +450,7 @@ class Compositor {
                 parent: node.parent ? node.parent.data.id : null,
                 children: []
             }
-            maxDepth++;
+            maxDepth = Math.max(maxDepth, node.depth);
 
             if (node.isNestedLeft()) {
                 currentNode.children.push(build(node.left))
@@ -476,16 +499,12 @@ class Compositor {
             );
         }
 
-        let trees = [];
-        const targetDepth = this.tree.maxDepth - 1;
-
-        this.tree.traverseDown(d => {
-            if (d.depth === targetDepth) {
-                trees.push(d);
-            }
-        })
-
         const apply = node => {
+
+            if (node.visited) {
+                return;
+            }
+
             if (node.isNestedLeft(true)) {
                 callback(
                     OP_CASE.APPLY_LEFT,
@@ -512,14 +531,15 @@ class Compositor {
                 );
             }
 
-            if (node.parent) {
-                return node.parent
-            }
+            node.visited = true;
         }
 
         console.log(this.tree.toString())
-        while (trees.length > 0) {
-            trees = trees.map(apply).filter(d => d);
+
+        this.tree.setVisited(false);
+
+        for (let i = this.tree.maxDepth-1; i >= 0; --i) {
+            this.tree.nodesAtDepth(i).forEach(apply)
         }
     }
 }

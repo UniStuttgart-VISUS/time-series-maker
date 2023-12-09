@@ -13,6 +13,25 @@ html {
     overflow: hidden;
 }
 
+body {
+    scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb {
+    background: #a7a7a7;
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover { background: #757575; }
+
 .dragable {
     cursor: grab;
 }

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div style="overflow-x: auto; max-width: 100%; text-align: center;">
+        <div style="text-align: center; overflow: auto">
             <div class="text-caption ma-1">operators:</div>
             <div class="d-flex justify-center ma-1">
                 <div>
@@ -77,6 +77,18 @@
             type: Number,
             default: 80
         },
+        minPadding: {
+            type: Number,
+            default: 10
+        },
+        minChartWidth: {
+            type: Number,
+            default: 120
+        },
+        minChartHeight: {
+            type: Number,
+            default: 50
+        },
     })
     const emit = defineEmits(["update", "switch",, "select"])
 
@@ -92,14 +104,17 @@
     const mouseX = ref(0);
     const mouseY = ref(0);
 
-    const minPadding = 15;
-    const realWidth = computed(() => props.width / props.numLeaves < 100 ? props.numLeaves * (100 + minPadding) : props.width)
+    const realWidth = computed(() => {
+        return props.width / props.numLeaves < props.minChartWidth ?
+            props.numLeaves * (props.minChartWidth + props.minPadding) :
+            props.width
+    })
     const realHeight = computed(() => {
-        const h = (props.levelHeight + minPadding) * (props.maxDepth + 1)
-        const w = props.width / (props.numLeaves + minPadding)
+        const h = (props.levelHeight + props.minPadding) * (props.maxDepth + 1)
+        const w = realWidth.value / (props.numLeaves + props.minPadding)
         const asp = w / h;
         if (asp < 1.7 || asp > 1.9) {
-            return Math.max(35 + minPadding, (w / 1.8 + minPadding)) * (props.maxDepth + 1)
+            return Math.max(props.minChartHeight + props.minPadding, Math.min(w / 1.8)) * (props.maxDepth + 1) + 25
         }
         return h;
     })
@@ -129,18 +144,25 @@
         svg.selectAll("*").remove();
 
         const root = d3.hierarchy(props.data)
-            .count()
+
+        root.count()
             .sort((a, b) => b.value - a.value)
 
         const x = d3.scaleBand()
-            .domain(d3.range(1, root.value+1))
+            .domain(d3.range(0, props.numLeaves))
             .range([5, realWidth.value - 5])
-            .paddingInner(0.05)
+            .paddingInner(0.1)
 
         const y = d3.scaleBand()
-            .domain(d3.range(0, props.maxDepth+1))
-            .range([5, realHeight.value - 25])
+            .domain(d3.range(0, props.maxDepth + 1))
+            .range([5, realHeight.value - 50])
             .paddingInner(0.1)
+
+        function offset(d) {
+            if (!d.parent) return 0;
+            const first = d.parent.children[0].data.id === d.data.id;
+            return offset(d.parent) + (first ? 0 : d.parent.children[0].value)
+        }
 
         function dragstarted(event, d) {
             sourceID.value = d.data.id;
@@ -170,13 +192,11 @@
                     emit("switch", sourceID.value, targetID.value)
                 }
             } else {
-                const first = datum.parent.children[0] === datum;
-                const child = datum.parent.children[0].value;
                 // reset item
                 d3.select(this)
                     .transition()
                     .duration(200)
-                    .attr("transform", `translate(${x(first ? 1 : child + 1)},${y(datum.data.depth)})`)
+                    .attr("transform", `translate(${x(offset(datum))},${y(datum.depth)})`)
             }
 
             sourceID.value = "";
@@ -190,14 +210,7 @@
         const gs = svg.selectAll("g")
             .data(root.descendants(), d => d.data.id)
             .join("g")
-            .attr("transform", d => {
-                if (d.parent) {
-                    const first = d.parent.children[0] === d;
-                    const child = d.parent.children[0].value;
-                    return `translate(${x(first ? 1 : child + 1)},${y(d.data.depth)})`
-                }
-                return `translate(${x(1)},${y(d.data.depth)})`
-            })
+            .attr("transform", d => `translate(${x(offset(d))},${y(d.depth)})`);
 
         gs.filter(d => !d.children).call(drag)
 
@@ -212,14 +225,14 @@
             .append("rect")
             .attr("fill", "none")
             .attr("fill-opacity", 0.1)
-            .attr("width", d => x(d.value) + x.bandwidth())
+            .attr("width", d => (d.children ? x(d.value-1) : 0) + x.bandwidth())
             .attr("height", y.bandwidth())
             .classed("bg", true)
 
         gs.append("line")
             .attr("x1", 0)
             .attr("y1", y.bandwidth() * 0.5)
-            .attr("x2", d => x(d.value) + x.bandwidth())
+            .attr("x2", d => (d.children ? x(d.value-1) : 0) + x.bandwidth())
             .attr("y2", y.bandwidth() * 0.5)
             .attr("stroke", "black")
             .attr("stroke-width", 1)
@@ -247,7 +260,7 @@
 
             xs[d.data.id] = d3.scaleLinear()
                 .domain(xdomain)
-                .range([0, x(d.value) + x.bandwidth()])
+                .range([0, (d.children ? x(d.value-1) : 0) + x.bandwidth()])
 
             ys[d.data.id] = d3.scaleLinear()
                 .domain(extent)
@@ -298,7 +311,7 @@
             .on("mouseleave", function(_, d) {
                 d3.select(this)
                     .attr("stroke", "black")
-                    .attr("stroke-width", 2)
+                    .attr("stroke-width", x.bandwidth() < 150 ? 1 : 2)
                     .attr("stroke-opacity", d.opacity)
             })
             .on("click", (_, d) => {
@@ -309,7 +322,7 @@
 
         const opGroup = gs.filter(d => d.children)
             .append("g")
-            .attr("transform", d => `translate(${(x(d.value) + x.bandwidth()) * 0.5},${y.bandwidth() * 0.5})`)
+            .attr("transform", d => `translate(${((d.children ? x(d.value-1) : 0) + x.bandwidth()) * 0.5},${y.bandwidth() * 0.5})`)
             .on("mouseenter", function() {
                 d3.select(this)
                     .selectAll("circle")
@@ -359,7 +372,7 @@
 
         labels = gs.filter(d => !d.children)
             .append("text")
-            .attr("transform", `translate(${x.bandwidth()*0.5}, ${y.bandwidth()+20})`)
+            .attr("transform", d => `translate(${((d.children ? x(d.value-1) : 0) + x.bandwidth()) * 0.5}, ${y.bandwidth()+20})`)
             .attr("text-anchor", "middle")
             .attr("font-size", 12)
             .text(d => {
@@ -372,7 +385,7 @@
 
         const buttons = gs.filter(d => !d.children)
             .append("g")
-            .attr("transform", `translate(${x.bandwidth()*0.5}, ${y.bandwidth()+30})`)
+            .attr("transform", d => `translate(${((d.children ? x(d.value-1) : 0) + x.bandwidth()) * 0.5}, ${y.bandwidth()+35})`)
             .classed("clickable", true)
             .on("click", function(event, d) {
                 event.preventDefault()
