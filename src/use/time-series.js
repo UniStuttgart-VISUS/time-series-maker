@@ -193,6 +193,20 @@ export default class TimeSeries {
         this.generate();
     }
 
+    replaceComponent(nodeID, generatorType) {
+        const c = this.getComponent(nodeID);
+        if (!c || !generatorType || !(generatorType in GENERATOR_DEFAULTS)) {
+            throw new Error("unknown component")
+        }
+
+        const generator = new Generator(generatorType, [randi()]);
+        c.setGenerator(generator);
+        c.setName(this.getName(generator))
+
+        this.compositor.setNodeData(nodeID, c.name, generator.type)
+        this.generate();
+    }
+
     switchComponents(fromID, toID) {
         const fromIndex = this.getComponentIndex(fromID);
         const toIndex = this.getComponentIndex(toID);

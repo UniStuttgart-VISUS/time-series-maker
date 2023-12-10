@@ -1,30 +1,47 @@
 <template>
     <div ref="wrapper">
-        <div style="text-align: center; overflow: auto">
-            <div class="text-caption ma-1">operators:</div>
-            <div class="d-flex justify-center ma-1">
-                <div>
-                    <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.ADD) }}</v-icon>
-                    <svg width="25" height="6">
-                        <path d="M 0,3 l 25,0" stroke="black" stroke-width="2"></path>
-                    </svg>
-                </div>
-                <v-divider vertical class="ml-2 mr-2"></v-divider>
-                <div>
-                    <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.MULTIPLY) }}</v-icon>
-                    <svg width="25" height="6">
-                        <path d="M 0,3 l 25,0" stroke="black" stroke-width="2" stroke-dasharray="2,2"></path>
-                    </svg>
-                </div>
-                <v-divider vertical class="ml-2 mr-2"></v-divider>
-                <div>
-                    <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.SUBTRACT) }}</v-icon>
-                    <svg width="25" height="6">
-                        <path d="M 0,1 l 25,0" stroke="black" stroke-width="2" stroke-dasharray="6,2,6,2"></path>
-                    </svg>
-                </div>
+        <div  style="max-width: 100%; overflow: auto;">
+            <div class="d-flex justify-center">
+
+                <v-sheet class="pa-2 mr-4 text-caption d-flex flex-column align-center" style="max-width: 33%;" color="#f1f1f1" rounded="sm">
+                    <v-icon icon="mdi-rectangle-outline" color="#ff69b4" density="compact" size="x-large"/>
+                    indicates where new tree nodes will be added
+                </v-sheet>
+
+                <v-sheet class="pa-2 mr-4" style="text-align: center;" color="#f1f1f1" rounded="sm">
+                    <div class="text-caption pa-1">operators:</div>
+                    <div class="d-flex justify-center pa-1">
+                        <div>
+                            <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.ADD) }}</v-icon>
+                            <svg width="25" height="6">
+                                <path d="M 0,3 l 25,0" stroke="black" stroke-width="2"></path>
+                            </svg>
+                        </div>
+                        <v-divider vertical class="ml-2 mr-2"></v-divider>
+                        <div>
+                            <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.MULTIPLY) }}</v-icon>
+                            <svg width="25" height="6">
+                                <path d="M 0,3 l 25,0" stroke="black" stroke-width="2" stroke-dasharray="2,2"></path>
+                            </svg>
+                        </div>
+                        <v-divider vertical class="ml-2 mr-2"></v-divider>
+                        <div>
+                            <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.SUBTRACT) }}</v-icon>
+                            <svg width="25" height="6">
+                                <path d="M 0,1 l 25,0" stroke="black" stroke-width="2" stroke-dasharray="6,2,6,2"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </v-sheet>
+
+                <v-sheet class="pa-2 text-caption d-flex flex-column align-center" style="max-width: 33%;" color="#f1f1f1" rounded="sm">
+                    <v-icon icon="mdi-rectangle-outline" color="#00ced1" density="compact" size="x-large"/>
+                    indicates which node will be replaced
+                </v-sheet>
             </div>
-            <v-divider vertical class="ml-2 mr-2"></v-divider>
+
+            <v-divider class="mt-5 mb-5" thickness="1"></v-divider>
+
             <svg ref="el" :width="realWidth" :height="realHeight"></svg>
         </div>
 
@@ -32,31 +49,36 @@
             <v-btn-toggle :model-value="selectedValue"
                 divided mandatory border
                 density="compact"
+                elevation="4"
                 class="mt-1 mb-1">
-                <v-btn :icon="operatorToIcon(OPERATOR.SUBTRACT)" :value="OPERATOR.SUBTRACT"
-                    @click="setOperator(OPERATOR.SUBTRACT)"/>
                 <v-btn :icon="operatorToIcon(OPERATOR.ADD)" :value="OPERATOR.ADD"
                     @click="setOperator(OPERATOR.ADD)"/>
                 <v-btn :icon="operatorToIcon(OPERATOR.MULTIPLY)" :value="OPERATOR.MULTIPLY"
                     @click="setOperator(OPERATOR.MULTIPLY)"/>
-
+                <v-btn :icon="operatorToIcon(OPERATOR.SUBTRACT)" :value="OPERATOR.SUBTRACT"
+                    @click="setOperator(OPERATOR.SUBTRACT)"/>
             </v-btn-toggle>
         </div>
 
-        <div class="action-picker" :style="{ top: actionY+'px', left: (actionX-47)+'px', display: hovered ? 'block' : 'none' }">
-            <v-tooltip text="add a new component here" open-delay="500" location="bottom">
+        <div class="action-picker" :style="{ top: actionY+'px', left: (actionX-62)+'px', display: hovered ? 'block' : 'none' }">
+            <v-tooltip text="add new components here" open-delay="500" location="bottom">
                 <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" elevation="0" icon="mdi-plus" rounded="sm" density="compact" color="primary" @click="selectComp"/>
+                    <v-btn v-bind="props" variant="outlined" elevation="0" class="mr-1" icon="mdi-tree" rounded="sm" density="compact" color="#ff69b4" @click="selectComp"/>
+                </template>
+            </v-tooltip>
+            <v-tooltip text="replace this component" open-delay="500" location="bottom">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" variant="outlined" elevation="0" class="mr-1" icon="mdi-swap-horizontal" rounded="sm" density="compact" color="#00ced1" @click="replaceComp"/>
                 </template>
             </v-tooltip>
             <v-tooltip text="delete this component" open-delay="500" location="bottom">
                 <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" elevation="0" class="ml-1 mr-1" icon="mdi-delete" rounded="sm" density="compact" color="error" @click="deleteComp"/>
+                    <v-btn v-bind="props" variant="outlined" elevation="0" class="mr-1" icon="mdi-delete" rounded="sm" density="compact" color="error" @click="deleteComp"/>
                 </template>
             </v-tooltip>
             <v-tooltip text="cancel" open-delay="500" location="bottom">
                 <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" elevation="0" icon="mdi-close" rounded="sm" density="compact" color="warning" @click="hovered = ''"/>
+                    <v-btn v-bind="props" variant="outlined" elevation="0" icon="mdi-close" rounded="sm" density="compact" color="warning" @click="hovered = ''"/>
                 </template>
             </v-tooltip>
         </div>
@@ -81,6 +103,10 @@
         },
         numLeaves: {
             type: Number,
+            required: true
+        },
+        addNodeId: {
+            type: String,
             required: true
         },
         xValues: {
@@ -115,10 +141,11 @@
     const wrapper = ref(null);
     const el = ref(null)
 
-    const active = ref("");
     const hovered = ref("");
     const selected = ref(null);
     const selectedValue = ref("");
+
+    const replace = ref("");
 
     const sourceID = ref("")
     const targetID = ref("")
@@ -138,13 +165,13 @@
         const w = realWidth.value / (props.numLeaves + props.minPadding)
         const asp = w / h;
         if (asp < 1.7 || asp > 1.9) {
-            return Math.max(props.minChartHeight + props.minPadding, Math.min(w / 1.8)) * (props.maxDepth + 1) + 25
+            return Math.max(props.minChartHeight + props.minPadding*2, Math.min(w / 1.8)) * (props.maxDepth + 1) + 25
         }
         return h;
     })
 
     let dragOffsetX = 0, dragOffsetY = 0;
-    let labels, rects;
+    let labels, rects, gs, x, y;
 
     function operatorToIcon(name) {
         switch (name) {
@@ -167,22 +194,24 @@
         const svg = d3.select(el.value);
         svg.selectAll("*").remove();
 
-        active.value = "";
+        replace.value = "";
         hovered.value = "";
         selected.value = null;
         selectedValue.value = "";
 
         const root = d3.hierarchy(props.data).count()
 
-        const x = d3.scaleBand()
+        x = d3.scaleBand()
             .domain(d3.range(0, props.numLeaves))
             .range([5, realWidth.value - 5])
             .paddingInner(0.1)
+            .paddingOuter(0.05)
 
-        const y = d3.scaleBand()
+        y = d3.scaleBand()
             .domain(d3.range(0, props.maxDepth + 1))
-            .range([5, realHeight.value - 50])
-            .paddingInner(0.1)
+            .range([25, realHeight.value - 50])
+            .paddingInner(0.2)
+            .paddingOuter(0.05)
 
         function offset(d) {
             if (!d.parent) return 0;
@@ -191,6 +220,7 @@
         }
 
         function dragstarted(event, d) {
+            hovered.value = "";
             sourceID.value = d.data.id;
             const [mx, my] = d3.pointer(event, this)
             dragOffsetX = mx;
@@ -233,7 +263,7 @@
             .on("drag", dragged)
             .on("end", dragended);
 
-        const gs = svg.selectAll("g")
+        gs = svg.selectAll("g")
             .data(root.descendants(), d => d.data.id)
             .join("g")
             .attr("transform", d => `translate(${x(offset(d))},${y(d.depth)})`);
@@ -247,10 +277,15 @@
                 hovered.value = d.data.id;
                 const rect = this.getBoundingClientRect();
                 actionX.value = rect.x + rect.width * 0.5;
-                actionY.value = rect.y + rect.height;
+                actionY.value = rect.y + rect.height + 5;
             })
-            .on("mouseleave", function() {
-                d3.select(this).selectChild(".bg").attr("fill", "none")
+            .on("mouseleave", function(_, d) {
+                if (!app.isSelectedComponent(d.data.id)) {
+                    d3.select(this).selectChild(".bg").attr("fill", "none")
+                }
+            })
+            .on("click", function(_, d) {
+                app.toggleSelectedComponent(d.data.id)
             })
             .append("rect")
             .attr("fill", "none")
@@ -258,15 +293,6 @@
             .attr("width", d => (d.children ? x(d.value-1) : 0) + x.bandwidth())
             .attr("height", y.bandwidth())
             .classed("bg", true)
-
-        // gs.append("line")
-        //     .attr("x1", 0)
-        //     .attr("y1", y.bandwidth() * 0.5)
-        //     .attr("x2", d => (d.children ? x(d.value-1) : 0) + x.bandwidth())
-        //     .attr("y2", y.bandwidth() * 0.5)
-        //     .attr("stroke", "black")
-        //     .attr("stroke-width", 1)
-        //     .attr("stroke-opacity", 0.5)
 
         d3.select(wrapper.value).on("mouseleave", () => hovered.value = "")
 
@@ -351,9 +377,21 @@
 
         lines.filter(d => d.opacity === 1).raise()
 
+        // add indicators where tree will be expanded
+       gs.filter(d => d.data.id === props.addNodeId)
+            .append("rect")
+            .attr("x", -0.5 * (x.step() - x.bandwidth()))
+            .attr("y", -0.5 * (y.step() - y.bandwidth()))
+            .attr("width", x.step())
+            .attr("height", y.step())
+            .attr("fill", "none")
+            .attr("stroke", d => d.data.id === props.addNodeId ? "#ff69b4" : "#00ced1")
+            .attr("stroke-width", 2)
+            .attr("stroke-opacity", 1)
+
         const opGroup = gs.filter(d => d.children)
             .append("g")
-            .attr("transform", d => `translate(${((d.children ? x(d.value-1) : 0) + x.bandwidth()) * 0.5},${y.bandwidth() * 0.5})`)
+            .attr("transform", d => `translate(${((d.children ? x(d.value-1) : 0) + x.bandwidth()) * 0.5},${-10})`)
             .on("mouseenter", function() {
                 d3.select(this)
                     .selectAll("circle")
@@ -428,47 +466,36 @@
         }
     }
 
+    function updateIndicators() {
+
+        if (replace.value === "") {
+            d3.select(el.value).selectAll(".indicator").remove()
+        } else {
+            gs.filter(d => d.data.id === replace.value)
+                .append("rect")
+                .classed("indicator", true)
+                .attr("x", -0.5 * (x.step() - x.bandwidth()))
+                .attr("y", -0.5 * (y.step() - y.bandwidth()))
+                .attr("width", x.step())
+                .attr("height", y.step())
+                .attr("fill", "none")
+                .attr("stroke", "#00ced1")
+                .attr("stroke-width", 2)
+                .attr("stroke-opacity", 1)
+        }
+    }
+
     function selectComp() {
         if (hovered.value) {
             emit("select", hovered.value);
-            active.value = hovered.value;
             hovered.value = "";
-            const elem = rects.filter(d => d.data.id === active.value)
-            const toColor = () => {
-                elem
-                    .attr("fill", "white")
-                    .attr("stroke", "white")
-                    .transition()
-                    .duration(700)
-                    .ease(d3.easeCubicInOut)
-                    .attr("fill", d => d.data.color ? app.getColor(d.data.color) : "black")
-                    .attr("stroke", d => d.data.color ? app.getColor(d.data.color) : 'black')
-                    .on("end", d => {
-                        if (active.value === d.data.id) {
-                            toWhite()
-                        } else {
-                            elem.attr("stroke", "none").attr("fill", "none")
-                        }
-                    })
-            }
-            const toWhite = () => {
-                elem
-                    .attr("fill", d => d.data.color ? app.getColor(d.data.color) : 'black')
-                    .attr("stroke", d => d.data.color ? app.getColor(d.data.color) : 'black')
-                    .transition()
-                    .duration(700)
-                    .ease(d3.easeCubicInOut)
-                    .attr("fill", "white")
-                    .attr("stroke", "white")
-                    .on("end", d => {
-                        if (active.value === d.data.id) {
-                            toColor()
-                        } else {
-                            elem.attr("stroke", "none").attr("fill", "none")
-                        }
-                    })
-            }
-            toColor()
+        }
+    }
+    function replaceComp() {
+        if (hovered.value) {
+            emit("replace", hovered.value);
+            replace.value = hovered.value;
+            hovered.value = "";
         }
     }
     function deleteComp() {
@@ -481,7 +508,9 @@
     onMounted(draw);
 
     watch(props, draw, { deep: true })
+    watch(replace, updateIndicators)
     watch(() => app.selectedComps, highlight, { deep: true });
+
 </script>
 
 <style scoped>

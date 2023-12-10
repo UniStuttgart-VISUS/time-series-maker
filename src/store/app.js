@@ -25,7 +25,7 @@ export const useApp = defineStore('app', {
         tsColorScale: d3.scaleOrdinal(["#000"].concat(d3.schemeCategory10)),
 
         tsOpacity: 0.33,
-        tscOpacity: 0.25,
+        tscOpacity: 0.15,
     }),
 
     actions: {
@@ -92,6 +92,14 @@ export const useApp = defineStore('app', {
 
         addSelectedComponent(name) {
             this.selectedComps.add(name);
+        },
+
+        toggleSelectedComponent(name) {
+            if (this.selectedComps.has(name)) {
+                this.removeSelectedComponent(name);
+            } else {
+                this.addSelectedComponent(name)
+            }
         },
 
         removeSelectedComponent(name) {

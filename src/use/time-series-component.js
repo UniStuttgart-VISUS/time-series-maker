@@ -62,7 +62,13 @@ export default class TimeSeriesComponent {
         this.visible = value;
     }
 
-    setInstances(number) {
+    setGenerator(generator) {
+        this.generator = generator;
+        this.data = [];
+        this.setInstances(this.instances);
+    }
+
+    setInstances(number, generate=true) {
         if (this.generator.seedRequired) {
             if (number < this.instances) {
                 this.generator.seeds = this.generator.seeds.slice(0, number);
@@ -73,7 +79,7 @@ export default class TimeSeriesComponent {
             }
         }
         this.instances = number;
-        if (this.generator.seedRequired) {
+        if (generate && this.generator.seedRequired) {
             this.generate();
         }
     }

@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
+    import { ref, watch } from 'vue';
     import { useApp } from '@/store/app';
 
     const props = defineProps({
@@ -86,5 +86,11 @@
         props.component.setVisible(value)
         props.component.update(false);
     }
+
+    watch(() => props.component.name, function(newName) {
+        if (newName !== name.value) {
+            name.value = newName;
+        }
+    })
 
 </script>

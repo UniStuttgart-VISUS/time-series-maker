@@ -45,16 +45,20 @@
                         :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
                 </div>
 
+                <v-divider class="mt-2 mb-2" thickness="2" style="width: 100%"></v-divider>
+
                 <div class="ma-1 mt-2 pa-1" style="max-width: 100%;">
                     <KeepAlive>
                         <OperationTree v-if="mainTab === MAIN_TABS.TS && tree && tree.maxDepth > 0"
                             :data="tree.root"
                             :max-depth="tree.maxDepth"
                             :num-leaves="tree.numLeaves"
+                            :add-node-id="tree.addNodeID"
                             :x-values="tsc.dataX"
                             :width="1000"
                             @update="updateCompositor"
                             @switch="switchComponents"
+                            @replace="replaceComponent"
                             @select="selectNode"
                             @delete="deleteComponent"/>
                     </KeepAlive>
@@ -104,9 +108,9 @@
 
     const { mainTab } = storeToRefs(app)
 
-    const nextNode = ref("");
+    const replaceCompID = ref("");
     const lineData = ref([]);
-    const tree = ref(null)
+    const tree = reactive({})
 
     const tsc = reactive(new TimeSeriesCollection());
 
@@ -127,8 +131,12 @@
     function addComponent(type) {
         if (ts.value) {
             try {
-                ts.value.addComponent(type, nextNode.value ? nextNode.value : null);
-                nextNode.value = "";
+                if (replaceCompID.value.length > 0) {
+                    ts.value.replaceComponent(replaceCompID.value, type);
+                    replaceCompID.value = "";
+                } else {
+                    ts.value.addComponent(type);
+                }
             } catch(e) {
                 comms.error(e.toString());
             }
@@ -143,10 +151,22 @@
             }
         }
     }
+    function replaceComponent(id) {
+        if (ts.value) {
+            replaceCompID.value = id;
+        }
+    }
 
     function selectNode(id) {
         if (ts.value) {
-            nextNode.value = id;
+            try {
+                if (ts.value.compositor.setLastNode(id)) {
+                    ts.value.tree.addNodeID = id;
+                    tree.addNodeID = id;
+                }
+            } catch(e) {
+                comms.error(e.toString());
+            }
         }
     }
 
@@ -180,7 +200,10 @@
                     comms.error(e.toString());
                 }
             }
-            tree.value = ts.value.tree;
+            tree.root = ts.value.tree.root;
+            tree.maxDepth = ts.value.tree.maxDepth;
+            tree.numLeaves = ts.value.tree.numLeaves;
+            tree.addNodeID = ts.value.tree.addNodeID;
             lineData.value = ts.value.toChartData(true, app.tscOpacity)
         } else {
             app.setTSCDomain(tsc.series.map(d => d.id));
@@ -191,7 +214,10 @@
                     comms.error(e.toString());
                 }
             }
-            tree.value = null
+            tree.root = {}
+            tree.maxDepth = 0;
+            tree.numLeaves = 0;
+            tree.addNodeID = "";
             lineData.value = tsc.toChartData(app.tsOpacity)
         }
     }

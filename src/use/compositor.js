@@ -54,6 +54,11 @@ class TreeNode {
         return this.getMaxDepth();
     }
 
+    setDepth(depth) {
+        this.depth = depth;
+        this.traverseDown(n => n.depth = n.parent ? n.parent.depth+1 : 0)
+    }
+
     hasLeft() {
         return this.left !== null && this.left !== undefined;
     }
@@ -63,8 +68,9 @@ class TreeNode {
 
     setLeft(node) {
         this.left = node;
-        if (node instanceof TreeNode) {
-            node.parent = this;
+        if (this.left instanceof TreeNode) {
+            this.left.parent = this;
+            this.left.setDepth(this.depth+1)
         }
     }
     addLeft(data) {
@@ -73,8 +79,9 @@ class TreeNode {
 
     setRight(node) {
         this.right = node;
-        if (node instanceof TreeNode) {
-            node.parent = this;
+        if (this.right instanceof TreeNode) {
+            this.right.parent = this;
+            this.right.setDepth(this.depth+1)
         }
     }
     addRight(data) {
@@ -282,6 +289,16 @@ class Compositor {
         this.lastTreeNode = null;
     }
 
+    setLastNode(id) {
+        const node = this.getNode(id)
+        if (node) {
+            console.assert(!node.full, "cannot set to full node")
+            this.lastTreeNode = node;
+            return true;
+        }
+        return false
+    }
+
     getNode(id) {
         return this.tree ? this.tree.find(d => d.data.id === id) : null;
     }
@@ -308,14 +325,6 @@ class Compositor {
             }
 
             console.assert(!node.full, "node cannot be full when adding data")
-            // last node is already full
-
-                // replace child node that is not full
-                // const replaceID = node.right.full ? node.left.data.id : node.right.data.id
-                // // add an operator node
-                // const opNodeID = this.addOperator(OPERATOR.ADD, replaceID);
-                // // add the data node
-                // this.addData(id, name, genType, opNodeID)
 
             if (node.data.type === NODE_TYPE.DATA) {
                 const opNodeID = this.addOperator(OPERATOR.ADD, node.data.id, true)
@@ -323,10 +332,14 @@ class Compositor {
             } else {
                 if (node.isNestedLeft()) {
                     node.addRight(obj)
-                    this.lastTreeNode = node.right;
+                    if (node.full) {
+                        this.lastTreeNode = node.right;
+                    }
                 } else {
                     node.addLeft(obj)
-                    this.lastTreeNode = node.left;
+                    if (node.full) {
+                        this.lastTreeNode = node.left;
+                    }
                 }
                 this.size++;
             }
@@ -404,6 +417,7 @@ class Compositor {
                     if (!p) {
                         this.tree = onLeft ? node.parent.right : node.parent.left;
                         this.tree.parent = null;
+                        this.tree.setDepth(0)
                     } else {
                         const pOnLeft = p.left === node.parent;
                         if (pOnLeft) {
@@ -412,7 +426,7 @@ class Compositor {
                             p.setRight(onLeft ? node.parent.right : node.parent.left);
                         }
                     }
-
+                    this.size--;
                     this.lastTreeNode = this.tree.getLastNode();
 
                 } else {
@@ -429,17 +443,21 @@ class Compositor {
     }
 
     setOperator(id, newOp) {
-        if (this.tree === null) return;
-
         const node = this.getNode(id);
         if (node) {
             node.data.name = newOp;
         }
     }
 
-    switchData(fromID, toID) {
-        if (this.tree === null) return;
+    setNodeData(id, name, genType) {
+        const node = this.getNode(id);
+        if (node) {
+            node.data.name = name;
+            node.data.genType = genType;
+        }
+    }
 
+    switchData(fromID, toID) {
         const nodeFrom = this.getNode(fromID);
         const nodeTo = this.getNode(toID);
         if (nodeFrom !== nodeTo) {
@@ -450,8 +468,6 @@ class Compositor {
     }
 
     rename(id, name) {
-        if (this.tree === null) return;
-
         const node = this.getNode(id);
         if (node) {
             node.data.name = name;
@@ -464,7 +480,8 @@ class Compositor {
             return {
                 root: {},
                 maxDepth: 0,
-                numLeaves: 0
+                numLeaves: 0,
+                addNodeID: ""
             };
         }
 
@@ -499,7 +516,8 @@ class Compositor {
         return {
             root: build(this.tree),
             maxDepth: maxDepth,
-            numLeaves: numLeaves
+            numLeaves: numLeaves,
+            addNodeID: this.lastTreeNode.data.id
         };
     }
 
