@@ -1,10 +1,7 @@
 <template>
-    <div class="d-flex flex-column align-center" :style="{ 'max-width': (width+10)+'px' }">
+    <div class="d-flex flex-column align-center" :style="{ 'max-width': (width+10)+'px' }" @click="emit('click')">
         <span class="text-caption preview-title" :style="{ 'max-width': width+'px' }">{{ title }}</span>
-        <svg class="pa-1" ref="el"
-            :width="width"
-            :height="height"
-            @click="emit('click')"></svg>
+        <svg class="pa-1" ref="el" :width="width" :height="height"></svg>
     </div>
 </template>
 

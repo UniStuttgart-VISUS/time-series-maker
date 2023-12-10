@@ -164,6 +164,8 @@
                     ts.value.tree.addNodeID = id;
                     tree.addNodeID = id;
                     replaceCompID.value = "";
+                } else {
+                    comms.info("action was not possible")
                 }
             } catch(e) {
                 comms.error(e.toString());

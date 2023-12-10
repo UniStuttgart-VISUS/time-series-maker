@@ -23,6 +23,16 @@ const GENERATOR_DESCRIPTIONS = Object.freeze({
     RNG_BERNOULLI: "Produces random values from a Bernoulli distribution at <i>N</i> points with the given probability <b>p</b> - scaled with <b>scale</b>.",
     RNG_BINOMIAL: "Produces random values from a Bernoulli distribution at <i>N</i> points with the given number of trials <b>n</b> and probability <b>p</b> - scaled with <b>scale</b>.",
 
+    MATH_EXP: "Samples the natural exponential function in the range [<b>xMin</b>, <b>xMax</b>].",
+    MATH_POW: "Samples a exponentiation function with the given <b>base</b> in the range [<b>xMin</b>, <b>xMax</b>].",
+    MATH_LN: "Samples the natural logarithm function in the range [<b>xMin</b>, <b>xMax</b>].",
+    MATH_LOG: "Samples a logarithm function with the given <b>base</b> in the range [<b>xMin</b>, <b>xMax</b>].",
+    MATH_SQRT: "Samples the square root function in the range [<b>xMin</b>, <b>xMax</b>].",
+    MATH_INV: "Samples the multiplical inverse in the range [<b>xMin</b>, <b>xMax</b>].",
+    MATH_COS: "Samples the cosine function in the range [<b>xMin</b>, <b>xMax</b>].",
+    MATH_SINE: "Samples the cosine function in the range [<b>xMin</b>, <b>xMax</b>].",
+    MATH_TAN: "Samples the tangent function in the range [<b>xMin</b>, <b>xMax</b>].",
+
     WAVE_SINE: "Samples a sine wave with the given <b>period</b>, <b>amplitude</b> and <b>offset</b>.",
     WAVE_COSINE: "Samples a cosine wave with the given <b>period</b>, <b>amplitude</b> and <b>offset</b>.",
     WAVE_PULSE: "Samples a pulse wave with the given <b>period</b>, <b>duration</b> and <b>offset</b> in the range [<b>minAmplitude</b>, <b>maxAmplitude</b>].",

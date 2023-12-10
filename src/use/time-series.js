@@ -206,7 +206,7 @@ export default class TimeSeries {
         const generator = new Generator(generatorType, [randi()]);
         c.setGenerator(generator);
         if (!c.wasRenamed) {
-            c.setName(this.getName(generator))
+            c.name = this.getName(generator)
         }
 
         this.compositor.setNodeData(nodeID, c.name, generator.type)

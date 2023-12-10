@@ -7,7 +7,6 @@ const OPERATOR = Object.freeze({
 const NODE_TYPE = Object.freeze({
     DATA: "DATA",
     OPERATOR: "OPERATOR",
-    BRACKETS: "BRACKETS",
 })
 
 const OP_CASE = Object.freeze({
@@ -291,7 +290,7 @@ class Compositor {
         const node = this.getNode(id)
         if (node) {
             console.assert(!node.full, "cannot set to full node")
-            this.lastTreeNode = node;
+            this.lastTreeNode = this.size >= 3 ? node : this.tree;
             return true;
         }
         return false
@@ -407,15 +406,28 @@ class Compositor {
             } else {
                 const onLeft = node.parent.left === node;
 
-                // if the other side is nested
+                // if there is a node on the parent's other side
                 if (onLeft && node.parent.isNestedRight() ||
                     !onLeft && node.parent.isNestedLeft()
                 ) {
                     const p = node.parent.parent;
                     if (!p) {
-                        this.tree = onLeft ? node.parent.right : node.parent.left;
-                        this.tree.parent = null;
-                        this.tree.setDepth(0)
+                        const other = onLeft ? node.parent.right : node.parent.left;
+                        if (other.isNested()) {
+                            this.tree = other;
+                            this.tree.parent = null;
+                            this.tree.setDepth(0)
+                            this.size -= 2;
+                            this.lastTreeNode = this.tree.getLastNode();
+                        } else {
+                            if (onLeft) {
+                                node.parent.setLeft(null)
+                            } else {
+                                node.parent.setRight(null)
+                            }
+                            this.size--;
+                            this.lastTreeNode = node.parent;
+                        }
                     } else {
                         const pOnLeft = p.left === node.parent;
                         if (pOnLeft) {
@@ -423,18 +435,21 @@ class Compositor {
                         } else {
                             p.setRight(onLeft ? node.parent.right : node.parent.left);
                         }
+                        this.size -= 2;
+                        this.lastTreeNode = this.tree.getLastNode();
                     }
-                    this.size--;
-                    this.lastTreeNode = this.tree.getLastNode();
 
                 } else {
-                    if (node.parent.left === node) {
-                        node.parent.setLeft(null);
-                    } else {
-                        node.parent.setRight(null);
-                    }
-                    this.size--;
-                    this.lastTreeNode = node.parent;
+                    this.tree = null;
+                    this.lastTreeNode = null;
+                    this.size = 0;
+                    // if (node.parent.left === node) {
+                    //     node.parent.setLeft(null);
+                    // } else {
+                    //     node.parent.setRight(null);
+                    // }
+                    // this.size--;
+                    // this.lastTreeNode = node.parent;
                 }
             }
         }

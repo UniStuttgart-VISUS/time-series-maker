@@ -5,7 +5,12 @@
 
                 <v-sheet class="pa-2 mr-4 text-caption d-flex flex-column align-center" style="max-width: 33%;" color="#f1f1f1" rounded="sm">
                     <v-icon icon="mdi-rectangle-outline" color="#ff69b4" density="compact" size="x-large"/>
-                    indicates where new components will be added
+                    <span>indicates where new components will be added</span>
+                    <span>
+                        changed via
+                        <v-icon icon="mdi-tree" color="#ff69b4" density="compact" size="large"/>
+                        button
+                    </span>
                 </v-sheet>
 
                 <v-sheet class="pa-2 mr-4" style="text-align: center;" color="#f1f1f1" rounded="sm">
@@ -36,7 +41,12 @@
 
                 <v-sheet class="pa-2 text-caption d-flex flex-column align-center" style="max-width: 33%;" color="#f1f1f1" rounded="sm">
                     <v-icon icon="mdi-rectangle-outline" color="#00ced1" density="compact" size="x-large"/>
-                    indicates which component will be replaced
+                    <span>indicates which component will be replaced</span>
+                    <span>
+                        changed via
+                        <v-icon icon="mdi-swap-horizontal" color="#00ced1" density="compact" size="large"/>
+                        button
+                    </span>
                 </v-sheet>
             </div>
 
@@ -292,7 +302,7 @@
             })
             .append("rect")
             .attr("fill", "none")
-            .attr("fill-opacity", 0.1)
+            .attr("fill-opacity", 0.2)
             .attr("width", d => (d.children ? x(d.value-1) : 0) + x.bandwidth())
             .attr("height", y.bandwidth())
             .classed("bg", true)

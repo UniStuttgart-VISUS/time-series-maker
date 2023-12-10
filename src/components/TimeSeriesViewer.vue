@@ -115,5 +115,17 @@
     }
 
     watch(() => app.selectedComps, readSelected, { deep: true })
+    watch(() => props.timeseries.size, function() {
+        let changes = false;
+        props.timeseries.components.forEach(c => {
+            if (c.visible !== showAll.value) {
+                c.setVisible(showAll.value)
+                changes = true;
+            }
+        })
+        if (changes) {
+            props.timeseries.update()
+        }
+    })
 
 </script>

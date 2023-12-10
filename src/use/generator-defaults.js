@@ -8,7 +8,7 @@ const GENERATOR_DEFAULTS = {
         type: GENERATOR_TYPES.SPECIAL,
         title: "Constant",
         seedRequired: false,
-        options: { value: new GeneratorOption("value", 0, { step: 0.1 }) }
+        options: { value: new GeneratorOption("value", 1) }
     },
     TREND: {
         key: "TREND",
@@ -17,7 +17,7 @@ const GENERATOR_DEFAULTS = {
         title: "Linear Trend",
         seedRequired: false,
         options: {
-            position: new GeneratorOption("position", 0.5, { min: 0, max: 1, step: 0.01 }),
+            position: new GeneratorOption("position", 0.5, { min: 0, max: 1 }),
             slope: new GeneratorOption("slope", 0.1, { validators: ["NOT_ZERO"] }),
         }
     },
@@ -28,9 +28,9 @@ const GENERATOR_DEFAULTS = {
         title: "Outlier",
         seedRequired: false,
         options: {
-            position: new GeneratorOption("position", 0.5, { min: 0, max: 1, step: 0.01 }),
+            position: new GeneratorOption("position", 0.5, { min: 0, max: 1 }),
             width: new GeneratorOption("width", 1, { min: 1, step: 1 }),
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
     DAY: {
@@ -41,7 +41,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             day: new GeneratorOption("day", 1, { min: 1, max: 31, step: 1, validators: ["INTEGER"] }),
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
     WEEK: {
@@ -52,7 +52,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             week: new GeneratorOption("week", 1, { min: 1, max: 53, step: 1, validators: ["INTEGER"] }),
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
     MONTH: {
@@ -63,7 +63,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             month: new GeneratorOption("month", 1, { min: 1, max: 12, step: 1, validators: ["INTEGER"] }),
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
     DAILY: {
@@ -73,7 +73,7 @@ const GENERATOR_DEFAULTS = {
         title: "Daily",
         seedRequired: false,
         options: {
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
     WEEKLY: {
@@ -83,7 +83,7 @@ const GENERATOR_DEFAULTS = {
         title: "Weekly",
         seedRequired: false,
         options: {
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
     MONTHLY: {
@@ -93,7 +93,7 @@ const GENERATOR_DEFAULTS = {
         title: "Monthly",
         seedRequired: false,
         options: {
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
     WORK_WEEK: {
@@ -103,7 +103,7 @@ const GENERATOR_DEFAULTS = {
         title: "Work Week",
         seedRequired: false,
         options: {
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
     WEEKEND: {
@@ -113,7 +113,7 @@ const GENERATOR_DEFAULTS = {
         title: "Weekend",
         seedRequired: false,
         options: {
-            value: new GeneratorOption("value", 0.5, { step: 0.01 }),
+            value: new GeneratorOption("value", 1),
         }
     },
 
@@ -136,7 +136,7 @@ const GENERATOR_DEFAULTS = {
         type: GENERATOR_TYPES.MATH,
         seedRequired: false,
         options: {
-            base: new GeneratorOption("base", 2, { min: 0.01, step: 1, validators: ["POSITIVE", "NOT_ZERO"] }),
+            base: new GeneratorOption("base", 2, { min: 0.1, step: 1, validators: ["POSITIVE", "NOT_ZERO"] }),
             xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
             xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["INTEGER"] }),
         }
@@ -159,7 +159,7 @@ const GENERATOR_DEFAULTS = {
         type: GENERATOR_TYPES.MATH,
         seedRequired: false,
         options: {
-            base: new GeneratorOption("base", 2, { min: 0.01, step: 1, validators: ["POSITIVE", "NOT_ZERO"] }),
+            base: new GeneratorOption("base", 2, { min: 0.1, step: 1, validators: ["POSITIVE", "NOT_ZERO"] }),
             xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
             xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
         }
@@ -293,7 +293,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: true,
         options: {
             k: new GeneratorOption("k", 2, { min: 2, step: 1, validators: ["INTEGER"] }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
         }
     },
     RNG_STUDENTS_T: {
@@ -304,7 +304,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: true,
         options: {
             dof: new GeneratorOption("dof", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
         }
     },
     RNG_POISSON: {
@@ -315,7 +315,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: true,
         options: {
             lambda: new GeneratorOption("lambda", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
         }
     },
     RNG_BERNOULLI: {
@@ -326,7 +326,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: true,
         options: {
             p: new GeneratorOption("p", 0.1, { min: 0, step: 0.01, max: 1 }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
         }
     },
     RNG_BINOMIAL: {
@@ -338,7 +338,7 @@ const GENERATOR_DEFAULTS = {
         options: {
             n: new GeneratorOption("n", 1, { min: 0, step: 1, validators: ["INTEGER"] }),
             p: new GeneratorOption("p", 0.1, { min: 0, step: 0.01, max: 1 }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
         }
     },
 
@@ -377,8 +377,8 @@ const GENERATOR_DEFAULTS = {
             period: new GeneratorOption("period", 10, { min: 1, step: 1, validators: ["INTEGER"] }),
             duration: new GeneratorOption("duration", 5, { min: 3, step: 1, validators: ["INTEGER"] }),
             offset: new GeneratorOption("offset", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
-            minAmplitude: new GeneratorOption("minAmplitude", 0, { step: 0.1 }),
-            maxAmplitude: new GeneratorOption("maxAmplitude", 1, { step: 0.1 }),
+            minAmplitude: new GeneratorOption("minAmplitude", 0),
+            maxAmplitude: new GeneratorOption("maxAmplitude", 1),
         }
     },
     WAVE_BARTLETT_PULSE: {
@@ -454,7 +454,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             dof: new GeneratorOption("dof", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
@@ -507,7 +507,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             dof: new GeneratorOption("dof", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
@@ -520,7 +520,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             lambda: new GeneratorOption("lambda", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
@@ -533,7 +533,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             p: new GeneratorOption("p", 0.1, { min: 0, step: 0.01, max: 1 }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
@@ -547,7 +547,7 @@ const GENERATOR_DEFAULTS = {
         options: {
             n: new GeneratorOption("n", 1, { min: 0, step: 1, validators: ["INTEGER"] }),
             p: new GeneratorOption("p", 0.1, { min: 0, step: 0.01, max: 1 }),
-            scale: new GeneratorOption("scale", 1, { step: 0.1 }),
+            scale: new GeneratorOption("scale", 1),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
         }
