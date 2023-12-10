@@ -120,6 +120,10 @@ export default class TimeSeries {
         return this.components.length;
     }
 
+    get hasRandom() {
+        return this.components.some(d => d.hasRandom)
+    }
+
     getID() {
         return "comp_" + (this.COMP_ID++)
     }
@@ -182,6 +186,10 @@ export default class TimeSeries {
             this.components.splice(idx, 1)
             this.compositor.remove(id);
         }
+        if (!this.hasRandom) {
+            this.instances = 1;
+        }
+
         this.generate();
     }
 

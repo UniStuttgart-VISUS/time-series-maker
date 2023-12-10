@@ -28,7 +28,7 @@
             <svg ref="el" :width="realWidth" :height="realHeight"></svg>
         </div>
 
-        <div v-if="selected" class="op-picker" :style="{ top: mouseY+'px', left: mouseX+'px' }">
+        <div v-if="selected" class="op-picker" :style="{ top: opY+'px', left: opX+'px' }">
             <v-btn-toggle :model-value="selectedValue"
                 divided mandatory border
                 density="compact"
@@ -43,7 +43,7 @@
             </v-btn-toggle>
         </div>
 
-        <div class="action-picker" :style="{ top: mouseY+'px', left: (mouseX-47)+'px', display: hovered ? 'block' : 'none' }">
+        <div class="action-picker" :style="{ top: actionY+'px', left: (actionX-47)+'px', display: hovered ? 'block' : 'none' }">
             <v-tooltip text="add a new component here" open-delay="500" location="bottom">
                 <template v-slot:activator="{ props }">
                     <v-btn v-bind="props" elevation="0" icon="mdi-plus" rounded="sm" density="compact" color="primary" @click="selectComp"/>
@@ -115,6 +115,7 @@
     const wrapper = ref(null);
     const el = ref(null)
 
+    const active = ref("");
     const hovered = ref("");
     const selected = ref(null);
     const selectedValue = ref("");
@@ -122,8 +123,10 @@
     const sourceID = ref("")
     const targetID = ref("")
 
-    const mouseX = ref(0);
-    const mouseY = ref(0);
+    const opX = ref(0);
+    const opY = ref(0);
+    const actionX = ref(0);
+    const actionY = ref(0);
 
     const realWidth = computed(() => {
         return props.width / props.numLeaves < props.minChartWidth ?
@@ -164,14 +167,12 @@
         const svg = d3.select(el.value);
         svg.selectAll("*").remove();
 
+        active.value = "";
         hovered.value = "";
         selected.value = null;
         selectedValue.value = "";
 
-        const root = d3.hierarchy(props.data)
-
-        root.count()
-            .sort((a, b) => b.value - a.value)
+        const root = d3.hierarchy(props.data).count()
 
         const x = d3.scaleBand()
             .domain(d3.range(0, props.numLeaves))
@@ -245,8 +246,8 @@
                 d3.select(this).selectChild(".bg").attr("fill", app.getColor(d.data.color))
                 hovered.value = d.data.id;
                 const rect = this.getBoundingClientRect();
-                mouseX.value = rect.x + rect.width * 0.5;
-                mouseY.value = rect.y + rect.height;
+                actionX.value = rect.x + rect.width * 0.5;
+                actionY.value = rect.y + rect.height;
             })
             .on("mouseleave", function() {
                 d3.select(this).selectChild(".bg").attr("fill", "none")
@@ -258,14 +259,14 @@
             .attr("height", y.bandwidth())
             .classed("bg", true)
 
-        gs.append("line")
-            .attr("x1", 0)
-            .attr("y1", y.bandwidth() * 0.5)
-            .attr("x2", d => (d.children ? x(d.value-1) : 0) + x.bandwidth())
-            .attr("y2", y.bandwidth() * 0.5)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1)
-            .attr("stroke-opacity", 0.5)
+        // gs.append("line")
+        //     .attr("x1", 0)
+        //     .attr("y1", y.bandwidth() * 0.5)
+        //     .attr("x2", d => (d.children ? x(d.value-1) : 0) + x.bandwidth())
+        //     .attr("y2", y.bandwidth() * 0.5)
+        //     .attr("stroke", "black")
+        //     .attr("stroke-width", 1)
+        //     .attr("stroke-opacity", 0.5)
 
         d3.select(wrapper.value).on("mouseleave", () => hovered.value = "")
 
@@ -370,13 +371,14 @@
                     .attr("r", 8)
             })
             .on("click", function(event, d) {
+                event.preventDefault()
                 if (selected.value === d.data.id) {
                     selected.value = null;
                     selectedValue.value = "";
                 } else {
                     const [mx, my] = d3.pointer(event, document.body)
-                    mouseX.value = mx - 42;
-                    mouseY.value = my - 52;
+                    opX.value = mx - 42;
+                    opY.value = my - 55;
 
                     selectedValue.value = d.data.data;
                     selected.value = d.data.id;
@@ -421,17 +423,58 @@
             labels.attr("font-weight", "normal");
             rects.attr("fill", "none")
         } else {
-            labels.attr("font-weight", d => app.isSelectedComponent(d.id) ? "bold" : "normal")
-            rects.attr("fill", d => app.isSelectedComponent(d.id) ? "black" : "none")
+            labels.attr("font-weight", d => app.isSelectedComponent(d.data.id) ? "bold" : "normal")
+            rects.attr("fill", d => app.isSelectedComponent(d.data.id) ? app.getColor(d.data.color) : "none")
         }
     }
 
     function selectComp() {
-        emit("select", hovered.value);
-        hovered.value = "";
+        if (hovered.value) {
+            emit("select", hovered.value);
+            active.value = hovered.value;
+            hovered.value = "";
+            const elem = rects.filter(d => d.data.id === active.value)
+            const toColor = () => {
+                elem
+                    .attr("fill", "white")
+                    .attr("stroke", "white")
+                    .transition()
+                    .duration(700)
+                    .ease(d3.easeCubicInOut)
+                    .attr("fill", d => d.data.color ? app.getColor(d.data.color) : "black")
+                    .attr("stroke", d => d.data.color ? app.getColor(d.data.color) : 'black')
+                    .on("end", d => {
+                        if (active.value === d.data.id) {
+                            toWhite()
+                        } else {
+                            elem.attr("stroke", "none").attr("fill", "none")
+                        }
+                    })
+            }
+            const toWhite = () => {
+                elem
+                    .attr("fill", d => d.data.color ? app.getColor(d.data.color) : 'black')
+                    .attr("stroke", d => d.data.color ? app.getColor(d.data.color) : 'black')
+                    .transition()
+                    .duration(700)
+                    .ease(d3.easeCubicInOut)
+                    .attr("fill", "white")
+                    .attr("stroke", "white")
+                    .on("end", d => {
+                        if (active.value === d.data.id) {
+                            toColor()
+                        } else {
+                            elem.attr("stroke", "none").attr("fill", "none")
+                        }
+                    })
+            }
+            toColor()
+        }
     }
     function deleteComp() {
-        emit("delete", hovered.value);
+        if (hovered.value) {
+            emit("delete", hovered.value);
+        }
         hovered.value = "";
     }
 

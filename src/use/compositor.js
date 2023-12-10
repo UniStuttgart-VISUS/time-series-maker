@@ -237,8 +237,8 @@ class Compositor {
 
     constructor(items=[]) {
         this.tree = items.length > 0 ? TreeNode.fromArray(items) : null;
-        this.lastTreeNode = this.tree;
         this.size = items.length;
+        this.lastTreeNode = this.tree ? this.tree : null;
         this.ID_NUM = 0;
         if (this.size > 0) {
             this.tree.traverseDown(node => {
@@ -246,7 +246,9 @@ class Compositor {
                     this.ID_NUM,
                     Number.parseInt(node.data.id.slice(node.data.id.indexOf("_")+1)) + 1
                 );
-                if (node.depth > this.lastTreeNode.depth) {
+                if (node.depth > this.last && (!this.lastTreeNode.full ||
+                    (node.data.type === NODE_TYPE.OPERATOR && !node.full && node.depth > this.lastTreeNode.depth))
+                ) {
                     this.lastTreeNode = node;
                 }
             });
@@ -275,8 +277,9 @@ class Compositor {
     }
 
     clear() {
-        this.tree = null;
         this.size = 0;
+        this.tree = null;
+        this.lastTreeNode = null;
     }
 
     getNode(id) {
@@ -298,42 +301,41 @@ class Compositor {
             this.addData(id, name, genType)
         } else {
             const node = nodeID !== null && nodeID !== undefined ?
-                this.getNode(nodeID) : this.lastTreeNode;
+                this.getNode(nodeID) : this.lastTreeNode
 
             if (!node) {
                 throw new Error("missing a node to add to")
             }
 
+            console.assert(!node.full, "node cannot be full when adding data")
             // last node is already full
-            if (node.full) {
 
-                const replaceID = node.left.full ? node.right.data.id : node.left.data.id
-                const otherID = node.left.full ? node.left.data.id : node.right.data.id
-                const opNodeID = this.addOperator(OPERATOR.ADD, replaceID);
+                // replace child node that is not full
+                // const replaceID = node.right.full ? node.left.data.id : node.right.data.id
+                // // add an operator node
+                // const opNodeID = this.addOperator(OPERATOR.ADD, replaceID);
+                // // add the data node
+                // this.addData(id, name, genType, opNodeID)
+
+            if (node.data.type === NODE_TYPE.DATA) {
+                const opNodeID = this.addOperator(OPERATOR.ADD, node.data.id, true)
                 this.addData(id, name, genType, opNodeID)
-                // switch around to maintain previous order
-                this.switchData(id, otherID)
-
             } else {
-
-                if (node.data.type === NODE_TYPE.DATA) {
-                    const opNodeID = this.addOperator(OPERATOR.ADD, node.data.id)
-                    this.addData(id, name, genType, opNodeID)
+                if (node.isNestedLeft()) {
+                    node.addRight(obj)
+                    this.lastTreeNode = node.right;
                 } else {
-                    if (node.isNestedLeft()) {
-                        node.addRight(obj)
-                    } else {
-                        node.addLeft(obj)
-                    }
-                    this.size++;
+                    node.addLeft(obj)
+                    this.lastTreeNode = node.left;
                 }
+                this.size++;
             }
         }
 
         return id;
     }
 
-    addOperator(op, nodeID=null) {
+    addOperator(op, nodeID=null, setLeft=false) {
 
         if (!Compositor.isOperator(op)) {
             throw new Error("invalid input - not an operator");
@@ -358,16 +360,22 @@ class Compositor {
                 throw new Error("missing a node to add to")
             }
 
+            console.assert(!node.isNested(), "can only append operator to leaf node")
             const data = node.data;
             node.data = obj;
 
-            if (node.isNestedLeft()) {
-                node.addRight(data)
-            } else {
+            let nextNode;
+            if (setLeft) {
                 node.addLeft(data)
+                nextNode = node.left;
+            } else {
+                node.addRight(data)
+                nextNode = node.right;
             }
 
-            this.lastTreeNode = node;
+            if (nextNode.depth > this.lastTreeNode.depth) {
+                this.lastTreeNode = nextNode;
+            }
         }
 
         this.size++;
@@ -380,8 +388,10 @@ class Compositor {
         const node = this.getNode(id);
         if (node) {
             console.assert(!node.isNested(), "can only remove leaf nodes")
+
             if (node === this.tree) {
                 this.tree = null;
+                this.lastTreeNode = null;
                 this.size = 0;
             } else {
                 const onLeft = node.parent.left === node;
@@ -402,10 +412,8 @@ class Compositor {
                             p.setRight(onLeft ? node.parent.right : node.parent.left);
                         }
                     }
+
                     this.lastTreeNode = this.tree.getLastNode();
-                    if (this.lastTreeNode.data.type === NODE_TYPE.DATA) {
-                        this.lastTreeNode = this.lastTreeNode.parent;
-                    }
 
                 } else {
                     if (node.parent.left === node) {
@@ -414,6 +422,7 @@ class Compositor {
                         node.parent.setRight(null);
                     }
                     this.size--;
+                    this.lastTreeNode = node.parent;
                 }
             }
         }
@@ -555,7 +564,7 @@ class Compositor {
             node.visited = true;
         }
 
-        console.log(this.tree.toString())
+        // console.log(this.tree.toString())
 
         this.tree.setVisited(false);
 

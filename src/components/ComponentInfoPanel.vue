@@ -1,5 +1,5 @@
 <template>
-    <v-sheet v-if="visible" :style="style" class="pa-2 ma-2 comp-hint" color="#f1f1f1" rounded="sm">
+    <v-sheet v-if="visible" :style="style" class="pa-2 ma-2 comp-hint" color="#f1f1f1" rounded="sm" elevation="8">
         <span class="text-subcaption" style="font-weight: bold;">{{ GENERATOR_DEFAULTS[component].title }}</span>
         <v-divider class="mt-1 mb-2 border-opacity-100" thickness="2" :color="color"></v-divider>
         <p v-for="(o, name) in options" class="text-caption">

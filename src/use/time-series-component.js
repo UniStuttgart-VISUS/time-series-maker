@@ -49,6 +49,10 @@ export default class TimeSeriesComponent {
         )
     }
 
+    get hasRandom() {
+        return this.generator ? this.generator.seedRequired : false;
+    }
+
     setName(name) {
         this.name = name;
         this._ts.compositor.rename(this.id, this.name);

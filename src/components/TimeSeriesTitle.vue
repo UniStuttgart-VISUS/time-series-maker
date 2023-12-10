@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="text-caption mb-2">
+        <div v-if="timeseries.hasRandom" class="text-caption mb-2">
             <v-tooltip text="number of copies with different random seeds" open-delay="500" location="top">
                 <template v-slot:activator="{ props }">
                     <span class="mr-1" v-bind="props" style="cursor: help;">#instances:</span>
