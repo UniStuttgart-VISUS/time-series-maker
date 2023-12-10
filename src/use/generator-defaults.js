@@ -281,7 +281,7 @@ const GENERATOR_DEFAULTS = {
         type: GENERATOR_TYPES.RNG,
         seedRequired: true,
         options: {
-            minSupport: new GeneratorOption("minSupport", 0),
+            minSupport: new GeneratorOption("minSupport", -1),
             maxSupport: new GeneratorOption("maxSupport", 1),
         }
     },

@@ -32,7 +32,7 @@ class TreeNode {
 
     static fromArray(array) {
         if (array.length === 0) return new TreeNode();
-        return TreeNode.buildTree(null, array[0], array[1], array[2]);
+        return TreeNode.buildTree(null, array[1], array[0], array[2]);
     }
 
     static buildTree(parent, data, left, right) {
@@ -244,26 +244,25 @@ class Compositor {
 
     constructor(items=[]) {
         this.tree = items.length > 0 ? TreeNode.fromArray(items) : null;
-        this.size = items.length;
+        this.size = 0;
         this.lastTreeNode = this.tree ? this.tree : null;
         this.ID_NUM = 0;
-        if (this.size > 0) {
+        if (items.length > 0) {
             this.tree.traverseDown(node => {
                 this.ID_NUM = Math.max(
                     this.ID_NUM,
                     Number.parseInt(node.data.id.slice(node.data.id.indexOf("_")+1)) + 1
                 );
-                if (node.depth > this.last && (!this.lastTreeNode.full ||
-                    (node.data.type === NODE_TYPE.OPERATOR && !node.full && node.depth > this.lastTreeNode.depth))
-                ) {
+                if (node.depth >= this.lastTreeNode.depth) {
                     this.lastTreeNode = node;
                 }
+                this.size++;
             });
         }
     }
 
     toJSON() {
-        return this.tree ? [] : this.tree.toArray(true);
+        return this.tree ? this.tree.toArray(true) : [];
     }
 
     static fromJSON(json) {
@@ -277,7 +276,6 @@ class Compositor {
     nextID() {
         return "op_" + (this.ID_NUM++)
     }
-
 
     static isOperator(item) {
         return item in OPERATOR;
@@ -492,7 +490,7 @@ class Compositor {
             const currentNode = {
                 depth: node.depth,
                 id: node.data.id,
-                type: NODE_TYPE.DATA,
+                type: node.data.type,
                 data: node.data.name,
                 parent: node.parent ? node.parent.data.id : null,
                 children: []
@@ -524,6 +522,8 @@ class Compositor {
     iterate(callback) {
 
         if (!this.tree || this.size === 0) return;
+
+        // console.log(this.tree.toString())
 
         // only one component
         if (this.size === 2) {
@@ -581,8 +581,6 @@ class Compositor {
 
             node.visited = true;
         }
-
-        // console.log(this.tree.toString())
 
         this.tree.setVisited(false);
 

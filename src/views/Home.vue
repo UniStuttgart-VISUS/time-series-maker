@@ -76,7 +76,7 @@
             <ToastHandler/>
         </div>
 
-        <TutorialManager :tsID="tsc.series[0].id"/>
+        <TutorialManager v-if="tsc.size > 0" :tsID="tsc.series[0].id"/>
     </div>
 
 </template>
@@ -223,22 +223,25 @@
     }
 
     function importData(json) {
+
+
         if (json.type === "timeseries") {
             app.deselectTimeSeries();
             try {
                 tsc.addTimeSeries(TimeSeries.fromJSON(tsc, json))
+                update(true)
             } catch(e) {
                 comms.error(e.toString());
             }
-            update(true)
         } else if (json.type === "timeseries-collection") {
             app.deselectTimeSeries();
+            replaceCompID.value = "";
             try {
                 tsc.fromJSON(json);
+                update(true)
             } catch(e) {
                 comms.error(e.toString());
             }
-            update(true)
         }
     }
 

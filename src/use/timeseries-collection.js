@@ -61,6 +61,7 @@ class TimeSeriesCollection {
             this.series.push(TimeSeries.fromJSON(this, s))
             this.TS_ID = Math.max(this.TS_ID, Number.parseInt(s.id.slice(s.id.indexOf("_")+1))+1);
         });
+
         this.generate();
     }
 
