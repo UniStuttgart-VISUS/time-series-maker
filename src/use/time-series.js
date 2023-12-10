@@ -157,6 +157,10 @@ export default class TimeSeries {
         return this.components.findIndex(c => c.id === id)
     }
 
+    hasComponent(id) {
+        return this.getComponent(id) !== undefined;
+    }
+
     randomSeed() {
         this.components.forEach(c => c.setSeed(randi()));
         this.generate();
@@ -201,7 +205,9 @@ export default class TimeSeries {
 
         const generator = new Generator(generatorType, [randi()]);
         c.setGenerator(generator);
-        c.setName(this.getName(generator))
+        if (!c.wasRenamed) {
+            c.setName(this.getName(generator))
+        }
 
         this.compositor.setNodeData(nodeID, c.name, generator.type)
         this.generate();

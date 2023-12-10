@@ -25,7 +25,7 @@ export const useApp = defineStore('app', {
         tsColorScale: d3.scaleOrdinal(["#000"].concat(d3.schemeCategory10)),
 
         tsOpacity: 0.33,
-        tscOpacity: 0.15,
+        tscOpacity: 0.1,
     }),
 
     actions: {

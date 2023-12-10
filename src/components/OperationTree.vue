@@ -1,11 +1,11 @@
 <template>
     <div ref="wrapper">
-        <div  style="max-width: 100%; overflow: auto;">
+        <div style="max-width: 100%; overflow: auto;">
             <div class="d-flex justify-center">
 
                 <v-sheet class="pa-2 mr-4 text-caption d-flex flex-column align-center" style="max-width: 33%;" color="#f1f1f1" rounded="sm">
                     <v-icon icon="mdi-rectangle-outline" color="#ff69b4" density="compact" size="x-large"/>
-                    indicates where new tree nodes will be added
+                    indicates where new components will be added
                 </v-sheet>
 
                 <v-sheet class="pa-2 mr-4" style="text-align: center;" color="#f1f1f1" rounded="sm">
@@ -36,13 +36,15 @@
 
                 <v-sheet class="pa-2 text-caption d-flex flex-column align-center" style="max-width: 33%;" color="#f1f1f1" rounded="sm">
                     <v-icon icon="mdi-rectangle-outline" color="#00ced1" density="compact" size="x-large"/>
-                    indicates which node will be replaced
+                    indicates which component will be replaced
                 </v-sheet>
             </div>
 
             <v-divider class="mt-5 mb-5" thickness="1"></v-divider>
 
-            <svg ref="el" :width="realWidth" :height="realHeight"></svg>
+            <div style="max-height: 63vh; min-height: 400px; overflow-y: auto;">
+                <svg ref="el" :width="realWidth" :height="realHeight"></svg>
+            </div>
         </div>
 
         <div v-if="selected" class="op-picker" :style="{ top: opY+'px', left: opX+'px' }">
@@ -109,6 +111,10 @@
             type: String,
             required: true
         },
+        replaceNodeId: {
+            type: String,
+            required: true
+        },
         xValues: {
             type: Array,
             required: true
@@ -144,8 +150,6 @@
     const hovered = ref("");
     const selected = ref(null);
     const selectedValue = ref("");
-
-    const replace = ref("");
 
     const sourceID = ref("")
     const targetID = ref("")
@@ -194,7 +198,6 @@
         const svg = d3.select(el.value);
         svg.selectAll("*").remove();
 
-        replace.value = "";
         hovered.value = "";
         selected.value = null;
         selectedValue.value = "";
@@ -377,18 +380,6 @@
 
         lines.filter(d => d.opacity === 1).raise()
 
-        // add indicators where tree will be expanded
-       gs.filter(d => d.data.id === props.addNodeId)
-            .append("rect")
-            .attr("x", -0.5 * (x.step() - x.bandwidth()))
-            .attr("y", -0.5 * (y.step() - y.bandwidth()))
-            .attr("width", x.step())
-            .attr("height", y.step())
-            .attr("fill", "none")
-            .attr("stroke", d => d.data.id === props.addNodeId ? "#ff69b4" : "#00ced1")
-            .attr("stroke-width", 2)
-            .attr("stroke-opacity", 1)
-
         const opGroup = gs.filter(d => d.children)
             .append("g")
             .attr("transform", d => `translate(${((d.children ? x(d.value-1) : 0) + x.bandwidth()) * 0.5},${-10})`)
@@ -453,6 +444,7 @@
                 return text
             })
 
+        updateIndicators();
         highlight();
     }
 
@@ -468,10 +460,10 @@
 
     function updateIndicators() {
 
-        if (replace.value === "") {
-            d3.select(el.value).selectAll(".indicator").remove()
-        } else {
-            gs.filter(d => d.data.id === replace.value)
+        d3.select(el.value).selectAll(".indicator").remove()
+
+        if (props.replaceNodeId.length > 0) {
+            gs.filter(d => d.data.id === props.replaceNodeId)
                 .append("rect")
                 .classed("indicator", true)
                 .attr("x", -0.5 * (x.step() - x.bandwidth()))
@@ -480,6 +472,18 @@
                 .attr("height", y.step())
                 .attr("fill", "none")
                 .attr("stroke", "#00ced1")
+                .attr("stroke-width", 2)
+                .attr("stroke-opacity", 1)
+        } else {
+            gs.filter(d => d.data.id === props.addNodeId)
+                .append("rect")
+                .classed("indicator", true)
+                .attr("x", -0.5 * (x.step() - x.bandwidth()))
+                .attr("y", -0.5 * (y.step() - y.bandwidth()))
+                .attr("width", x.step())
+                .attr("height", y.step())
+                .attr("fill", "none")
+                .attr("stroke", "#ff69b4")
                 .attr("stroke-width", 2)
                 .attr("stroke-opacity", 1)
         }
@@ -494,7 +498,6 @@
     function replaceComp() {
         if (hovered.value) {
             emit("replace", hovered.value);
-            replace.value = hovered.value;
             hovered.value = "";
         }
     }
@@ -507,8 +510,18 @@
 
     onMounted(draw);
 
-    watch(props, draw, { deep: true })
-    watch(replace, updateIndicators)
+    watch(() => {
+        props.data,
+        props.maxDepth,
+        props.numLeaves,
+        props.xValues,
+        props.levelHeight,
+        props.minChartHeight,
+        props.minChartWidth,
+        props.minPadding,
+        props.width
+    }, draw, { deep: true })
+    watch(() => [props.addNodeId, props.replaceNodeId], updateIndicators, { deep: true })
     watch(() => app.selectedComps, highlight, { deep: true });
 
 </script>

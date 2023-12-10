@@ -8,6 +8,7 @@ export default class TimeSeriesComponent {
         this._ts = timeseries;
         this.id = id ? id : this._ts.getID()
         this.name = name ? name : this._ts.getName(generator)
+        this.wasRenamed = false;
         this.data = [];
         this.instances = 0;
         this.generator = generator;
@@ -56,6 +57,7 @@ export default class TimeSeriesComponent {
     setName(name) {
         this.name = name;
         this._ts.compositor.rename(this.id, this.name);
+        this.wasRenamed = true;
     }
 
     setVisible(value) {

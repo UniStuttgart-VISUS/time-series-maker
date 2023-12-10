@@ -1,7 +1,7 @@
 <template>
     <div ref="wrapper" style="width: 100%; height: 100vh; overflow: auto;">
 
-        <div class="d-flex align-start justify-center" style="height: 100%;">
+        <div class="d-flex align-start justify-space-between" style="height: 100%;">
 
             <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
@@ -33,7 +33,7 @@
                 </v-window>
             </v-sheet>
 
-            <v-sheet class="ma-2 d-flex flex-column align-center" style="overflow-x: hidden; max-height: 100vh; min-width: 60%;" color="grey-lighten-5" rounded="sm">
+            <v-sheet class="ma-2 d-flex flex-column align-center" style="overflow-x: hidden; max-height: 99vh; min-width: 1100px;" color="grey-lighten-5" rounded="sm">
 
                 <div class="ma-1 mt-2 pa-1">
                     <LineChart
@@ -54,6 +54,7 @@
                             :max-depth="tree.maxDepth"
                             :num-leaves="tree.numLeaves"
                             :add-node-id="tree.addNodeID"
+                            :replace-node-id="replaceCompID"
                             :x-values="tsc.dataX"
                             :width="1000"
                             @update="updateCompositor"
@@ -133,7 +134,6 @@
             try {
                 if (replaceCompID.value.length > 0) {
                     ts.value.replaceComponent(replaceCompID.value, type);
-                    replaceCompID.value = "";
                 } else {
                     ts.value.addComponent(type);
                 }
@@ -163,6 +163,7 @@
                 if (ts.value.compositor.setLastNode(id)) {
                     ts.value.tree.addNodeID = id;
                     tree.addNodeID = id;
+                    replaceCompID.value = "";
                 }
             } catch(e) {
                 comms.error(e.toString());
@@ -200,6 +201,11 @@
                     comms.error(e.toString());
                 }
             }
+
+            if (replaceCompID.value.length > 0 && !ts.value.hasComponent(replaceCompID.value)) {
+                replaceCompID.value = "";
+            }
+
             tree.root = ts.value.tree.root;
             tree.maxDepth = ts.value.tree.maxDepth;
             tree.numLeaves = ts.value.tree.numLeaves;
@@ -227,6 +233,7 @@
 
         if (json.type === "timeseries") {
             app.deselectTimeSeries();
+            replaceCompID.value = "";
             try {
                 tsc.addTimeSeries(TimeSeries.fromJSON(tsc, json))
                 update(true)
