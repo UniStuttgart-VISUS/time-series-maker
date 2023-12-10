@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div ref="wrapper">
         <div style="text-align: center; overflow: auto">
             <div class="text-caption ma-1">operators:</div>
             <div class="d-flex justify-center ma-1">
@@ -41,6 +41,24 @@
                     @click="setOperator(OPERATOR.MULTIPLY)"/>
 
             </v-btn-toggle>
+        </div>
+
+        <div class="action-picker" :style="{ top: mouseY+'px', left: (mouseX-47)+'px', display: hovered ? 'block' : 'none' }">
+            <v-tooltip text="add a new component here" open-delay="500" location="bottom">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" elevation="0" icon="mdi-plus" rounded="sm" density="compact" color="primary" @click="selectComp"/>
+                </template>
+            </v-tooltip>
+            <v-tooltip text="delete this component" open-delay="500" location="bottom">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" elevation="0" class="ml-1 mr-1" icon="mdi-delete" rounded="sm" density="compact" color="error" @click="deleteComp"/>
+                </template>
+            </v-tooltip>
+            <v-tooltip text="cancel" open-delay="500" location="bottom">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" elevation="0" icon="mdi-close" rounded="sm" density="compact" color="warning" @click="hovered = ''"/>
+                </template>
+            </v-tooltip>
         </div>
     </div>
 </template>
@@ -90,11 +108,14 @@
             default: 50
         },
     })
-    const emit = defineEmits(["update", "switch",, "select"])
+    const emit = defineEmits(["update", "switch", "select", "delete"])
 
     const app = useApp();
 
+    const wrapper = ref(null);
     const el = ref(null)
+
+    const hovered = ref("");
     const selected = ref(null);
     const selectedValue = ref("");
 
@@ -142,6 +163,10 @@
 
         const svg = d3.select(el.value);
         svg.selectAll("*").remove();
+
+        hovered.value = "";
+        selected.value = null;
+        selectedValue.value = "";
 
         const root = d3.hierarchy(props.data)
 
@@ -218,6 +243,10 @@
             .classed("dragable", true)
             .on("mouseenter", function(_, d) {
                 d3.select(this).selectChild(".bg").attr("fill", app.getColor(d.data.color))
+                hovered.value = d.data.id;
+                const rect = this.getBoundingClientRect();
+                mouseX.value = rect.x + rect.width * 0.5;
+                mouseY.value = rect.y + rect.height;
             })
             .on("mouseleave", function() {
                 d3.select(this).selectChild(".bg").attr("fill", "none")
@@ -238,6 +267,7 @@
             .attr("stroke-width", 1)
             .attr("stroke-opacity", 0.5)
 
+        d3.select(wrapper.value).on("mouseleave", () => hovered.value = "")
 
         const xdomain = d3.extent(props.xValues);
 
@@ -383,22 +413,6 @@
                 return text
             })
 
-        const buttons = gs.filter(d => !d.children)
-            .append("g")
-            .attr("transform", d => `translate(${((d.children ? x(d.value-1) : 0) + x.bandwidth()) * 0.5}, ${y.bandwidth()+35})`)
-            .classed("clickable", true)
-            .on("click", function(event, d) {
-                event.preventDefault()
-                emit("select", d.data.id)
-            })
-
-        buttons.append("circle")
-            .attr("r", 8)
-            .attr("fill", "lightblue")
-        buttons.append("path")
-            .attr("d", d3.symbol(d3.symbolPlus))
-            .attr("stroke", "blue")
-
         highlight();
     }
 
@@ -412,6 +426,15 @@
         }
     }
 
+    function selectComp() {
+        emit("select", hovered.value);
+        hovered.value = "";
+    }
+    function deleteComp() {
+        emit("delete", hovered.value);
+        hovered.value = "";
+    }
+
     onMounted(draw);
 
     watch(props, draw, { deep: true })
@@ -419,9 +442,14 @@
 </script>
 
 <style scoped>
+.action-picker,
 .op-picker {
     position: absolute;
     top: 0;
     left: 0;
+}
+
+.action-picker {
+    transition: all 0.5s ease-in-out;
 }
 </style>

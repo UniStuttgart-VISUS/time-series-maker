@@ -55,7 +55,8 @@
                             :width="1000"
                             @update="updateCompositor"
                             @switch="switchComponents"
-                            @select="selectNode"/>
+                            @select="selectNode"
+                            @delete="deleteComponent"/>
                     </KeepAlive>
                 </div>
             </v-sheet>
@@ -81,7 +82,6 @@
     import { useApp, MAIN_TABS } from '@/store/app';
     import { storeToRefs } from 'pinia';
     import { useComms } from '@/store/comms';
-    import { useElementSize } from '@vueuse/core'
 
     import TimeSeriesCollection from '@/use/timeseries-collection';
     import GENERATOR_TYPES from '@/use/generator-types';
@@ -101,7 +101,6 @@
     const comms = useComms();
 
     const wrapper = ref(null);
-    const wSize = useElementSize(wrapper)
 
     const { mainTab } = storeToRefs(app)
 
@@ -130,6 +129,15 @@
             try {
                 ts.value.addComponent(type, nextNode.value ? nextNode.value : null);
                 nextNode.value = "";
+            } catch(e) {
+                comms.error(e.toString());
+            }
+        }
+    }
+    function deleteComponent(id) {
+        if (ts.value) {
+            try {
+                ts.value.removeComponent(id);
             } catch(e) {
                 comms.error(e.toString());
             }
