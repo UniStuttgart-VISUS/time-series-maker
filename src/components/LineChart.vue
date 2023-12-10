@@ -5,13 +5,28 @@
             <svg ref="overlay" :width="width" :height="height" class="overlay"></svg>
         </div>
         <v-divider vertical class="ml-2 mr-2"></v-divider>
-        <div class="d-flex flex-column align-end ma-4">
+        <div class="d-flex flex-column align-end justify-start ma-4">
             <span class="mb-1 text-caption">actions:</span>
-            <v-btn icon="mdi-magnify-minus"
-                rounded="sm"
-                density="compact"
-                variant="plain"
-                @click="resetZoom"/>
+
+            <v-tooltip text="reset zoom" open-delay="500" location="left">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props"
+                        class="mt-1"
+                        icon="mdi-magnify-minus"
+                        rounded="sm"
+                        density="compact"
+                        @click="resetZoom"/>
+                </template>
+            </v-tooltip>
+
+            <v-tooltip text="choose line style" open-delay="500" location="left">
+                <template v-slot:activator="{ props }">
+                    <v-btn-toggle v-model="lineStyle" v-bind="props" elevation="2" class="mt-1" density="compact" mandatory divided>
+                        <v-btn value="smooth" icon="mdi-chart-bell-curve-cumulative"/>
+                        <v-btn value="linear" icon="mdi-chart-line"/>
+                    </v-btn-toggle>
+                </template>
+            </v-tooltip>
         </div>
     </div>
 </template>
@@ -21,6 +36,7 @@
     import * as d3 from 'd3';
     import { ref, watch, onMounted } from 'vue';
     import { useApp } from '@/store/app'
+    import { storeToRefs } from 'pinia';
 
     const props = defineProps({
         data: {
@@ -78,6 +94,7 @@
     let xDomain, yDomain;
 
     const app = useApp();
+    const { lineStyle } = storeToRefs(app);
 
     function draw() {
         ctx = el.value.getContext("2d")
@@ -115,7 +132,7 @@
 
         line = d3.line()
             .context(ctx)
-            .curve(d3.curveMonotoneX)
+            .curve(lineStyle.value === "smooth" ? d3.curveMonotoneX : d3.curveLinear)
             .x(d => xScale(x(d)))
             .y(d => yScale(y(d)))
 
@@ -124,19 +141,6 @@
         const xAxis = svg.append("g")
             .attr("transform", `translate(0,${props.height-25})`)
             .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%0d %b")))
-            // .call(g => {
-            //     g.call(d3.axisBottom(xScale).tickFormat(d3.timeFormat("%0d %b")))
-            //     g.selectAll(".tick text")
-            //         .classed("fg", true)
-            //         .clone(true)
-            //         .classed("fg", false)
-            //         .attr("fill", "white")
-            //         .attr("font-weight", "bold")
-            //         .style("font-size", "larger")
-
-            //     g.selectAll(".tick text.fg").raise()
-            // })
-
 
         const yAxis = svg.append("g")
             .attr("transform", "translate(35,0)")
@@ -176,6 +180,11 @@
             .call(zoom.transform, app.lineChartZoom)
     }
 
+    function updateLineStyle() {
+        line.curve(lineStyle.value === "smooth" ? d3.curveMonotoneX : d3.curveLinear)
+        highlight();
+    }
+
     function resetZoom() {
         const svg = d3.select(el.value);
         svg.transition()
@@ -213,6 +222,7 @@
     watch(() => props.data, draw, { deep: true })
     watch(() => [props.width, props.height, props.xDomain, props.yDomain], draw, { deep: true })
     watch(() => app.selectedComps, () => highlight(), { deep: true })
+    watch(lineStyle, updateLineStyle)
 </script>
 
 <style scoped>

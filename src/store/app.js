@@ -17,6 +17,7 @@ export const useApp = defineStore('app', {
         selectedTs: null,
         selectedComps: new Set(),
         lineChartZoom: d3.zoomIdentity,
+        lineStyle: "smooth",
 
         tscDomain: [],
         tscColorScale: d3.scaleOrdinal(d3.schemeCategory10),

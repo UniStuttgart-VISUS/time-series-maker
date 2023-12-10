@@ -103,6 +103,7 @@
     import { ref, onMounted, watch, computed } from 'vue';
     import { OPERATOR } from '@/use/compositor.js';
     import { useApp } from '@/store/app';
+import { storeToRefs } from 'pinia';
 
     const props = defineProps({
         data: {
@@ -153,6 +154,7 @@
     const emit = defineEmits(["update", "switch", "select", "delete"])
 
     const app = useApp();
+    const { lineStyle } = storeToRefs(app)
 
     const wrapper = ref(null);
     const el = ref(null)
@@ -337,7 +339,7 @@
                 .range([y.bandwidth(), 0])
 
             line[d.data.id] = d3.line()
-                .curve(d3.curveMonotoneX)
+                .curve(lineStyle.value === "smooth" ? d3.curveMonotoneX : d3.curveLinear)
                 .x((_, i) => xs[d.data.id](props.xValues[i]))
                 .y(dd => ys[d.data.id](dd))
         });
@@ -529,7 +531,8 @@
         props.minChartHeight,
         props.minChartWidth,
         props.minPadding,
-        props.width
+        props.width,
+        lineStyle.value
     }, draw, { deep: true })
     watch(() => [props.addNodeId, props.replaceNodeId], updateIndicators, { deep: true })
     watch(() => app.selectedComps, highlight, { deep: true });
