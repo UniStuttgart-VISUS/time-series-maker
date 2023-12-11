@@ -48,7 +48,7 @@ function validatorsToString(validators) {
 
 class GeneratorOption {
 
-    constructor(name, value, options=DEFAULT_OPTIONS) {
+    constructor(name, value, options=DEFAULT_OPTIONS, generator=null) {
         this.name = name;
         this.value = value;
         this.title = options.title ? options.title : name;
@@ -56,6 +56,11 @@ class GeneratorOption {
         this.max = options.max ? options.max : DEFAULT_OPTIONS.max;
         this.step = options.step ? options.step : DEFAULT_OPTIONS.step;
         this.validators = options.validators ? options.validators : DEFAULT_OPTIONS.validators;
+        this.generator = generator;
+    }
+
+    setGenerator(generator) {
+        this.generator = generator;
     }
 
     copy() {
@@ -68,7 +73,8 @@ class GeneratorOption {
                 step: this.step,
                 validators: this.validators,
                 title: this.title,
-            }
+            },
+            this.generator
         )
     }
 
@@ -101,9 +107,19 @@ class GeneratorOption {
         return includeName ? `${this.name}: { ${rstr} }` : `{ ${rstr} }`
     }
 
+    matchesValidators(value=this.value) {
+        let valid = true;
+        if (this.generator !== null && (this.name === "xMin" || this.name === "xMax")) {
+            const other = this.generator.getOpt(this.name === "xMin" ? "xMax" : "xMin");
+            if (other !== undefined && other !== null) {
+                valid = this.name === "xMin" ? value < other : value > other;
+            }
+        }
+        return valid && !this.validators.some(d => !VALIDATORS[d](value))
+    }
+
     isValid(value=this.value) {
-        return !Number.isNaN(value) &&
-            (this.validators.length === 0 || !this.validators.some(d => !VALIDATORS[d](value))) &&
+        return !Number.isNaN(value) && this.matchesValidators(value) &&
             (Number.isNaN(this.min) || value >= this.min) &&
             (Number.isNaN(this.max) || value <= this.max) &&
             ((Number.isNaN(this.min) || Number.isNaN(this.max)) || this.min < this.max)

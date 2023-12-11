@@ -177,11 +177,11 @@
             props.width
     })
     const realHeight = computed(() => {
-        const h = (props.levelHeight + props.minPadding) * (props.maxDepth + 1)
+        const h = (props.levelHeight + props.minPadding * 2) * (props.maxDepth + 1)
         const w = realWidth.value / (props.numLeaves + props.minPadding)
         const asp = w / h;
         if (asp < 1.7 || asp > 1.9) {
-            return Math.max(props.minChartHeight + props.minPadding*2, Math.min(w / 1.8)) * (props.maxDepth + 1) + 25
+            return Math.max(props.minChartHeight + props.minPadding * 2, Math.min(w / 1.8)) * (props.maxDepth + 1) + 25
         }
         return h;
     })
@@ -478,9 +478,9 @@
             gs.filter(d => d.data.id === props.replaceNodeId)
                 .append("rect")
                 .classed("indicator", true)
-                .attr("x", -0.5 * (x.step() - x.bandwidth()))
+                .attr("x", (props.numLeaves > 1 ? -0.5 : -0.125) * (x.step() - x.bandwidth()))
                 .attr("y", -0.5 * (y.step() - y.bandwidth()))
-                .attr("width", x.step())
+                .attr("width",  x.step() - (props.numLeaves > 1 ? 0 : 0.25*(x.step() - x.bandwidth())))
                 .attr("height", y.step())
                 .attr("fill", "none")
                 .attr("stroke", "#00ced1")
@@ -490,9 +490,9 @@
             gs.filter(d => d.data.id === props.addNodeId)
                 .append("rect")
                 .classed("indicator", true)
-                .attr("x", -0.5 * (x.step() - x.bandwidth()))
+                .attr("x", (props.numLeaves > 1 ? -0.5 : -0.125) * (x.step() - x.bandwidth()))
                 .attr("y", -0.5 * (y.step() - y.bandwidth()))
-                .attr("width", x.step())
+                .attr("width",  x.step() - (props.numLeaves > 1 ? 0 : 0.25*(x.step() - x.bandwidth())))
                 .attr("height", y.step())
                 .attr("fill", "none")
                 .attr("stroke", "#ff69b4")

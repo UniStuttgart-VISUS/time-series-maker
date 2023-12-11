@@ -24,7 +24,7 @@
             </v-tooltip>
         </div>
 
-        <v-text-field v-for="(o, key) in options" :key="component.id + '_' + o"
+        <v-text-field v-for="(o, key) in options" :key="component.id + '_' + key"
             v-model.number="o.value"
             :label="key"
             type="number"
@@ -55,8 +55,12 @@
     }
 
     function setOption(key) {
-        props.component.generator.setOpt(key, options[key].value);
-        update();
+        if (options[key].value !== props.component.generator.getOpt(key)) {
+            if (options[key].isValid()) {
+                props.component.generator.setOpt(key, options[key].value);
+                update();
+            }
+        }
     }
     function update() {
         if (props.component.isValid()) {

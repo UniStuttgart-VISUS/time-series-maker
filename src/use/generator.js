@@ -27,9 +27,12 @@ export default class Generator {
         this.options = {};
         for (const key in defaults.options) {
             this.options[key] = defaults.options[key].copy()
+            this.options[key].setGenerator(this);
         }
         for (const key in options) {
-            this.options[key].value = options[key];
+            if (this.options[key] && this.options[key].isValid(options[key])) {
+                this.options[key].value = options[key];
+            }
         }
     }
 
@@ -145,22 +148,20 @@ export default class Generator {
         return this.options[name].value;
     }
 
-    _apply(numberOrValues, index=0) {
-
+    _applyBase(numberOrValues, index=0) {
         const number = typeof numberOrValues === "number" ? numberOrValues : numberOrValues.length;
-
         switch (this.type) {
             default:
             case GENERATOR_TYPES.SPECIAL:
                 switch (this.name) {
                     case "trend": {
-                        const pos = Math.round(this.getOpt("position") * number);
+                        const pos = Math.min(Math.round(this.getOpt("position") * number), number-1);
                         const slope = this.getOpt("slope");
                         return linspace(-pos, number-pos, number).map(d => d*slope)
                     }
                     case "outlier": {
                         const vals = filled(0, number)
-                        const pos = Math.round(this.getOpt("position") * number);
+                        const pos = Math.min(Math.round(this.getOpt("position") * number), number-1);
                         const width = this.getOpt("width")
                         const value = this.getOpt("value");
                         const back = width > 1 ? Math.floor(width * 0.5) : 0;
@@ -239,8 +240,7 @@ export default class Generator {
                 const xMin = this.getOpt("xMin");
                 const xMax = this.getOpt("xMax")
                 console.assert(xMin < xMax, "min must be smaller than max")
-                const scale = this.hasOpt("scale") ? this.getOpt("scale") : 1;
-                return linspace(xMin, xMax, number).map(d => factory(d) * scale);
+                return linspace(xMin, xMax, number).map(d => factory(d));
             }
 
             case GENERATOR_TYPES.PDF: {
@@ -259,9 +259,8 @@ export default class Generator {
                     default: {
                         const xMin = this.getOpt("xMin");
                         const xMax = this.getOpt("xMax")
-                        const scale = this.hasOpt("scale") ? this.getOpt("scale") : 1;
                         console.assert(xMin < xMax, "min must be smaller than max")
-                        return linspace(xMin, xMax, number).map(d => factory(d) * scale);
+                        return linspace(xMin, xMax, number).map(d => factory(d));
                     }
                 }
             }
@@ -401,15 +400,45 @@ export default class Generator {
                         const iter = simulate.iterawun(array2iterator(arr), this.getOpt("sigma"), opts)
                         return arr.map(() => iter.next().value);
                     }
+                    case "outlier": {
+                        const vals = filled(0, number)
+                        const pos = []
+                        const count = this.getOpt("count")
+                        for (let i = 0; i < count; ++i) {
+                            let p;
+                            do {
+                                p = Math.min(Math.round(random.randu() * number), number-1)
+                            } while (pos.includes(p))
+                            pos.push(p);
+                        }
+                        const width = this.getOpt("width")
+                        const value = this.getOpt("value");
+                        const back = width > 1 ? Math.floor(width * 0.5) : 0;
+                        const forward = width > 1 ? Math.floor((width-1) * 0.5) : 0;
+                        for (let j = 0; j < pos.length; ++j) {
+                            for (let i = pos[j]-back; i >= 0 && i < number && i <= pos[j]+forward; i++) {
+                                vals[i] = value;
+                            }
+                        }
+                        return vals;
+                    }
                     default: {
                         const opts = { seed: this.seeds[index] }
                         const factory = Generator.makeRandomFactory(this.name, this.options, opts);
-                        const scale = this.hasOpt("scale") ? this.getOpt("scale") : 1;
-                        return linspace(0, number, number).map(d => factory() * scale);
+                        return linspace(0, number, number).map(d => factory());
                     }
                 }
             }
         }
+    }
+
+    _apply(numberOrValues, index=0) {
+        const vals = this._applyBase(numberOrValues, index)
+        const scale = this.hasOpt("scale") ? this.getOpt("scale") : 1;
+        if (scale !== 1) {
+            return vals.map(v => v * scale);
+        }
+        return vals;
     }
 
     generate(numberOrValues, index=-1) {
