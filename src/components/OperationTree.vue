@@ -1,5 +1,5 @@
 <template>
-    <div ref="wrapper">
+    <div class="op-tree" ref="wrapper">
         <div style="max-width: 100%; overflow: auto;">
             <div class="d-flex justify-center">
 
@@ -14,7 +14,7 @@
                 </v-sheet>
 
                 <v-sheet class="pa-2 mr-4" style="text-align: center;" color="#f1f1f1" rounded="sm">
-                    <div class="text-caption pa-1">operators:</div>
+                    <div class="text-caption pa-1"><b>operators:</b></div>
                     <div class="d-flex justify-center pa-1">
                         <div>
                             <v-icon class="mr-2" color="primary">{{ operatorToIcon(OPERATOR.ADD) }}</v-icon>
@@ -103,7 +103,7 @@
     import { ref, onMounted, watch, computed } from 'vue';
     import { OPERATOR } from '@/use/compositor.js';
     import { useApp } from '@/store/app';
-import { storeToRefs } from 'pinia';
+    import { storeToRefs } from 'pinia';
 
     const props = defineProps({
         data: {

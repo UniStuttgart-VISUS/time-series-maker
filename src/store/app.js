@@ -6,7 +6,8 @@ export const MAIN_TABS = Object.freeze({
     TSC: "tsc",
     TS: "ts",
     EXPORT: "exp",
-    IMPORT: "imp"
+    IMPORT: "imp",
+    HELP: "help",
 });
 
 export const useApp = defineStore('app', {

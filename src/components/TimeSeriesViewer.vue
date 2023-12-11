@@ -1,6 +1,6 @@
 <template>
 
-    <div>
+    <div class="ts-settings">
         <div class="d-flex">
             <v-text-field v-model.number="tscOpacity"
                 label="line opacity"
@@ -41,7 +41,7 @@
             </v-tooltip>
         </div>
 
-        <v-expansion-panels v-model="selectedComponents" class="mt-4 mb-4" rounded="sm" variant="accordion" multiple @update:model-value="setSelected">
+        <v-expansion-panels v-model="selectedComponents" class="mt-4 mb-4 comp-panels" rounded="sm" variant="accordion" multiple @update:model-value="setSelected">
 
             <v-expansion-panel v-for="c in timeseries.components" :key="c.id" :value="c.id">
 
@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-    import { ref, watch, onMounted } from 'vue';
+    import { ref, watch } from 'vue';
 
     import TimeSeries from '@/use/time-series.js';
     import TimeSeriesComponentViewer from './TimeSeriesComponentViewer.vue';
@@ -107,18 +107,13 @@
         props.timeseries.randomSeed();
     }
 
-    function readSelected() {
-        selectedComponents.value = Array.from(app.selectedComps.values());
-    }
-    function setSelected() {
-        app.setSelectedComponents(selectedComponents.value);
-    }
-
-    watch(() => app.selectedComps, readSelected, { deep: true })
-    watch(() => props.timeseries.size, function() {
+    function readVisibility() {
         let changes = false;
         props.timeseries.components.forEach(c => {
-            if (c.visible !== showAll.value) {
+            if (!c.visible && app.isSelectedComponent(c.id)) {
+                c.visible = true;
+                changes = true;
+            } else if (c.visible !== showAll.value && !app.isSelectedComponent(c.id)) {
                 c.setVisible(showAll.value)
                 changes = true;
             }
@@ -126,6 +121,17 @@
         if (changes) {
             props.timeseries.update()
         }
-    })
+    }
+
+    function readSelected() {
+        selectedComponents.value = Array.from(app.selectedComps.values());
+        readVisibility()
+    }
+    function setSelected() {
+        app.setSelectedComponents(selectedComponents.value);
+    }
+
+    watch(() => app.selectedComps, readSelected, { deep: true })
+    watch(() => props.timeseries.size, readVisibility)
 
 </script>

@@ -1,15 +1,22 @@
 <template>
     <div ref="wrapper" style="width: 100%; height: 100vh; overflow: auto;">
 
-        <div class="d-flex align-start justify-space-between" style="height: 100%;">
+        <v-btn v-if="mainTab === MAIN_TABS.TSC"
+            class="mr-2 mt-2" icon="mdi-help" rounded="1" size="small"
+            density="comfortable" color="primary"
+            style="position: absolute; top:0; right: 0;" @click="startTutorial"/>
+
+        <div :class="'d-flex align-start ' + (mainTab === MAIN_TABS.TS ? 'justify-space-between' : 'justify-start')"
+            style="height: 100%;">
 
             <v-sheet width="400" class="ma-2" rounded="sm" color="grey-lighten-5" density="compact">
 
-                <v-tabs v-model="mainTab" color="primary" grow class="main-tabs">
-                    <v-tab class="tab-home" :value="MAIN_TABS.TSC"><v-icon size="x-large">mdi-home</v-icon></v-tab>
-                    <v-tab class="tab-ts" :value="MAIN_TABS.TS"><v-icon size="x-large">mdi-format-list-group</v-icon></v-tab>
-                    <v-tab class="tab-export" :value="MAIN_TABS.EXPORT"><v-icon size="x-large">mdi-download</v-icon></v-tab>
-                    <v-tab class="tab-import" :value="MAIN_TABS.IMPORT"><v-icon size="x-large">mdi-upload</v-icon></v-tab>
+                <v-tabs v-model="mainTab" color="primary" class="main-tabs" mandatory center-active>
+                    <v-tab class="tab-home" :value="MAIN_TABS.TSC"><v-icon size="large">mdi-home</v-icon></v-tab>
+                    <v-tab class="tab-ts" :value="MAIN_TABS.TS"><v-icon size="large">mdi-format-list-group</v-icon></v-tab>
+                    <v-tab class="tab-export" :value="MAIN_TABS.EXPORT"><v-icon size="large">mdi-download</v-icon></v-tab>
+                    <v-tab class="tab-import" :value="MAIN_TABS.IMPORT"><v-icon size="large">mdi-upload</v-icon></v-tab>
+                    <v-tab class="tab-help" :value="MAIN_TABS.HELP"><v-icon size="large">mdi-help</v-icon></v-tab>
                 </v-tabs>
 
                 <v-window v-model="mainTab">
@@ -30,22 +37,29 @@
                         <ImportViewer @loaded="importData"/>
                     </v-window-item>
 
+                    <v-window-item :key="MAIN_TABS.HELP" :value="MAIN_TABS.HELP" class="mt-2 ml-2 mr-2">
+                    </v-window-item>
+
                 </v-window>
             </v-sheet>
 
-            <v-sheet class="ma-2 d-flex flex-column align-center" style="overflow-x: hidden; max-height: 99vh; min-width: 1100px;" color="grey-lighten-5" rounded="sm">
+            <v-sheet class="ma-2 d-flex flex-column align-center"
+                style="overflow-x: hidden; max-height: 99vh; min-width: 1100px;"
+                color="grey-lighten-5" rounded="sm">
 
                 <div class="ma-1 mt-2 pa-1">
-                    <LineChart
-                        :data="lineData"
-                        :width="950"
-                        :height="300"
-                        x-attr="0" y-attr="1"
-                        :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
-                        :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
+                    <KeepAlive>
+                        <LineChart v-if="mainTab !== MAIN_TABS.HELP"
+                            :data="lineData"
+                            :width="950"
+                            :height="300"
+                            x-attr="0" y-attr="1"
+                            :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
+                            :y-domain="tsc.dynamicRange ? null : [tsc.min, tsc.max]"/>
+                    </KeepAlive>
                 </div>
 
-                <v-divider class="mt-2 mb-2" thickness="2" style="width: 100%"></v-divider>
+                <v-divider v-if="mainTab !== MAIN_TABS.HELP" class="mt-2 mb-2" thickness="2" style="width: 100%"></v-divider>
 
                 <div class="ma-1 mt-2 pa-1" style="max-width: 100%;">
                     <KeepAlive>
@@ -64,6 +78,9 @@
                             @delete="deleteComponent"/>
                     </KeepAlive>
                 </div>
+
+                <HelpPage v-if="mainTab === MAIN_TABS.HELP" :width="700"/>
+
             </v-sheet>
 
             <div class="ma-2 pa-1 comp-wrapper">
@@ -75,9 +92,13 @@
             </div>
 
             <ToastHandler/>
+
         </div>
 
-        <TutorialManager v-if="tsc.size > 0" :tsID="tsc.series[0].id"/>
+        <TutorialManager ref="tutorial" v-if="tsc.size > 0"
+            :tsID="tsc.series[0].id"
+            :size="tsc.series[0].size"
+            @addComponent="addComponent"/>
     </div>
 
 </template>
@@ -101,11 +122,13 @@
     import ComponentPicker from '@/components/ComponentPicker.vue';
     import OperationTree from '@/components/OperationTree.vue';
     import TutorialManager from '@/components/TutorialManager.vue';
+    import HelpPage from '@/components/HelpPage.vue';
 
     const app = useApp();
     const comms = useComms();
 
     const wrapper = ref(null);
+    const tutorial = ref(null);
 
     const { mainTab } = storeToRefs(app)
 
@@ -128,6 +151,12 @@
         }
         return null;
     });
+
+    function startTutorial() {
+        if (tutorial.value) {
+            tutorial.value.start();
+        }
+    }
 
     function addComponent(type) {
         if (ts.value) {
