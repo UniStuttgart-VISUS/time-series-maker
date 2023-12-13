@@ -79,6 +79,14 @@ export const useApp = defineStore('app', {
             }
         },
 
+        toggleSelectedTimeseries(id) {
+            if (this.isSelectedTimeSeries(id)) {
+                this.deselectTimeSeries();
+            } else {
+                this.selectTimeSeries(id);
+            }
+        },
+
         hasSelectedTimeSeries() {
             return this.selectedTs !== null;
         },
