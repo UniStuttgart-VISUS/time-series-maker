@@ -7,20 +7,51 @@ import inmap from '@stdlib/utils/inmap';
 import randi from '@stdlib/random/base/randi';
 import filled from '@stdlib/array/filled'
 import mapFun from '@stdlib/utils/map-function'
+import clamp from '@stdlib/math/base/special/clamp';
 
 function add(a, b) { return a+b; }
 function subtract(a, b) { return a-b; }
 function multiply(a, b) { return a*b; }
 
+const DEFAULT_OPTIONS = Object.freeze({
+    instances: 1,
+    clampMin: false,
+    clampMax: false,
+    clampMinValue: 0,
+    clampMaxValue: 1,
+})
+
+function readOptions(obj) {
+    if ("options" in obj) {
+        return obj.options;
+    }
+
+    const options = Object.assign({}, DEFAULT_OPTIONS);
+    if ("instances" in obj) {
+        options.instances = obj.instances;
+    }
+
+    return options;
+}
 
 export default class TimeSeries {
 
-    constructor(tsc, id, name=null, instances=1, components=[], compositor=null) {
+    constructor(tsc, id, name=null, options={}, components=[], compositor=null) {
+
+        options = Object.assign(Object.assign({}, DEFAULT_OPTIONS), options);
 
         this._tsc = tsc;
         this.id = id;
-        this.instances = Math.max(1, instances);
         this.name = name ? name : id;
+
+        this.instances = Math.max(1, options.instances);
+        this.clampMin = options.clampMin;
+        this.clampMax = options.clampMax;
+        this.clampMinValue = options.clampMinValue;
+        this.clampMaxValue = options.clampMaxValue;
+        if (this.clampMinValue >= this.clampMaxValue) {
+            this.clampMinValue = this.clampMaxValue - 1;
+        }
 
         this.dataY = [];
 
@@ -38,12 +69,40 @@ export default class TimeSeries {
         });
     }
 
+    setClampMin(value) {
+        if (!this.clampMax || value < this.clampMaxValue) {
+            this.generate();
+            this.clampMinValue = value;
+            return true;
+        }
+        return false;
+    }
+
+    setClampMax(value) {
+        if (!this.clampMin || value < this.clampMinValue) {
+            this.clampMaxValue = value;
+            this.generate();
+            return true;
+        }
+        return false;
+    }
+
+    getOptions() {
+        return {
+            instances: this.instances,
+            clampMin: this.clampMin,
+            clampMax: this.clampMax,
+            clampMinValue: this.clampMinValue,
+            clampMaxValue: this.clampMaxValue,
+        }
+    }
+
     static fromJSON(tsc, json) {
         return new TimeSeries(
             tsc,
             json.id,
-            json.name,
-            json.instances,
+            "name" in json ? json.name : json.id,
+            readOptions(json),
             json.components.map(c => TimeSeriesComponent.fromJSON(null, c)),
             Compositor.fromJSON(json.compositor)
         )
@@ -53,7 +112,11 @@ export default class TimeSeries {
 
         this.id = json.id;
         this.name = json.name;
-        this.instances = Math.max(1, json.instances);
+        this.instances = Math.max(1, json.options.instances);
+        this.clampMin = json.options.clampMin;
+        this.clampMax = json.options.clampMax;
+        this.clampMinValue = json.options.clampMinValue;
+        this.clampMaxValue = json.options.clampMaxValue;
 
         this.dataY = [];
 
@@ -73,7 +136,7 @@ export default class TimeSeries {
         const json = {
             id: this.id,
             name: this.name,
-            instances: this.instances,
+            options: this.getOptions(),
             type: "timeseries",
             components: this.components.map(c => c.toJSON()),
             compositor: this.compositor.toJSON()
@@ -362,6 +425,24 @@ export default class TimeSeries {
                     });
                 }
             });
+
+            if (this.clampMin || this.clampMax) {
+
+                if (this.clampMin && this.clampMax && this.clampMinValue >= this.clampMaxValue) {
+                    console.error("invalid clamp values")
+                    break;
+                }
+
+                inmap(values[i], d => {
+                    if (this.clampMin && this.clampMax) {
+                        return clamp(d, this.clampMinValue, this.clampMaxValue)
+                    } else if (this.clampMin) {
+                        return Math.max(d, this.clampMinValue)
+                    } else if (this.clampMax) {
+                        return Math.min(d, this.clampMaxValue)
+                    }
+                });
+            }
         }
 
         this.dataY = values;

@@ -1,6 +1,55 @@
 <template>
 
     <div class="ts-settings">
+        <div class="d-flex align-center">
+            <v-tooltip text="whether to clamp the values to a minimum" open-delay="500" location="top">
+                <template v-slot:activator="{ props }">
+                    <v-checkbox v-bind="props"
+                        v-model="timeseries.clampMin"
+                        density="compact"
+                        hide-details
+                        label="clamp min"
+                        color="primary"
+                        @update:model-value="timeseries.generate()"/>
+                </template>
+            </v-tooltip>
+
+            <v-text-field v-model.number="clampMin"
+                label="minimum value"
+                class="mb-1 mt-1 ml-1"
+                type="number"
+                :max="1"
+                :rules="[v => timeseries.setClampMin(v) || 'invalid value']"
+                density="compact"
+                hide-details
+                @update:model-value="timeseries.setClampMin(clampMin)"/>
+
+        </div>
+        <div class="d-flex align-center">
+
+            <v-tooltip text="whether to clamp the values to a maximum" open-delay="500" location="top">
+                <template v-slot:activator="{ props }">
+                    <v-checkbox v-bind="props"
+                        v-model="timeseries.clampMax"
+                        density="compact"
+                        hide-details
+                        label="clamp max"
+                        color="primary"
+                        @update:model-value="timeseries.generate()"/>
+                </template>
+            </v-tooltip>
+
+            <v-text-field v-model.number="clampMax"
+                label="maximum value"
+                class="mb-1 mt-1 ml-1"
+                type="number"
+                :max="1"
+                :rules="[v => timeseries.setClampMax(v) || 'invalid value']"
+                density="compact"
+                hide-details
+                @update:model-value="timeseries.setClampMax(clampMax)"/>
+
+        </div>
         <div class="d-flex">
             <v-text-field v-model.number="tscOpacity"
                 label="line opacity"
@@ -78,6 +127,8 @@
     const comms = useComms();
     const { tscOpacity } = storeToRefs(app)
 
+    const clampMin = ref(props.timeseries.clampMinValue)
+    const clampMax = ref(props.timeseries.clampMaxValue)
     const showAll = ref(true);
     const selectedComponents = ref([]);
 
@@ -110,6 +161,15 @@
         props.timeseries.randomSeed();
     }
 
+    function readClampValues() {
+        if (props.timeseries.clampMinValue !== clampMin.value) {
+            clampMin.value = props.timeseries.clampMinValue;
+        }
+        if (props.timeseries.clampMaxValue !== clampMax.value) {
+            clampMax.value = props.timeseries.clampMaxValue;
+        }
+    }
+
     function readVisibility() {
         let changes = false;
         props.timeseries.components.forEach(c => {
@@ -136,5 +196,6 @@
 
     watch(() => app.selectedComps, readSelected, { deep: true })
     watch(() => props.timeseries.size, readVisibility)
+    watch(() => [props.timeseries.clampMinValue, props.timeseries.clampMaxValue], readClampValues, { deep: true });
 
 </script>
