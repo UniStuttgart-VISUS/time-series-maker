@@ -92,7 +92,7 @@
             <div class="ma-2 pa-1 comp-wrapper">
                 <KeepAlive>
                     <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer" color="grey-lighten-5" rounded="sm">
-                        <ComponentPicker @click="addComponent"/>
+                        <ComponentPicker @click="addComponent" :n="40"/>
                     </v-sheet >
                 </KeepAlive>
             </div>

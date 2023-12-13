@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-    import { ref, reactive } from 'vue';
+    import { ref, reactive, onMounted, watch } from 'vue';
     import { useApp } from '@/store/app';
 
     import ComponentPreview from '@/components/ComponentPreview.vue';
@@ -79,21 +79,27 @@
 
     const comps = reactive({});
 
-    const dataX = props.start && props.end ?
+    let dataX = props.start && props.end ?
         datespace(props.start, props.end, props.n) :
         datespace(TSC_DEFAULTS.start, TSC_DEFAULTS.end, props.n);
 
-    for (const t in GENERATOR_DEFAULTS) {
-        const g = GENERATOR_DEFAULTS[t];
-        if (comps[g.type] === undefined) {
-            comps[g.type] = {};
+    function generatePreviewData() {
+        dataX = props.start && props.end ?
+            datespace(props.start, props.end, props.n) :
+            datespace(TSC_DEFAULTS.start, TSC_DEFAULTS.end, props.n);
+
+        for (const t in GENERATOR_DEFAULTS) {
+            const g = GENERATOR_DEFAULTS[t];
+            if (comps[g.type] === undefined) {
+                comps[g.type] = {};
+            }
+            comps[g.type][g.key] = {
+                key: g.key,
+                name: g.name,
+                title: g.title,
+                values: Array.from(makePreview(g.key, dataX))
+            };
         }
-        comps[g.type][g.key] = {
-            key: g.key,
-            name: g.name,
-            title: g.title,
-            values: Array.from(makePreview(g.key, dataX))
-        };
     }
 
     const emit = defineEmits(["click"])
@@ -107,5 +113,9 @@
         }
         description.value = key;
     }
+
+    onMounted(generatePreviewData)
+
+    watch(() => props.n, generatePreviewData)
 
 </script>

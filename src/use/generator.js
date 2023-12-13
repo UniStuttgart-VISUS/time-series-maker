@@ -195,25 +195,48 @@ export default class Generator {
                             "month"
                         );
                     }
+                    case "year": {
+                        return specificDate(
+                            numberOrValues,
+                            this.getOpt("year"),
+                            this.getOpt("value"),
+                            "year"
+                        );
+                    }
                     case "daily": {
                         return specificDateChange(
                             numberOrValues,
                             this.getOpt("value"),
-                            "day"
+                            this.getOpt("width"),
+                            this.getOpt("distance"),
+                            "days"
                         );
                     }
                     case "weekly": {
                         return specificDateChange(
                             numberOrValues,
                             this.getOpt("value"),
-                            "weekNumber"
+                            this.getOpt("width"),
+                            this.getOpt("distance"),
+                            "weeks"
                         );
                     }
                     case "monthly": {
                         return specificDateChange(
                             numberOrValues,
                             this.getOpt("value"),
-                            "month"
+                            this.getOpt("width"),
+                            this.getOpt("distance"),
+                            "months"
+                        );
+                    }
+                    case "yearly": {
+                        return specificDateChange(
+                            numberOrValues,
+                            this.getOpt("value"),
+                            this.getOpt("width"),
+                            this.getOpt("distance"),
+                            "years"
                         );
                     }
                     case "workweek": {

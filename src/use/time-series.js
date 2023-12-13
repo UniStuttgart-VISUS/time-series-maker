@@ -288,7 +288,7 @@ export default class TimeSeries {
         this.generate();
     }
 
-    generate(xValues) {
+    generate(xValues, force=false) {
 
         if (!this._tsc) return;
 
@@ -300,7 +300,7 @@ export default class TimeSeries {
 
         const getComp = id => {
             const c = this.getComponent(id);
-            if (c && (c.data.length === 0 || c.data[0].length !== this._tsc.samples)) {
+            if (c && (force || c.data.length === 0 || c.data[0].length !== this._tsc.samples)) {
                 c.generate(xValues)
             }
             return c;

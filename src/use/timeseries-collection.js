@@ -120,15 +120,15 @@ class TimeSeriesCollection {
                 break;
             case "start":
                 this.start = value < this.end ? value : this.start;
-                this.generate();
+                this.generate(true);
                 break;
             case "end":
                 this.end = value > this.start ? value : this.end;
-                this.generate();
+                this.generate(true);
                 break;
             case "samples":
                 this.samples = Math.max(3, Math.round(value));
-                this.generate();
+                this.generate(true);
                 break;
             case "dynamicRange": {
                 this.dynamicRange = value === true;
@@ -194,9 +194,9 @@ class TimeSeriesCollection {
         this.lastUpdate = Date.now();
     }
 
-    generate() {
+    generate(force=false) {
         this.dataX = datespace(this.start, this.end, this.samples);
-        this.series.forEach(ts => ts.generate(this.dataX));
+        this.series.forEach(ts => ts.generate(this.dataX, force));
         this.update();
     }
 

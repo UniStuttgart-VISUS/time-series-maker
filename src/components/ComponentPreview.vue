@@ -8,6 +8,7 @@
 <script setup>
 
     import * as d3 from 'd3';
+    import { useApp } from '@/store/app';
     import { ref, onMounted, watch } from 'vue';
 
 
@@ -44,6 +45,7 @@
     const emit = defineEmits(["click"])
 
     const el = ref(null);
+    const app = useApp();
 
     function draw() {
         const svg = d3.select(el.value);
@@ -65,7 +67,7 @@
         }
 
         const line = d3.line()
-            .curve(d3.curveMonotoneX)
+            .curve(app.lineStyle === 'smooth' ? d3.curveMonotoneX : d3.curveLinear)
             .x((_, i) => x(i))
             .y(d => y(d))
 
@@ -82,6 +84,7 @@
     onMounted(draw);
 
     watch(props, draw, { deep: true});
+    watch(() => app.lineStyle, draw)
 </script>
 
 <style scoped>

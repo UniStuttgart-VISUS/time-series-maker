@@ -29,8 +29,8 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             position: new GeneratorOption("position", 0.5, { min: 0, max: 1, step: 0.01 }),
-            width: new GeneratorOption("width", 1, { min: 1, step: 1 }),
             value: new GeneratorOption("value", 1, { step: 1 }),
+            width: new GeneratorOption("width", 1, { min: 1, step: 1 }),
         }
     },
     DAY: {
@@ -40,7 +40,7 @@ const GENERATOR_DEFAULTS = {
         title: "Day",
         seedRequired: false,
         options: {
-            day: new GeneratorOption("day", 1, { min: 1, max: 31, step: 1, validators: ["INTEGER"] }),
+            day: new GeneratorOption("day", 15, { min: 1, max: 31, step: 1, validators: ["INTEGER"] }),
             value: new GeneratorOption("value", 1, { step: 1 }),
         }
     },
@@ -51,7 +51,7 @@ const GENERATOR_DEFAULTS = {
         title: "Week",
         seedRequired: false,
         options: {
-            week: new GeneratorOption("week", 1, { min: 1, max: 53, step: 1, validators: ["INTEGER"] }),
+            week: new GeneratorOption("week", 2, { min: 1, max: 53, step: 1, validators: ["INTEGER"] }),
             value: new GeneratorOption("value", 1, { step: 1 }),
         }
     },
@@ -62,7 +62,18 @@ const GENERATOR_DEFAULTS = {
         title: "Month",
         seedRequired: false,
         options: {
-            month: new GeneratorOption("month", 1, { min: 1, max: 12, step: 1, validators: ["INTEGER"] }),
+            month: new GeneratorOption("month", 2, { min: 1, max: 12, step: 1, validators: ["INTEGER"] }),
+            value: new GeneratorOption("value", 1, { step: 1 }),
+        }
+    },
+    YEAR: {
+        key: "YEAR",
+        name: "year",
+        type: GENERATOR_TYPES.SPECIAL,
+        title: "Year",
+        seedRequired: false,
+        options: {
+            year: new GeneratorOption("year", 2020, { step: 1, validators: ["INTEGER", "NOT_ZERO"] }),
             value: new GeneratorOption("value", 1, { step: 1 }),
         }
     },
@@ -74,6 +85,8 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             value: new GeneratorOption("value", 1, { step: 1 }),
+            width: new GeneratorOption("value", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            distance: new GeneratorOption("distance", 1, { min: 1, step: 1 }),
         }
     },
     WEEKLY: {
@@ -84,6 +97,8 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             value: new GeneratorOption("value", 1, { step: 1 }),
+            width: new GeneratorOption("value", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            distance: new GeneratorOption("distance", 1, { min: 1, step: 1 }),
         }
     },
     MONTHLY: {
@@ -94,6 +109,20 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             value: new GeneratorOption("value", 1, { step: 1 }),
+            width: new GeneratorOption("value", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            distance: new GeneratorOption("distance", 1, { min: 1, step: 1 }),
+        }
+    },
+    YEARLY: {
+        key: "YEARLY",
+        name: "yearly",
+        type: GENERATOR_TYPES.SPECIAL,
+        title: "Yearly",
+        seedRequired: false,
+        options: {
+            value: new GeneratorOption("value", 1, { step: 1 }),
+            width: new GeneratorOption("value", 1, { min: 1, step: 1, validators: ["INTEGER"] }),
+            distance: new GeneratorOption("distance", 1, { min: 1, step: 1 }),
         }
     },
     WORK_WEEK: {
@@ -126,7 +155,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -139,7 +168,7 @@ const GENERATOR_DEFAULTS = {
         options: {
             base: new GeneratorOption("base", 2, { min: 0, step: 1, validators: ["POSITIVE", "NOT_ZERO"] }),
             xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -151,7 +180,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -164,7 +193,7 @@ const GENERATOR_DEFAULTS = {
         options: {
             base: new GeneratorOption("base", 2, { min: 0, step: 1, validators: ["POSITIVE", "NOT_ZERO"] }),
             xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -176,7 +205,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -188,7 +217,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             xMin: new GeneratorOption("xMin", 1, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -200,7 +229,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -212,7 +241,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -224,7 +253,7 @@ const GENERATOR_DEFAULTS = {
         seedRequired: false,
         options: {
             xMin: new GeneratorOption("xMin", 0, { step: 1, validators: ["INTEGER"] }),
-            xMax: new GeneratorOption("xMax", 10, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
+            xMax: new GeneratorOption("xMax", 5, { step: 1, validators: ["NOT_ZERO", "INTEGER"] }),
             scale: new GeneratorOption("scale", 1),
         }
     },
@@ -440,7 +469,7 @@ const GENERATOR_DEFAULTS = {
         title: "PDF Normal",
         seedRequired: false,
         options: {
-            mean: new GeneratorOption("mean", 0),
+            mean: new GeneratorOption("mean", 5),
             std: new GeneratorOption("std", 0.1, { min: 0, validators: ["NOT_ZERO"] }),
             xMin: new GeneratorOption("xMin", 0, { min: 0, step: 1, validators: ["INTEGER"] }),
             xMax: new GeneratorOption("xMax", 10, { min: 0, step: 1, validators: ["INTEGER"] }),
