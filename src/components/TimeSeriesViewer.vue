@@ -127,8 +127,6 @@
     const comms = useComms();
     const { tscOpacity } = storeToRefs(app)
 
-    const clampMin = ref(props.timeseries.clampMinValue)
-    const clampMax = ref(props.timeseries.clampMaxValue)
     const showAll = ref(true);
     const selectedComponents = ref([]);
 
@@ -138,6 +136,9 @@
             required: true,
         }
     })
+
+    const clampMin = ref(props.timeseries.clampMinValue)
+    const clampMax = ref(props.timeseries.clampMaxValue)
 
     function toggleVisibility() {
         showAll.value = !showAll.value;
