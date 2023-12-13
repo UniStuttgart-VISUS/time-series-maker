@@ -1,10 +1,13 @@
 <template>
-    <div>
+    <v-sheet class="pa-2 mb-2" color="grey-lighten-4">
+        <div class="mb-2 text-caption">
+            choose a previously exported JSON file
+        </div>
         <v-file-input v-model="files"
             accept="application/json"
             label="json file"
             @update:model-value="loadFile"/>
-    </div>
+    </v-sheet>
 </template>
 
 <script setup>

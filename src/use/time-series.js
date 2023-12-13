@@ -34,12 +34,9 @@ export default class TimeSeries {
         components.forEach(c => {
             c._ts = this;
             this.components.push(c)
+            console.log(c.name)
             this.COMP_ID = Math.max(this.COMP_ID, Number.parseInt(c.id.slice(c.id.indexOf("_")+1))+1);
         });
-
-        if (this.size > 0) {
-            this.generate();
-        }
     }
 
     static fromJSON(tsc, json) {

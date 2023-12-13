@@ -41,9 +41,12 @@
             </v-tooltip>
         </div>
 
-        <v-expansion-panels v-model="selectedComponents" class="mt-4 mb-4 comp-panels" rounded="sm" variant="accordion" multiple @update:model-value="setSelected">
+        <v-expansion-panels v-model="selectedComponents"
+            class="mt-2 mb-4 comp-panels"
+            rounded="sm" variant="accordion"
+            multiple @update:model-value="setSelected">
 
-            <v-expansion-panel v-for="c in timeseries.components" :key="c.id" :value="c.id">
+            <v-expansion-panel v-for="c in timeseries.components" :key="c.id" :value="c.id" elevation="2">
 
                 <v-expansion-panel-title>
                     <TimeSeriesComponentTitle :component="c" @remove="removeComponent"/>

@@ -12,12 +12,13 @@
             density="compact"
             hide-details
             label="which data to export"
-            :disabled="!app.hasSelectedTimeSeries()"/>
+            :disabled="!app.hasSelectedTimeSeries()"
+            @update:model-value="update"/>
 
         <v-btn color="primary"
             class="mt-2"
             size="small"
-            variant="outlined"
+            variant="flat"
             @click="exportData">
             export
         </v-btn>
@@ -25,7 +26,7 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
+    import { ref, onMounted, watch } from 'vue';
 
     import FileSaver from 'file-saver';
     import TimeSeriesCollection from '@/use/timeseries-collection.js';
@@ -38,6 +39,8 @@
             required: true
         }
     })
+    const emit = defineEmits(["update"]);
+
     const app = useApp();
     const comms = useComms();
 
@@ -53,9 +56,7 @@
 
     function exportData() {
 
-        const data = exportWhich.value === "ts" && app.hasSelectedTimeSeries() ?
-            props.collection.getTimeSeries(app.selectedTs).toJSON() :
-            props.collection.toJSON()
+        const data = getData();
 
         const file = new File(
             [JSON.stringify(data, null, 2)],
@@ -65,4 +66,28 @@
         FileSaver.saveAs(file)
         comms.success("exported settings to "+filename.value)
     }
+
+    function getData() {
+        return exportWhich.value === "ts" && app.hasSelectedTimeSeries() ?
+            props.collection.getTimeSeries(app.selectedTs).toJSON() :
+            props.collection.toJSON()
+    }
+
+    defineExpose({ getData });
+
+    function update() { emit('update'); }
+
+    onMounted(function() {
+        filename.value = exportWhich.value === "ts" ? app.selectedTs : "collection"
+        update();
+    })
+
+    watch(() => [app.selectedTs, exportWhich.value], function() {
+        if (exportWhich.value === "ts" && app.selectedTs) {
+            filename.value = app.selectedTs
+        } else if (exportWhich.value === "tsc") {
+            filename.value = "collection"
+        }
+    })
+
 </script>

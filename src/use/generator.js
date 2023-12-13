@@ -404,10 +404,11 @@ export default class Generator {
                         const vals = filled(0, number)
                         const pos = []
                         const count = this.getOpt("count")
+                        const factory = random.randu.factory({ seed: this.seeds[index] })
                         for (let i = 0; i < count; ++i) {
                             let p;
                             do {
-                                p = Math.min(Math.round(random.randu() * number), number-1)
+                                p = Math.min(Math.round(factory() * number), number-1)
                             } while (pos.includes(p))
                             pos.push(p);
                         }

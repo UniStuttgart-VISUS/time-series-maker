@@ -30,7 +30,7 @@
                     </v-window-item>
 
                     <v-window-item :key="MAIN_TABS.EXPORT" :value="MAIN_TABS.EXPORT" class="mt-2 ml-2 mr-2">
-                        <ExportViewer :collection="tsc"/>
+                        <ExportViewer ref="expView" :collection="tsc" @update="readExportData"/>
                     </v-window-item>
 
                     <v-window-item :key="MAIN_TABS.IMPORT" :value="MAIN_TABS.IMPORT" class="mt-2 ml-2 mr-2">
@@ -38,6 +38,10 @@
                     </v-window-item>
 
                     <v-window-item :key="MAIN_TABS.HELP" :value="MAIN_TABS.HELP" class="mt-2 ml-2 mr-2">
+                        <div class="pa-2">
+                            This page provides a few videos showcasing different functionalities.
+                            Double-click a video to set it to fullscreen.
+                        </div>
                     </v-window-item>
 
                 </v-window>
@@ -81,6 +85,8 @@
 
                 <HelpPage v-if="mainTab === MAIN_TABS.HELP" :width="700"/>
 
+                <ExportPreview v-if="mainTab === MAIN_TABS.EXPORT" :data="exportData.data" :type="exportData.type"/>
+
             </v-sheet>
 
             <div class="ma-2 pa-1 comp-wrapper">
@@ -115,6 +121,7 @@
     import LineChart from '@/components/LineChart.vue';
     import TimeSeriesViewer from '@/components/TimeSeriesViewer.vue';
     import ExportViewer from '@/components/ExportViewer.vue';
+    import ExportPreview from '@/components/ExportPreview.vue';
     import ImportViewer from '@/components/ImportViewer.vue';
     import TimeSeriesCollectionViewer from '@/components/TimeSeriesCollectionViewer.vue';
     import TimeSeries from '@/use/time-series';
@@ -129,12 +136,17 @@
 
     const wrapper = ref(null);
     const tutorial = ref(null);
+    const expView = ref(null);
 
     const { mainTab } = storeToRefs(app)
 
     const replaceCompID = ref("");
     const lineData = ref([]);
-    const tree = reactive({})
+    const exportData = reactive({
+        data: {},
+        type: "json"
+    });
+    const tree = reactive({});
 
     const tsc = reactive(new TimeSeriesCollection());
 
@@ -261,7 +273,6 @@
 
     function importData(json) {
 
-
         if (json.type === "timeseries") {
             app.deselectTimeSeries();
             replaceCompID.value = "";
@@ -283,9 +294,17 @@
         }
     }
 
+    function readExportData() {
+        if (expView.value) {
+            exportData.data = expView.value.getData();
+            exportData.type = expView.value.getType();
+        }
+    }
     function readTab() {
         if (mainTab.value === MAIN_TABS.TS || mainTab.value === MAIN_TABS.TSC) {
             update(true)
+        } else if (mainTab.value === MAIN_TABS.EXPORT) {
+            readExportData();
         }
     }
 
@@ -297,6 +316,11 @@
 
     watch(() => tsc.lastUpdate, update);
     watch(mainTab, readTab)
+    watch(expView, (_, prevVal) => {
+        if (prevVal === null) {
+            readExportData();
+        }
+    })
 </script>
 
 <style scoped>

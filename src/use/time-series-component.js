@@ -13,11 +13,8 @@ export default class TimeSeriesComponent {
         this.instances = 0;
         this.generator = generator;
         this.visible = true;
-        if (generator === null && instances > 1) {
+        if (generator !== null) {
             this.setInstances(instances)
-        } else {
-            this.instances = Math.max(1, instances);
-            this.generate();
         }
     }
 
@@ -80,7 +77,7 @@ export default class TimeSeriesComponent {
                 }
             }
         }
-        this.instances = number;
+        this.instances = Math.max(1, number);
         if (generate && this.generator.seedRequired) {
             this.generate();
         }

@@ -3,6 +3,7 @@ import TimeSeries from "@/use/time-series.js";
 import datespace from '@stdlib/array/datespace';
 
 import { DateTime } from 'luxon';
+import { useComms } from '@/store/comms';
 
 const TSC_DEFAULTS = Object.freeze({
     samples: 100,
@@ -59,6 +60,7 @@ class TimeSeriesCollection {
         this.TS_ID = json.series.length;
         json.series.forEach(s => {
             this.series.push(TimeSeries.fromJSON(this, s))
+            console.log(s.id)
             this.TS_ID = Math.max(this.TS_ID, Number.parseInt(s.id.slice(s.id.indexOf("_")+1))+1);
         });
 
@@ -77,14 +79,21 @@ class TimeSeriesCollection {
         if (this.dataX.length !== this.samples) {
             this.generate();
         }
-        return this.series.map(s => Array.from(s.dataY))
+        let data = [];
+        this.series.forEach(s => { data = data.concat(s.toCSV()) })
+        return data;
     }
 
-    toCSVHeader() {
+    toCSVHeader(format) {
         if (this.dataX.length !== this.samples) {
             this.generate();
         }
-        return this.dataX.map(d => DateTime.fromJSDate(d).toFormat("yyyy-LL-dd"))
+        return this.dataX.map(d => {
+            if (format === "milliseconds") {
+                return d.valueOf();
+            }
+            return DateTime.fromJSDate(d).toLocaleString(format)
+        })
     }
 
     get size() {
@@ -147,6 +156,10 @@ class TimeSeriesCollection {
         return "timeseries " + number;
     }
 
+    hasTimeSeries(id) {
+        return this.getTimeSeries(id) !== undefined;
+    }
+
     getTimeSeries(id) {
         return this.series.find(ts => ts.id === id);
     }
@@ -155,6 +168,13 @@ class TimeSeriesCollection {
     }
 
     addTimeSeries(timeseries=null) {
+        if (timeseries && this.hasTimeSeries(timeseries.id)) {
+            const idx = this.getTimeSeriesIndex(timeseries.id);
+            if (idx >= 0) {
+                this.series.splice(idx, 1);
+            }
+        }
+
         this.series.push(timeseries ? timeseries : new TimeSeries(
             this,
             this.getID(),
