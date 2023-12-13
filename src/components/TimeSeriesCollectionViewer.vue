@@ -1,6 +1,6 @@
 <template>
     <div>
-        <TimeSeriesCollectionSettings :collection="collection" @update="updateSettings"/>
+        <TimeSeriesCollectionSettings :collection="collection" collapsible/>
 
         <v-btn rounded="sm" color="primary" @click="add" style="width: 100%;" class="mb-1 new-ts" elevation="0">
             <v-icon icon="mdi-plus"/> new time series
@@ -51,9 +51,6 @@
         }
     });
 
-    function updateSettings(payload) {
-        props.collection.setOption(payload.key, payload.value);
-    }
     function add() {
         try {
             props.collection.addTimeSeries();

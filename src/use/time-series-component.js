@@ -51,6 +51,11 @@ export default class TimeSeriesComponent {
         return this.generator ? this.generator.seedRequired : false;
     }
 
+    get lastUpdate() {
+        if (!this._ts) return null;
+        return this._ts.lastUpdate
+    }
+
     setName(name) {
         this.name = name;
         this._ts.compositor.rename(this.id, this.name);

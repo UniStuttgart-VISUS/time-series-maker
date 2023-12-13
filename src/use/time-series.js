@@ -145,7 +145,7 @@ export default class TimeSeries {
     }
 
     toCSV() {
-        if (this.dataY.length !== this._tsc.samples) {
+        if (this.dataY.length !== this.numSamples) {
             this.generate();
         }
         return Array.from(this.dataY);
@@ -177,6 +177,15 @@ export default class TimeSeries {
 
     get size() {
         return this.components.length;
+    }
+
+    get numSamples() {
+        return this._tsc ? this._tsc.samples : 0
+    }
+    set numSamples(value) {
+        if (this._tsc) {
+            this._tsc.setOption("samples", value);
+        }
     }
 
     get hasRandom() {
@@ -294,13 +303,14 @@ export default class TimeSeries {
 
         let leftVals, rightVals;
 
-        const baseVals = filled(0, this._tsc.samples);
+        const samples = this.numSamples;
+        const baseVals = filled(0, samples);
 
-        xValues = xValues ? xValues : (this._tsc.dataX ? this._tsc.dataX : this._tsc.samples);
+        xValues = xValues ? xValues : (this._tsc.dataX ? this._tsc.dataX : samples);
 
         const getComp = id => {
             const c = this.getComponent(id);
-            if (c && (force || c.data.length === 0 || c.data[0].length !== this._tsc.samples)) {
+            if (c && (force || c.data.length === 0 || c.data[0].length !== samples)) {
                 c.generate(xValues)
             }
             return c;
@@ -330,11 +340,11 @@ export default class TimeSeries {
             switch(op) {
                 default:
                 case OPERATOR.ADD:
-                    return mapFun(i => add(leftVals[i], rightVals[i]), this._tsc.samples);
+                    return mapFun(i => add(leftVals[i], rightVals[i]), samples);
                 case OPERATOR.MULTIPLY:
-                    return mapFun(i => multiply(leftVals[i], rightVals[i]), this._tsc.samples);
+                    return mapFun(i => multiply(leftVals[i], rightVals[i]), samples);
                 case OPERATOR.SUBTRACT:
-                    return mapFun(i => subtract(leftVals[i], rightVals[i]), this._tsc.samples);
+                    return mapFun(i => subtract(leftVals[i], rightVals[i]), samples);
             }
         }
 
@@ -347,7 +357,7 @@ export default class TimeSeries {
         const values = [];
         for (let i = this.instances-1; i >= 0; --i) {
 
-            values[i] = filled(0, this._tsc.samples);
+            values[i] = filled(0, samples);
 
             leftNode = null;
             rightNode = null;
@@ -484,7 +494,7 @@ export default class TimeSeries {
     }
 
     toChartData(single=true, opacity=0.2) {
-        if (this.dataY.length === 0 || this.dataY[0].length !== this._tsc.samples) {
+        if (this.dataY.length === 0 || this.dataY[0].length !== this.numSamples) {
             this.generate();
         }
 

@@ -27,6 +27,9 @@
 
                     <v-window-item :key="MAIN_TABS.TS" :value="MAIN_TABS.TS" class="mt-2 ml-2 mr-2">
                         <TimeSeriesViewer v-if="ts" :timeseries="ts"/>
+                        <div v-else class="ma-2 pa-2" style="text-align: center;">
+                            please select a time series to start
+                        </div>
                     </v-window-item>
 
                     <v-window-item :key="MAIN_TABS.EXPORT" :value="MAIN_TABS.EXPORT" class="mt-2 ml-2 mr-2">

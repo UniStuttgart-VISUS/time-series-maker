@@ -39,7 +39,7 @@
 
 <script setup>
 
-    import { ref, reactive, watch } from 'vue';
+    import { ref, reactive, watch, onMounted } from 'vue';
 
     const props = defineProps({
         component: {
@@ -50,9 +50,6 @@
 
     const seed = ref(props.component.generator.seeds[0])
     const options = reactive({});
-    for (const oKey in props.component.generator.options) {
-        options[oKey] = props.component.generator.options[oKey].copy();
-    }
 
     function setOption(key) {
         if (options[key].value !== props.component.generator.getOpt(key)) {
@@ -62,6 +59,17 @@
             }
         }
     }
+    function readOptions() {
+        for (const key in options){
+            if (options.hasOwnProperty(key)){
+                delete options[key];
+            }
+        }
+        for (const key in props.component.generator.options) {
+            options[key] = props.component.generator.options[key].copy();
+        }
+    }
+
     function update() {
         if (props.component.isValid()) {
             props.component.update();
@@ -77,10 +85,13 @@
         update();
     }
 
+    onMounted(readOptions)
+
     watch(() => props.component.generator.seeds, function(newseeds) {
         if (newseeds[0] !== seed.value) {
             seed.value = newseeds[0];
         }
     }, { deep: true })
+    watch(() => props.component.lastUpdate, readOptions)
 
 </script>
