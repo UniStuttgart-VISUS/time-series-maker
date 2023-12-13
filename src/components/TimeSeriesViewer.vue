@@ -99,10 +99,10 @@
             props.timeseries.removeComponent(id);
             if (app.isSelectedComponent(id)) {
                 selectedComponents.value.splice(selectedComponents.value.indexOf(id))
-                app.setSelectedComponents(selectedComponents.value);
+                app.removeSelectedComponent(id);
             }
         } catch(e) {
-            comms.error(e.message);
+            comms.error("remove component error: " + e.toString());
         }
     }
 

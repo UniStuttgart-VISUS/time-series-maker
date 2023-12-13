@@ -60,7 +60,6 @@ class TimeSeriesCollection {
         this.TS_ID = json.series.length;
         json.series.forEach(s => {
             this.series.push(TimeSeries.fromJSON(this, s))
-            console.log(s.id)
             this.TS_ID = Math.max(this.TS_ID, Number.parseInt(s.id.slice(s.id.indexOf("_")+1))+1);
         });
 

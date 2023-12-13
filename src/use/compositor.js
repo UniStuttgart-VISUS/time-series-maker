@@ -544,7 +544,9 @@ class Compositor {
         if (this.size === 2) {
             return callback(
                 OP_CASE.APPLY_LEFT,
-                this.tree.left.data.id,
+                this.tree.hasLeft() ?
+                    this.tree.left.data.id :
+                    this.tree.right.data.id,
                 this.tree.data.name,
                 this.tree.data.id,
                 null

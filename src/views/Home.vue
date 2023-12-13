@@ -101,9 +101,9 @@
 
         </div>
 
-        <TutorialManager ref="tutorial" v-if="tsc.size > 0"
-            :tsID="tsc.series[0].id"
-            :size="tsc.series[0].size"
+        <TutorialManager ref="tutorial"
+            :tsID="tsc.size > 0 ? tsc.series[0].id : null"
+            :size="tsc.size > 0 ? tsc.series[0].size : 0"
             @addComponent="addComponent"/>
     </div>
 
@@ -179,7 +179,7 @@
                     ts.value.addComponent(type);
                 }
             } catch(e) {
-                comms.error(e.toString());
+                comms.error("add component error: " + e.toString());
             }
         }
     }
@@ -187,8 +187,11 @@
         if (ts.value) {
             try {
                 ts.value.removeComponent(id);
+                if (app.isSelectedComponent(id)) {
+                    app.removeSelectedComponent(id)
+                }
             } catch(e) {
-                comms.error(e.toString());
+                comms.error("remove component error: " + e.toString());
             }
         }
     }
@@ -209,7 +212,7 @@
                     comms.info("action was not possible")
                 }
             } catch(e) {
-                comms.error(e.toString());
+                comms.error("select error: " + e.toString());
             }
         }
     }
@@ -220,7 +223,7 @@
                 ts.value.compositor.setOperator(id, op);
                 update(true);
             } catch(e) {
-                comms.error(e.toString());
+                comms.error("update compositor error: " + e.toString());
             }
         }
     }
@@ -230,7 +233,7 @@
             try {
                 ts.value.switchComponents(from, to);
             } catch(e) {
-                comms.error(e.toString());
+                comms.error("switch components error: " + e.toString());
             }
         }
     }
@@ -241,7 +244,7 @@
                 try {
                     ts.value.generate();
                 } catch(e) {
-                    comms.error(e.toString());
+                    comms.error("update timeseries error: " + e.toString());
                 }
             }
 
@@ -260,7 +263,7 @@
                 try {
                     tsc.generate();
                 } catch(e) {
-                    comms.error(e.toString());
+                    comms.error("update collection error: " + e.toString());
                 }
             }
             tree.root = {}
@@ -280,7 +283,7 @@
                 tsc.addTimeSeries(TimeSeries.fromJSON(tsc, json))
                 update(true)
             } catch(e) {
-                comms.error(e.toString());
+                comms.error("import timeseries error: " + e.toString());
             }
         } else if (json.type === "timeseries-collection") {
             app.deselectTimeSeries();
@@ -289,7 +292,7 @@
                 tsc.fromJSON(json);
                 update(true)
             } catch(e) {
-                comms.error(e.toString());
+                comms.error("import collection error: " + e.toString());
             }
         }
     }
