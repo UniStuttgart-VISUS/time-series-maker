@@ -48,14 +48,14 @@
             </v-sheet>
 
             <v-sheet class="ma-2 d-flex flex-column align-center"
-                style="overflow-x: hidden; max-height: 99vh; min-width: 1100px;"
+                :style="{ 'overflow-x': 'auto', 'max-height': '99vh', 'width': (chartWidth+200)+'px'}"
                 color="grey-lighten-5" rounded="sm">
 
                 <div class="ma-1 mt-2 pa-1">
                     <KeepAlive>
                         <LineChart v-if="mainTab !== MAIN_TABS.HELP"
                             :data="lineData"
-                            :width="950"
+                            :width="chartWidth-150"
                             :height="300"
                             x-attr="0" y-attr="1"
                             :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
@@ -74,7 +74,7 @@
                             :add-node-id="tree.addNodeID"
                             :replace-node-id="replaceCompID"
                             :x-values="tsc.dataX"
-                            :width="1000"
+                            :width="chartWidth"
                             @update="updateCompositor"
                             @switch="switchComponents"
                             @replace="replaceComponent"
@@ -130,6 +130,7 @@
     import OperationTree from '@/components/OperationTree.vue';
     import TutorialManager from '@/components/TutorialManager.vue';
     import HelpPage from '@/components/HelpPage.vue';
+    import { useElementSize } from '@vueuse/core';
 
     const app = useApp();
     const comms = useComms();
@@ -139,6 +140,17 @@
     const expView = ref(null);
 
     const { mainTab } = storeToRefs(app)
+
+    const wrapperSize = reactive(useElementSize(wrapper))
+    const chartWidth = computed(() => {
+        return Math.max(
+            500,
+            Math.min(
+                wrapperSize.width*0.6,
+                Math.min(wrapperSize.width-350, 900)
+            )
+        )
+    });
 
     const replaceCompID = ref("");
     const lineData = ref([]);
