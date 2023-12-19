@@ -6,10 +6,14 @@ const VALIDATORS = Object.freeze({
 });
 const VALIDATOR_IDS = Object.keys(VALIDATORS);
 
-const DEFAULT_OPTIONS = {
+const DEFAULT_OPTIONS_NUM = {
     min: -Infinity,
     max: Infinity,
     step: 0.1,
+    validators: [],
+}
+const DEFAULT_OPTIONS_CAT = {
+    options: [],
     validators: [],
 }
 
@@ -48,19 +52,52 @@ function validatorsToString(validators) {
 
 class GeneratorOption {
 
-    constructor(name, value, options=DEFAULT_OPTIONS, generator=null) {
+    constructor(name, value, generator=null) {
         this.name = name;
         this.value = value;
-        this.title = options.title ? options.title : name;
-        this.min = options.min ? options.min : DEFAULT_OPTIONS.min;
-        this.max = options.max ? options.max : DEFAULT_OPTIONS.max;
-        this.step = options.step ? options.step : DEFAULT_OPTIONS.step;
-        this.validators = options.validators ? options.validators : DEFAULT_OPTIONS.validators;
         this.generator = generator;
     }
 
     setGenerator(generator) {
         this.generator = generator;
+    }
+
+    copy() {
+        throw "called abstract method"
+    }
+
+    toJSON() {
+        throw "called abstract method"
+    }
+
+    static fromJSON(json) {
+        throw "called abstract method"
+    }
+
+    toString(includeName=true) {
+        throw "called abstract method"
+    }
+
+    matchesValidators(value=this.value) {
+        throw "called abstract method"
+    }
+
+    isValid(value=this.value) {
+        throw "called abstract method"
+    }
+}
+
+class NumericGeneratorOption extends GeneratorOption {
+
+    constructor(name, value, options={}, generator=null) {
+
+        options = Object.assign(Object.assign({}, DEFAULT_OPTIONS_NUM), options);
+        super(name, value, generator);
+        this.title = options.title ? options.title : name;
+        this.min = options.min;
+        this.max = options.max;
+        this.step = options.step;
+        this.validators = options.validators;
     }
 
     copy() {
@@ -126,4 +163,74 @@ class GeneratorOption {
     }
 }
 
-export { GeneratorOption as default, VALIDATOR_IDS }
+class CategoricGeneratorOption extends GeneratorOption {
+
+    constructor(name, value, options={}, generator=null) {
+
+        options = Object.assign(Object.assign({}, DEFAULT_OPTIONS_CAT), options);
+        super(name, value, generator);
+        this.title = options.title ? options.title : name;
+        this.options = options.options.length === 0 ? [this.value] : options.options;
+        this.validators = options.validators;
+    }
+
+    copy() {
+        return new GeneratorOption(
+            this.name,
+            this.value,
+            {
+                title: this.title,
+                options: this.options,
+                validators: this.validators,
+            },
+            this.generator
+        )
+    }
+
+    toJSON() {
+        return {
+            name: this.name,
+            value: this.value,
+            title: this.title,
+            options: this.options,
+            validators: this.validators,
+        }
+    }
+
+    static fromJSON(json) {
+        return new GeneratorOption(
+            json["name"],
+            json["value"],
+            json
+        )
+    }
+
+    toString(includeName=true) {
+        const rstr = rangeToString(this.min, this.max, this.validators);
+        const vals = validatorsToString(this.validators).join(" | ");
+        if (vals.length > 0) {
+            return includeName ? `${this.name}: { ${rstr} | ${vals} }` : `{ ${rstr} | ${vals} }`
+        }
+        return includeName ? `${this.name}: { ${rstr} }` : `{ ${rstr} }`
+    }
+
+    matchesValidators(value=this.value) {
+        let valid = true;
+        if (this.generator !== null && (this.name === "xMin" || this.name === "xMax")) {
+            const other = this.generator.getOpt(this.name === "xMin" ? "xMax" : "xMin");
+            if (other !== undefined && other !== null) {
+                valid = this.name === "xMin" ? value < other : value > other;
+            }
+        }
+        return valid && !this.validators.some(d => !VALIDATORS[d](value))
+    }
+
+    isValid(value=this.value) {
+        return !Number.isNaN(value) && this.matchesValidators(value) &&
+            (Number.isNaN(this.min) || value >= this.min) &&
+            (Number.isNaN(this.max) || value <= this.max) &&
+            ((Number.isNaN(this.min) || Number.isNaN(this.max)) || this.min < this.max)
+    }
+}
+
+export { NumericGeneratorOption, VALIDATOR_IDS }
