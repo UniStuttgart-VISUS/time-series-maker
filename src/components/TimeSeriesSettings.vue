@@ -58,7 +58,7 @@
             </div>
             <div class="d-flex">
 
-                <v-text-field v-model.number="tscOpacity"
+                <v-text-field v-model.number="tsOpacity"
                     label="line opacity"
                     class="mb-1 mt-1"
                     type="number"
@@ -107,7 +107,7 @@
     import TimeSeries from '@/use/time-series';
 
     const app = useApp()
-    const { tscOpacity } = storeToRefs(app)
+    const { tsOpacity } = storeToRefs(app)
 
     const props = defineProps({
         timeseries: {

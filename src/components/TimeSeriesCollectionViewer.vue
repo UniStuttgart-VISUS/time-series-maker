@@ -7,7 +7,7 @@
         </v-btn>
 
         <div>
-            <v-text-field v-model.number="tsOpacity"
+            <v-text-field v-model.number="tscOpacity"
                 label="line opacity"
                 class="mb-2"
                 type="number"
@@ -42,7 +42,7 @@
     const comms = useComms();
     const app = useApp();
 
-    const { tsOpacity } = storeToRefs(app);
+    const { tscOpacity } = storeToRefs(app);
 
     const props = defineProps({
         collection: {

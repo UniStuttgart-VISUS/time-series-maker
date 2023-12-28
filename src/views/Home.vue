@@ -271,7 +271,7 @@
             tree.maxDepth = ts.value.tree.maxDepth;
             tree.numLeaves = ts.value.tree.numLeaves;
             tree.addNodeID = ts.value.tree.addNodeID;
-            lineData.value = ts.value.toChartData(true, app.tscOpacity)
+            lineData.value = ts.value.toChartData(true, app.tsOpacity)
         } else {
             app.setTSCDomain(tsc.series.map(d => d.id));
             if (generate === true) {
@@ -285,7 +285,7 @@
             tree.maxDepth = 0;
             tree.numLeaves = 0;
             tree.addNodeID = "";
-            lineData.value = tsc.toChartData(app.tsOpacity)
+            lineData.value = tsc.toChartData(app.tscOpacity)
         }
     }
 
