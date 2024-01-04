@@ -144,11 +144,11 @@
         },
         minChartWidth: {
             type: Number,
-            default: 120
+            default: 100
         },
         minChartHeight: {
             type: Number,
-            default: 50
+            default: 45
         },
     })
     const emit = defineEmits(["update", "switch", "select", "delete"])
