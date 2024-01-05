@@ -88,11 +88,14 @@
             datespace(props.start, props.end, props.n) :
             datespace(TSC_DEFAULTS.start, TSC_DEFAULTS.end, props.n);
 
+        for (const t in GENERATOR_TYPES) {
+            if (comps[GENERATOR_TYPES[t]] === undefined) {
+                comps[GENERATOR_TYPES[t]] = {};
+            }
+        }
+
         for (const t in GENERATOR_DEFAULTS) {
             const g = GENERATOR_DEFAULTS[t];
-            if (comps[g.type] === undefined) {
-                comps[g.type] = {};
-            }
             comps[g.type][g.key] = {
                 key: g.key,
                 name: g.name,

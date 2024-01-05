@@ -51,14 +51,14 @@
             </v-sheet>
 
             <v-sheet class="ma-2 d-flex flex-column align-center"
-                :style="{ 'overflow-x': 'auto', 'max-height': '99vh', 'width': (chartWidth+150)+'px'}"
+                :style="{ 'overflow-x': 'hidden', 'max-height': '99vh', 'width': (chartWidth)+'px'}"
                 color="grey-lighten-5" rounded="sm">
 
                 <div class="ma-1 mt-2 pa-1">
                     <KeepAlive>
                         <LineChart v-if="mainTab !== MAIN_TABS.HELP"
                             :data="lineData"
-                            :width="chartWidth"
+                            :width="chartWidth-150"
                             :height="300"
                             x-attr="0" y-attr="1"
                             :color-scale="mainTab === MAIN_TABS.TS && ts ? app.tsColorScale : app.tscColorScale"
@@ -147,14 +147,12 @@
     const wrapperSize = reactive(useElementSize(wrapper))
     const chartWidth = computed(() => {
         return Math.max(
+            wrapperSize.width - 700,
             500,
-            Math.max(
-                wrapperSize.width * 0.6,
-                Math.min(wrapperSize.width-350, 900)
-            )
         )
     });
-    const treeWidth = computed(() => chartWidth.value + 100);
+    const chartHeight = computed(() => Math.min(300, chartWidth.value / 1.8));
+    const treeWidth = computed(() => chartWidth.value - 50);
 
     const replaceCompID = ref("");
     const lineData = ref([]);

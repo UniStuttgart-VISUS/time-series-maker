@@ -1,8 +1,8 @@
 const GENERATOR_TYPES = Object.freeze({
     SPECIAL: "special",
     RNG: "random",
-    WAVE: "wave",
     MATH: "math",
+    WAVE: "wave",
     PDF: "pdf",
     CDF: "cdf",
 });

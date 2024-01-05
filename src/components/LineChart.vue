@@ -208,7 +208,7 @@
         ctx.lineWidth = 2;
         props.data.forEach(d => {
             ctx.beginPath();
-            ctx.globalAlpha = app.isSelectedComponent(id(d)) ? 1 : (otherOpacity ? otherOpacity : d.opacity);
+            ctx.globalAlpha = app.isSelectedComponent(id(d)) || id(d) === "result" ? 1 : (otherOpacity ? otherOpacity : d.opacity);
             ctx.strokeStyle  = props.colorScale(color(d));
             line(d.values)
             ctx.stroke();

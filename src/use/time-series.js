@@ -160,7 +160,13 @@ export default class TimeSeries {
     }
 
     copy() {
-        const id = "copy_" + this.id;
+        if (!this._tsc) return;
+        let id = "copy_" + this.id;
+
+        let num = 1;
+        while (this._tsc.hasTimeSeries(id)) {
+            id = `copy_${this.id} (${num++})`;
+        }
         return new TimeSeries(
             this._tsc,
             id,

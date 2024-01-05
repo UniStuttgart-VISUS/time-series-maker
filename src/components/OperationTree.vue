@@ -1,6 +1,6 @@
 <template>
     <div class="op-tree" ref="wrapper">
-        <div style="max-width: 100%; overflow: auto;">
+        <div style="max-width: 100%; overflow: hidden;">
             <div class="d-flex justify-center">
 
                 <v-sheet class="pa-2 mr-4 text-caption d-flex flex-column align-center" style="max-width: 33%;" color="#f1f1f1" rounded="sm">
@@ -473,6 +473,8 @@
     function updateIndicators() {
 
         d3.select(el.value).selectAll(".indicator").remove()
+
+        if (props.numLeaves < 2) return;
 
         if (props.replaceNodeId.length > 0) {
             gs.filter(d => d.data.id === props.replaceNodeId)

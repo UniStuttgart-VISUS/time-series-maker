@@ -21,13 +21,13 @@ export const useApp = defineStore('app', {
         lineStyle: "smooth",
 
         tscDomain: [],
-        tscColorScale: d3.scaleOrdinal(d3.schemeCategory10),
+        tscColorScale: d3.scaleOrdinal(d3.schemeDark2),
 
         tsDomain: [],
         tsColorScale: d3.scaleOrdinal(["#000"].concat(d3.schemeCategory10)),
 
-        tsOpacity: 0.33,
-        tscOpacity: 0.1,
+        tsOpacity: 0.2,
+        tscOpacity: 0.5,
     }),
 
     actions: {
