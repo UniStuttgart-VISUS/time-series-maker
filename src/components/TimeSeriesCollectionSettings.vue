@@ -50,9 +50,8 @@
                     type="number"
                     step="0.01"
                     density="compact"
-                    hide-details
                     class="mr-1"
-                    :rules="[v => v < max ? true : 'must be smaller than maximum']"
+                    :rules="[v => !max || v < max ? true : 'must be smaller than maximum']"
                     @update:modelValue="setMin"/>
 
                 <v-text-field v-if="!dynamicRange"
@@ -61,8 +60,7 @@
                     type="number"
                     step="0.01"
                     density="compact"
-                    hide-details
-                    :rules="[v => v > min ? true : 'must be larger than minimum']"
+                    :rules="[v => !min || v > min ? true : 'must be larger than minimum']"
                     @update:modelValue="setMax"/>
             </div>
         </div>
@@ -71,6 +69,7 @@
 
 <script setup>
 
+    import { useComms } from '@/store/comms';
     import TimeSeriesCollection from '@/use/timeseries-collection.js';
     import { ref, watch } from 'vue';
 
@@ -95,8 +94,22 @@
     const max = ref(props.collection.max);
     const dynamicRange = ref(props.collection.dynamicRange);
 
-    function setMin() { updateSettings("min", min.value); }
-    function setMax() { updateSettings("max", max.value); }
+    const comms = useComms();
+
+    function setMin() {
+        if (min.value <= props.collection.max) {
+            updateSettings("min", min.value);
+        } else {
+            comms.error("minimum value must be smaller than the maximum value")
+        }
+    }
+    function setMax() {
+        if (max.value >= props.collection.min) {
+            updateSettings("max", max.value);
+        } else {
+            comms.error("maximum value must be smaller than the minimum value")
+        }
+    }
     function setStart() { updateSettings("start", start.value); }
     function setEnd() { updateSettings("end", end.value); }
     function setDynamicRange() { updateSettings("dynamicRange", dynamicRange.value); }

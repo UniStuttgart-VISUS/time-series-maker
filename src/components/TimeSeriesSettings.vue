@@ -33,16 +33,15 @@
                 </v-tooltip>
             </div>
 
-            <div class="d-flex align-center">
+            <div v-if="timeseries.clampMin || timeseries.clampMax" class="d-flex align-center">
 
                 <v-text-field v-model.number="clampMin"
                     label="minimum value"
                     class="mb-1 mt-1 ml-1"
                     type="number"
                     :max="1"
-                    :rules="[v => timeseries.setClampMin(v) || 'invalid value']"
+                    :rules="[v => timeseries.isOkayClampMin(v) || 'invalid value']"
                     density="compact"
-                    hide-details
                     @update:model-value="timeseries.setClampMin(clampMin)"/>
 
                 <v-text-field v-model.number="clampMax"
@@ -50,9 +49,8 @@
                     class="mb-1 mt-1 ml-1"
                     type="number"
                     :max="1"
-                    :rules="[v => timeseries.setClampMax(v) || 'invalid value']"
+                    :rules="[v => timeseries.isOkayClampMax(v) || 'invalid value']"
                     density="compact"
-                    hide-details
                     @update:model-value="timeseries.setClampMax(clampMax)"/>
 
             </div>

@@ -3,7 +3,6 @@ import TimeSeries from "@/use/time-series.js";
 import datespace from '@stdlib/array/datespace';
 
 import { DateTime } from 'luxon';
-import { useComms } from '@/store/comms';
 
 const TSC_DEFAULTS = Object.freeze({
     samples: 100,
@@ -116,7 +115,7 @@ class TimeSeriesCollection {
                 this.min = value < this.max ? value : this.min;
                 break;
             case "max":
-                this.max = value > this.min ? value : this.max;
+                this.max = value >= this.min ? value : this.max;
                 break;
             case "start":
                 this.start = value < this.end ? value : this.start;
@@ -138,8 +137,8 @@ class TimeSeriesCollection {
                     }
                     this.series.forEach(s => {
                         const [min, max] = d3.extent(s.dataY);
-                        this.min = Math.min(min, this.min);
-                        this.max = Math.max(max, this.max);
+                        this.min = Math.max(min, this.min);
+                        this.max = Math.min(max, this.max);
                     })
                 }
                 break;

@@ -86,7 +86,7 @@
                     </KeepAlive>
                 </div>
 
-                <HelpPage v-if="mainTab === MAIN_TABS.HELP" :width="700"/>
+                <HelpPage v-if="mainTab === MAIN_TABS.HELP" :width="chartWidth"/>
 
                 <ExportPreview v-if="mainTab === MAIN_TABS.EXPORT" :data="exportData.data" :type="exportData.type"/>
 
@@ -94,7 +94,7 @@
 
             <div class="ma-2 pa-1 comp-wrapper">
                 <KeepAlive>
-                    <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer" color="grey-lighten-5" rounded="sm">
+                    <v-sheet v-if="mainTab === MAIN_TABS.TS" class="comp-footer" color="grey-lighten-5" rounded="sm" width="250">
                         <ComponentPicker @click="addComponent" :n="40"/>
                     </v-sheet >
                 </KeepAlive>
@@ -151,7 +151,6 @@
             500,
         )
     });
-    const chartHeight = computed(() => Math.min(300, chartWidth.value / 1.8));
     const treeWidth = computed(() => chartWidth.value - 50);
 
     const replaceCompID = ref("");

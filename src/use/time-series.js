@@ -1,3 +1,4 @@
+import * as d3 from 'd3';
 import TimeSeriesComponent from './time-series-component.js';
 import Generator from './generator.js';
 import GENERATOR_DEFAULTS from "./generator-defaults.js";
@@ -69,17 +70,25 @@ export default class TimeSeries {
         });
     }
 
+    isOkayClampMin(value) {
+        return !this.clampMax || value <= this.clampMaxValue
+    }
+
+    isOkayClampMax(value) {
+        return this.clampMin || value >= this.clampMinValue
+    }
+
     setClampMin(value) {
-        if (!this.clampMax || value < this.clampMaxValue) {
-            this.generate();
+        if (this.isOkayClampMin(value)) {
             this.clampMinValue = value;
+            this.generate();
             return true;
         }
         return false;
     }
 
     setClampMax(value) {
-        if (!this.clampMin || value < this.clampMinValue) {
+        if (this.isOkayClampMax(value)) {
             this.clampMaxValue = value;
             this.generate();
             return true;
@@ -444,18 +453,28 @@ export default class TimeSeries {
 
             if (this.clampMin || this.clampMax) {
 
-                if (this.clampMin && this.clampMax && this.clampMinValue >= this.clampMaxValue) {
+                if (this.clampMin && this.clampMax && this.clampMinValue > this.clampMaxValue) {
                     console.error("invalid clamp values")
                     break;
                 }
 
+                const dataMin = d3.min(values[i])
+                const dataMax = d3.max(values[i])
+                const clampMin = this.clampMin && this.clampMinValue ?
+                    clamp(this.clampMinValue, dataMin, dataMax) : NaN;
+                const clampMax = this.clampMax && this.clampMaxValue ?
+                    clamp(this.clampMaxValue, dataMin, dataMax) : NaN;
+
+
                 inmap(values[i], d => {
-                    if (this.clampMin && this.clampMax) {
-                        return clamp(d, this.clampMinValue, this.clampMaxValue)
-                    } else if (this.clampMin) {
-                        return Math.max(d, this.clampMinValue)
-                    } else if (this.clampMax) {
-                        return Math.min(d, this.clampMaxValue)
+                    if (clampMin && clampMax) {
+                        return clamp(d, clampMin, clampMax)
+                    } else if (clampMin) {
+                        return Math.max(d, clampMin)
+                    } else if (clampMax) {
+                        return Math.min(d, clampMax)
+                    } else {
+                        return d;
                     }
                 });
             }
